@@ -4,25 +4,35 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   Post,
   Put,
   Query,
+  Res,
 } from '@nestjs/common';
 import { ClientGetListDto } from './dto/ClientGetListDto';
 import { ClientCreateDto } from './dto/ClientCreateDto';
 import { ClientsService } from './client.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiTags } from '@nestjs/swagger';
 import { ClientUpdateDto } from './dto/client.update.dto';
+import { Response } from 'express';
+import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
 
 @ApiTags('clients')
 @Controller()
 export class ClientController {
   constructor(private readonly clientService: ClientsService) {}
 
+  @ApiHeader({
+    name: TOTAL_COUNT_HEADER,
+  })
   @Get('/clients')
-  getAll(@Query() params: ClientGetListDto) {
-    return this.clientService.findMany(params);
+  async getAll(@Query() params: ClientGetListDto, @Res() res: Response) {
+    const [clients, count] = await this.clientService.findMany(params);
+
+    res.set(TOTAL_COUNT_HEADER, count.toString());
+    return res.send(clients);
   }
 
   @Get('/clients/:id')

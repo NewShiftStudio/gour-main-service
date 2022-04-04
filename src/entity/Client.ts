@@ -18,6 +18,9 @@ export class Client extends AppEntity {
   })
   role: ClientRole;
 
+  @Column()
+  roleId: number;
+
   @Column({
     default: false,
   })
@@ -31,6 +34,16 @@ export class Client extends AppEntity {
 
   @ManyToMany(() => Product)
   favorites: Product[];
+
+  @Column({
+    default: '',
+  })
+  name: string;
+
+  @Column({
+    default: '',
+  })
+  phone: string;
 }
 
 export type IClient = Client;

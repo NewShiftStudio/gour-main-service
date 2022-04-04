@@ -16,10 +16,13 @@ async function bootstrap() {
     .setDescription('The cats API description')
     .setVersion('1.0')
     .addTag('cats')
+    .setBasePath(process.env.BASE_PATH)
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(process.env.PORT);
+  await app.listen(process.env.PORT).then(() => {
+    console.log('APP LISTEN ' + process.env.PORT);
+  });
 }
 bootstrap();

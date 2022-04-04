@@ -17,14 +17,24 @@ export class ClientsService {
     private clientRoleRepository: Repository<ClientRole>,
   ) {}
 
-  findMany(params: ClientGetListDto): Promise<Client[]> {
+  findMany(params: ClientGetListDto): Promise<[Client[], number]> {
     const options: FindManyOptions<Client> = {
       ...getPaginationOptions(params.offset, params.length),
     };
-    if (params.filter) {
-      options.where = params.filter;
+    if (params.isApproved !== undefined) {
+      options.where = {
+        isApproved: params.isApproved,
+      };
     }
-    return this.clientRepository.find();
+
+    if (params.roleId) {
+      options.where = {
+        ...((options.where as object) || {}),
+        roleId: params.roleId,
+      };
+    }
+    console.log('options', options);
+    return this.clientRepository.findAndCount(options);
   }
 
   findOne(id: number): Promise<Client> {
