@@ -11,13 +11,21 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const config = new DocumentBuilder()
+  const builder = new DocumentBuilder()
+    .addServer(process.env.SERVER_PATH)
     .setTitle('Cats example')
     .setDescription('The cats API description')
     .setVersion('1.0')
-    .addTag('cats')
-    .setBasePath(process.env.BASE_PATH)
-    .build();
+    .setBasePath('v1');
+
+  if (process.env.NODE_ENV === 'develop') {
+    builder.addServer(`http://127.0.0.1:${process.env.PORT}`);
+  }
+
+  const config = builder.build();
+
+  console.log('NODE_ENV', process.env.NODE_ENV);
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
