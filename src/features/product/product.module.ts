@@ -7,10 +7,17 @@ import { Category } from '../../entity/Category';
 import { RoleDiscount } from '../../entity/RoleDiscount';
 import { ProductGrade } from '../../entity/ProductGrade';
 import { ProductGradeService } from './product-grade.service';
+import { ClientRole } from '../../entity/ClientRole';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Product, Category, RoleDiscount, ProductGrade]),
+    TypeOrmModule.forFeature([
+      Product,
+      Category,
+      RoleDiscount,
+      ProductGrade,
+      ClientRole,
+    ]),
   ],
   providers: [ProductService, ProductGradeService],
   controllers: [ProductController],

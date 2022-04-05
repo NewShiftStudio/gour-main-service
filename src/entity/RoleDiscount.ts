@@ -15,6 +15,9 @@ export class RoleDiscount extends AppEntity {
   })
   role: ClientRole;
 
+  @Column()
+  roleId: number;
+
   @Column({
     type: 'float',
     nullable: true,

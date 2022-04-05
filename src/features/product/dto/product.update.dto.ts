@@ -2,7 +2,8 @@ import {
   IsArray,
   IsNumber,
   IsObject,
-  IsOptional, IsString,
+  IsOptional,
+  IsString,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -12,7 +13,8 @@ import { ImageDto } from '../../../common/dto/ImageDto';
 import { PriceDto } from '../../../common/dto/PriceDto';
 import { PageMetaDto } from '../../../common/dto/PageMetaDto';
 import { RoleDiscountDto } from '../../../common/dto/RoleDiscountDto';
-import {ApiPropertyOptional} from "@nestjs/swagger";
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiModelPropertyOptional } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 
 export class ProductUpdateDto {
   @ValidateNested()
@@ -65,10 +67,11 @@ export class ProductUpdateDto {
   @ApiPropertyOptional()
   meta?: PageMetaDto;
 
+  @ApiModelPropertyOptional({
+    isArray: true,
+    type: RoleDiscountDto,
+  })
   @ValidateNested()
-  @Type(() => RoleDiscountDto)
-  @IsArray()
   @IsOptional()
-  @ApiPropertyOptional()
   roleDiscounts?: RoleDiscountDto[];
 }

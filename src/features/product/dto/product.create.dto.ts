@@ -11,7 +11,12 @@ import { TranslatableTextDto } from '../../../common/dto/TranslatableTextDto';
 import { ImageDto } from '../../../common/dto/ImageDto';
 import { PriceDto } from '../../../common/dto/PriceDto';
 import { PageMetaDto } from '../../../common/dto/PageMetaDto';
-import {ApiProperty, ApiPropertyOptional} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiModelProperty,
+  ApiModelPropertyOptional,
+} from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
+import { RoleDiscountDto } from '../../../common/dto/RoleDiscountDto';
 
 export class ProductCreateDto {
   @ValidateNested()
@@ -56,4 +61,12 @@ export class ProductCreateDto {
   @IsOptional()
   @ApiPropertyOptional()
   meta?: PageMetaDto;
+
+  @ApiModelPropertyOptional({
+    isArray: true,
+    type: RoleDiscountDto,
+  })
+  @ValidateNested()
+  @IsOptional()
+  roleDiscounts?: RoleDiscountDto[];
 }

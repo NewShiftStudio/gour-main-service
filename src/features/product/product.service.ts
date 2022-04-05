@@ -9,6 +9,7 @@ import { ProductUpdateDto } from './dto/product.update.dto';
 import { RoleDiscount } from '../../entity/RoleDiscount';
 import { ProductGetListDto } from './dto/product.get-list.dto';
 import { ProductGetOneDto } from './dto/product.get-one.dto';
+import { ClientRole } from '../../entity/ClientRole';
 
 @Injectable()
 export class ProductService {
@@ -19,6 +20,8 @@ export class ProductService {
     private categoryRepository: Repository<Category>,
     @InjectRepository(RoleDiscount)
     private roleDiscountRepository: Repository<RoleDiscount>,
+    @InjectRepository(ClientRole)
+    private clientRoleRepository: Repository<ClientRole>,
   ) {}
 
   findMany(params: ProductGetListDto) {
@@ -55,9 +58,13 @@ export class ProductService {
   }
 
   async create(product: ProductCreateDto) {
-    const saveParams: Omit<ProductCreateDto, 'category' | 'similarProducts'> & {
+    const saveParams: Omit<
+      ProductCreateDto,
+      'category' | 'similarProducts' | 'roleDiscounts'
+    > & {
       category?: Category | number;
       similarProducts?: (Product | number)[];
+      roleDiscounts?: (RoleDiscount | object)[];
     } = product;
     saveParams.category = await this.categoryRepository.findOne(
       product.category,
@@ -71,6 +78,21 @@ export class ProductService {
         );
       }
       saveParams.similarProducts = similarProducts;
+    }
+
+    if (product.roleDiscounts) {
+      const roleDiscounts: RoleDiscount[] = [];
+      for (const roleDiscount of product.roleDiscounts) {
+        const role = await this.clientRoleRepository.findOne(roleDiscount.role);
+        roleDiscounts.push(
+          await this.roleDiscountRepository.create({
+            role,
+            rub: roleDiscount.rub,
+            eur: roleDiscount.eur,
+          }),
+        );
+      }
+      saveParams.roleDiscounts = roleDiscounts;
     }
     return this.productRepository.save(saveParams as DeepPartial<Product>);
   }
