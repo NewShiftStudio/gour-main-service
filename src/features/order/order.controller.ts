@@ -8,11 +8,14 @@ import {
   Post,
   Put,
   Query,
+  Res,
 } from '@nestjs/common';
 import { OrderCreateDto } from './dto/order.create.dto';
 import { OrderService } from './order.service';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
 import { ApiTags } from '@nestjs/swagger';
+import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
+import { Response } from 'express';
 
 @ApiTags('orders')
 @Controller()
@@ -20,8 +23,11 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get('/orders')
-  getAll(@Query() params: BaseGetListDto) {
-    return this.orderService.findMany(params);
+  async getAll(@Query() params: BaseGetListDto, @Res() res: Response) {
+    const [clients, count] = await this.orderService.findMany(params);
+
+    res.set(TOTAL_COUNT_HEADER, count.toString());
+    return res.send(clients);
   }
 
   @Get('/orders/:id')

@@ -7,12 +7,15 @@ import {
   Post,
   Put,
   Query,
+  Res,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
 import { CategoryCreateDto } from './dto/category.create.dto';
 import { CategoryUpdateDto } from './dto/category.update.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
+import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
 
 @ApiTags('categories')
 @Controller()
@@ -20,8 +23,11 @@ export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Get('/categories')
-  getAll(@Query() params: BaseGetListDto) {
-    return this.categoryService.findMany(params);
+  async getAll(@Query() params: BaseGetListDto, @Res() res: Response) {
+    const [clients, count] = await this.categoryService.findMany(params);
+
+    res.set(TOTAL_COUNT_HEADER, count.toString());
+    return res.send(clients);
   }
 
   @Get('/categories/:id')

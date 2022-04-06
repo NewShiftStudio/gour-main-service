@@ -8,12 +8,15 @@ import {
   Post,
   Put,
   Query,
+  Res,
 } from '@nestjs/common';
 import { CityCreateDto } from './dto/CityCreateDto';
 import { CityService } from './city.service';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
 import { CityUpdateDto } from './dto/city.update.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
+import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
 
 @ApiTags('cities')
 @Controller()
@@ -21,8 +24,11 @@ export class CityController {
   constructor(private readonly cityService: CityService) {}
 
   @Get('/cities')
-  getAll(@Query() params: BaseGetListDto) {
-    return this.cityService.findMany(params);
+  async getAll(@Query() params: BaseGetListDto, @Res() res: Response) {
+    const [clients, count] = await this.cityService.findMany(params);
+
+    res.set(TOTAL_COUNT_HEADER, count.toString());
+    return res.send(clients);
   }
 
   @Get('/cities/:id')
