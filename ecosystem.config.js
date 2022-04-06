@@ -4,7 +4,7 @@ module.exports = {
   apps: [
     {
       name: `${pack.name}`,
-      script: 'dist/index.js',
+      script: 'dist/main.js',
       instances: 1,
       autorestart: true,
       watch: false,
