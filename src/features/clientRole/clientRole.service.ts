@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ClientRole } from '../../entity/ClientRole';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
-import {BaseGetListDto} from "../../common/dto/BaseGetListDto";
+import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
 
 @Injectable()
 export class ClientRoleService {
@@ -13,7 +13,7 @@ export class ClientRoleService {
   ) {}
 
   findMany(params: BaseGetListDto) {
-    return this.clientRoleRepository.find({
+    return this.clientRoleRepository.findAndCount({
       ...getPaginationOptions(params.offset, params.length),
     });
   }

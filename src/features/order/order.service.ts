@@ -24,7 +24,7 @@ export class OrderService {
   ) {}
 
   findMany(params: BaseGetListDto) {
-    return this.orderRepository.find({
+    return this.orderRepository.findAndCount({
       ...getPaginationOptions(params.offset, params.length),
     });
   }

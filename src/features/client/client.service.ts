@@ -33,7 +33,6 @@ export class ClientsService {
         roleId: params.roleId,
       };
     }
-    console.log('options', options);
     return this.clientRepository.findAndCount(options);
   }
 

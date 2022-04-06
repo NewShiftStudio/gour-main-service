@@ -25,7 +25,7 @@ export class ProductService {
   ) {}
 
   findMany(params: ProductGetListDto) {
-    return this.productRepository.find({
+    return this.productRepository.findAndCount({
       ...getPaginationOptions(params.offset, params.length),
       relations: [
         params.withSimilarProducts ? 'similarProducts' : undefined,

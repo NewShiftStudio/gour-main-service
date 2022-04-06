@@ -19,7 +19,7 @@ export class CategoryService {
       ...getPaginationOptions(params.offset, params.length),
     };
 
-    return this.categoryRepository.find(options);
+    return this.categoryRepository.findAndCount(options);
   }
 
   getOne(id: number) {

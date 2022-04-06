@@ -15,7 +15,7 @@ export class CityService {
   ) {}
 
   findMany(params: BaseGetListDto) {
-    return this.cityRepository.find({
+    return this.cityRepository.findAndCount({
       ...getPaginationOptions(params.offset, params.length),
     });
   }

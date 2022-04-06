@@ -15,7 +15,7 @@ export class PromotionService {
   ) {}
 
   findMany(params: BaseGetListDto) {
-    return this.promotionRepository.find({
+    return this.promotionRepository.findAndCount({
       ...getPaginationOptions(params.offset, params.length),
     });
   }
