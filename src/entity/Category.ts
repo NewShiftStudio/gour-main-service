@@ -21,4 +21,7 @@ export class Category extends AppEntity {
 
   @Column()
   icon: string;
+
+  @Column()
+  key: string;
 }
