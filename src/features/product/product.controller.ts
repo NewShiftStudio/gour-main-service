@@ -22,6 +22,7 @@ import { ProductUpdateDto } from './dto/product.update.dto';
 import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
 import { Response } from 'express';
 import { ProductGradeGetListDto } from './dto/product-grade.get-list.dto';
+import { ProductGradeUpdateDto } from './dto/product-grade.update.dto';
 
 @ApiTags('products')
 @Controller()
@@ -85,10 +86,11 @@ export class ProductController {
     return this.productGradeService.findMany(params);
   }
 
-  @Post('/productGrades/:gradeId/approve')
-  updateGrade(@Param('gradeId') gradeId: number) {
-    return this.productGradeService.update(gradeId, {
-      isApproved: true,
-    });
+  @Put('/productGrades/:gradeId')
+  updateGrade(
+    @Param('gradeId') gradeId: number,
+    @Body() dto: ProductGradeUpdateDto,
+  ) {
+    return this.productGradeService.update(gradeId, dto);
   }
 }

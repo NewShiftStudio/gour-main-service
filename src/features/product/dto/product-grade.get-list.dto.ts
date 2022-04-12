@@ -6,10 +6,15 @@ export class ProductGradeGetListDto extends BaseGetListDto {
   @ApiPropertyOptional()
   @IsBooleanString()
   @IsOptional()
-  onlyWithComments?: boolean;
+  withComments?: 'false' | 'true';
 
   @ApiPropertyOptional()
   @IsBooleanString()
   @IsOptional()
-  isApproved?: boolean;
+  isApproved?: 'false' | 'true';
+
+  @ApiPropertyOptional()
+  @IsBooleanString()
+  @IsOptional()
+  waitConfirmation?: 'false' | 'true';
 }

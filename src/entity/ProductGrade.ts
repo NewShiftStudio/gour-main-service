@@ -24,7 +24,7 @@ export class ProductGrade extends AppEntity {
   productId: number;
 
   @Column({
-    default: false,
+    nullable: true,
   })
   isApproved: boolean;
 }

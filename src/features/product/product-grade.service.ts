@@ -22,7 +22,7 @@ export class ProductGradeService {
       productId,
       isApproved: true,
     };
-    if (params.onlyWithComments) {
+    if (params.withComments) {
       where.comment = Not('');
     }
     return this.productGradeRepository.find({
@@ -33,11 +33,14 @@ export class ProductGradeService {
 
   findMany(params: ProductGradeGetListDto) {
     const where: FindOneOptions<ProductGrade>['where'] = {};
-    if (params.onlyWithComments) {
-      where.comment = Not('');
+    if (params.withComments) {
+      where.comment = params.withComments === 'true' ? Not('') : '';
     }
     if (params.isApproved !== undefined) {
-      where.isApproved = params.isApproved;
+      where.isApproved = params.isApproved === 'true';
+    }
+    if (params.waitConfirmation) {
+      where.isApproved = params.waitConfirmation === 'true' ? null : Not(null);
     }
     return this.productGradeRepository.find({
       ...getPaginationOptions(params.offset, params.length),
@@ -52,7 +55,7 @@ export class ProductGradeService {
   async create(productId: number, productGrade: ProductGradeCreateDto) {
     return this.productGradeRepository.save({
       ...productGrade,
-      isApproved: !productGrade.comment,
+      isApproved: productGrade.comment ? null : true,
       productId,
     });
   }
