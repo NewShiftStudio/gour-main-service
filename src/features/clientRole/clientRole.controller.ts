@@ -31,8 +31,8 @@ export class ClientRoleController {
   }
 
   @Get('/clientRoles/:id')
-  getOne(@Param('id') id: number) {
-    return this.clientRoleService.getOne(id);
+  getOne(@Param('id') id: string) {
+    return this.clientRoleService.getOne(+id);
   }
 
   @Post('/clientRoles')
@@ -41,12 +41,12 @@ export class ClientRoleController {
   }
 
   @Put('/clientRoles/:id')
-  put(@Param('id') id: number, @Body() clientRole: Partial<ClientRole>) {
-    return this.clientRoleService.update(id, clientRole);
+  put(@Param('id') id: string, @Body() clientRole: Partial<ClientRole>) {
+    return this.clientRoleService.update(+id, clientRole);
   }
 
   @Delete('/clientRoles/:id')
-  remove(@Param('id') id: number) {
-    return this.clientRoleService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.clientRoleService.remove(+id);
   }
 }

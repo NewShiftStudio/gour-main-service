@@ -31,8 +31,8 @@ export class PromotionController {
   }
 
   @Get('/promotions/:id')
-  getOne(@Param('id') id: number) {
-    return this.promotionService.getOne(id);
+  getOne(@Param('id') id: string) {
+    return this.promotionService.getOne(+id);
   }
 
   @Post('/promotions')
@@ -41,12 +41,12 @@ export class PromotionController {
   }
 
   @Put('/promotions/:id')
-  put(@Param('id') id: number, @Body() promotion: PromotionUpdateDto) {
-    return this.promotionService.update(id, promotion);
+  put(@Param('id') id: string, @Body() promotion: PromotionUpdateDto) {
+    return this.promotionService.update(+id, promotion);
   }
 
   @Delete('/promotions/:id')
-  remove(@Param('id') id: number) {
-    return this.promotionService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.promotionService.remove(+id);
   }
 }

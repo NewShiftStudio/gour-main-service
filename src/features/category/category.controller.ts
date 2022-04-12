@@ -31,8 +31,8 @@ export class CategoryController {
   }
 
   @Get('/categories/:id')
-  getOne(@Param('id') id: number) {
-    return this.categoryService.getOne(id);
+  getOne(@Param('id') id: string) {
+    return this.categoryService.getOne(+id);
   }
 
   @Post('/categories')
@@ -41,12 +41,12 @@ export class CategoryController {
   }
 
   @Put('/categories/:id')
-  put(@Param('id') id: number, @Body() category: CategoryUpdateDto) {
-    return this.categoryService.update(id, category);
+  put(@Param('id') id: string, @Body() category: CategoryUpdateDto) {
+    return this.categoryService.update(+id, category);
   }
 
   @Delete('/categories/:id')
-  remove(@Param('id') id: number) {
-    return this.categoryService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.categoryService.remove(+id);
   }
 }

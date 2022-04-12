@@ -31,8 +31,8 @@ export class OrderController {
   }
 
   @Get('/orders/:id')
-  getOne(@Param('id') id: number) {
-    return this.orderService.getOne(id);
+  getOne(@Param('id') id: string) {
+    return this.orderService.getOne(+id);
   }
 
   @Post('/orders')
@@ -41,12 +41,12 @@ export class OrderController {
   }
 
   @Put('/orders/:id')
-  put(@Param('id') id: number, @Body() order: Partial<Order>) {
-    return this.orderService.update(id, order);
+  put(@Param('id') id: string, @Body() order: Partial<Order>) {
+    return this.orderService.update(+id, order);
   }
 
   @Delete('/orders/:id')
-  remove(@Param('id') id: number) {
-    return this.orderService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.orderService.remove(+id);
   }
 }

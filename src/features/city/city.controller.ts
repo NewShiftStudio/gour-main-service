@@ -42,8 +42,8 @@ export class CityController {
   }
 
   @Put('/cities/:id')
-  put(@Param('id') id: number, @Body() city: CityUpdateDto) {
-    return this.cityService.update(id, city);
+  put(@Param('id') id: string, @Body() city: CityUpdateDto) {
+    return this.cityService.update(+id, city);
   }
 
   @Delete('/cities/:id')

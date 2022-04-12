@@ -5,7 +5,7 @@ import { City } from '../../entity/City';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { CityCreateDto } from './dto/CityCreateDto';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
-import {CityUpdateDto} from "./dto/city.update.dto";
+import { CityUpdateDto } from './dto/city.update.dto';
 
 @Injectable()
 export class CityService {
@@ -29,6 +29,10 @@ export class CityService {
   }
 
   update(id: number, city: CityUpdateDto) {
+    console.log({
+      ...city,
+      id,
+    });
     return this.cityRepository.save({
       ...city,
       id,

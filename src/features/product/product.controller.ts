@@ -46,8 +46,8 @@ export class ProductController {
   }
 
   @Get('/products/:id')
-  getOne(@Param('id') id: number, @Query() params: ProductGetOneDto = {}) {
-    return this.productService.getOne(id, params);
+  getOne(@Param('id') id: string, @Query() params: ProductGetOneDto = {}) {
+    return this.productService.getOne(+id, params);
   }
 
   @Post('/products')
@@ -56,29 +56,29 @@ export class ProductController {
   }
 
   @Put('/products/:id')
-  put(@Param('id') id: number, @Body() product: ProductUpdateDto) {
-    return this.productService.update(id, product);
+  put(@Param('id') id: string, @Body() product: ProductUpdateDto) {
+    return this.productService.update(+id, product);
   }
 
   @Delete('/products/:id')
-  remove(@Param('id') id: number, @Query('hard') hard: boolean) {
-    return this.productService.remove(id, !!hard);
+  remove(@Param('id') id: string, @Query('hard') hard: boolean) {
+    return this.productService.remove(+id, !!hard);
   }
 
   @Get('/products/:productId/grades')
   getProductGrades(
-    @Param('productId') productId: number,
+    @Param('productId') productId: string,
     @Query() params: ProductGradeGetListDto,
   ) {
-    return this.productGradeService.findFromProduct(productId, params);
+    return this.productGradeService.findFromProduct(+productId, params);
   }
 
   @Post('/products/:productId/grades')
   createProductGrades(
-    @Param('productId') productId: number,
+    @Param('productId') productId: string,
     @Body() grade: ProductGradeCreateDto,
   ) {
-    return this.productGradeService.create(productId, grade);
+    return this.productGradeService.create(+productId, grade);
   }
 
   @Get('/productGrades')
@@ -88,9 +88,9 @@ export class ProductController {
 
   @Put('/productGrades/:gradeId')
   updateGrade(
-    @Param('gradeId') gradeId: number,
+    @Param('gradeId') gradeId: string,
     @Body() dto: ProductGradeUpdateDto,
   ) {
-    return this.productGradeService.update(gradeId, dto);
+    return this.productGradeService.update(+gradeId, dto);
   }
 }

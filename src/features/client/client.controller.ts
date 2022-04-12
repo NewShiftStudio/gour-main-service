@@ -36,8 +36,8 @@ export class ClientController {
   }
 
   @Get('/clients/:id')
-  getOne(@Param('id') id: number) {
-    return this.clientService.findOne(id);
+  getOne(@Param('id') id: string) {
+    return this.clientService.findOne(+id);
   }
 
   @Post('/clients')
@@ -46,12 +46,12 @@ export class ClientController {
   }
 
   @Put('/clients/:id')
-  put(@Param('id') id: number, @Body() client: ClientUpdateDto) {
-    return this.clientService.update(id, client);
+  put(@Param('id') id: string, @Body() client: ClientUpdateDto) {
+    return this.clientService.update(+id, client);
   }
 
   @Delete('/clients/:id')
-  remove(@Param('id') id: number) {
-    return this.clientService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.clientService.remove(+id);
   }
 }
