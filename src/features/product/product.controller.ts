@@ -21,6 +21,7 @@ import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ProductUpdateDto } from './dto/product.update.dto';
 import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
 import { Response } from 'express';
+import { ProductGradeGetListDto } from './dto/product-grade.get-list.dto';
 
 @ApiTags('products')
 @Controller()
@@ -66,7 +67,7 @@ export class ProductController {
   @Get('/products/:productId/grades')
   getProductGrades(
     @Param('productId') productId: number,
-    @Query() params: BaseGetListDto,
+    @Query() params: ProductGradeGetListDto,
   ) {
     return this.productGradeService.findFromProduct(productId, params);
   }
@@ -76,11 +77,18 @@ export class ProductController {
     @Param('productId') productId: number,
     @Body() grade: ProductGradeCreateDto,
   ) {
-    return this.productGradeService.create(grade);
+    return this.productGradeService.create(productId, grade);
   }
 
   @Get('/productGrades')
-  getGrades(@Query() params: BaseGetListDto) {
+  getGrades(@Query() params: ProductGradeGetListDto) {
     return this.productGradeService.findMany(params);
+  }
+
+  @Post('/productGrades/:gradeId/approve')
+  updateGrade(@Param('gradeId') gradeId: number) {
+    return this.productGradeService.update(gradeId, {
+      isApproved: true,
+    });
   }
 }

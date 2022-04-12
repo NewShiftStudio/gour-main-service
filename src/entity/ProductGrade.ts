@@ -22,4 +22,9 @@ export class ProductGrade extends AppEntity {
 
   @Column()
   productId: number;
+
+  @Column({
+    default: false,
+  })
+  isApproved: boolean;
 }

@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOneOptions, Not, Repository } from 'typeorm';
 import { ProductGrade } from '../../entity/ProductGrade';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { ProductGradeCreateDto } from './dto/product-grade.create.dto';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
 import { Product } from '../../entity/Product';
+import { ProductGradeGetListDto } from './dto/product-grade.get-list.dto';
 
 @Injectable()
 export class ProductGradeService {
@@ -16,18 +17,31 @@ export class ProductGradeService {
     private productRepository: Repository<Product>,
   ) {}
 
-  findFromProduct(productId: number, params: BaseGetListDto) {
+  findFromProduct(productId: number, params: ProductGradeGetListDto) {
+    const where: FindOneOptions<ProductGrade>['where'] = {
+      productId,
+      isApproved: true,
+    };
+    if (params.onlyWithComments) {
+      where.comment = Not('');
+    }
     return this.productGradeRepository.find({
       ...getPaginationOptions(params.offset, params.length),
-      where: {
-        productId,
-      },
+      where,
     });
   }
 
-  findMany(params: BaseGetListDto) {
+  findMany(params: ProductGradeGetListDto) {
+    const where: FindOneOptions<ProductGrade>['where'] = {};
+    if (params.onlyWithComments) {
+      where.comment = Not('');
+    }
+    if (params.isApproved !== undefined) {
+      where.isApproved = params.isApproved;
+    }
     return this.productGradeRepository.find({
       ...getPaginationOptions(params.offset, params.length),
+      where,
     });
   }
 
@@ -35,10 +49,11 @@ export class ProductGradeService {
     return this.productGradeRepository.findOne({ id });
   }
 
-  async create(productGrade: ProductGradeCreateDto) {
+  async create(productId: number, productGrade: ProductGradeCreateDto) {
     return this.productGradeRepository.save({
       ...productGrade,
-      product: await this.productRepository.findOne(productGrade.product),
+      isApproved: !productGrade.comment,
+      productId,
     });
   }
 
