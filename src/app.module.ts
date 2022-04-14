@@ -25,6 +25,8 @@ import { ClientRoleModule } from './features/clientRole/clientRole.module';
 import { CityModule } from './features/city/city.module';
 import { ProductModule } from './features/product/product.module';
 import { PromotionModule } from './features/promotion/promotion.module';
+import { PageModule } from './features/page/page.module';
+import { Page } from './entity/Page';
 
 @Module({
   imports: [
@@ -59,6 +61,7 @@ import { PromotionModule } from './features/promotion/promotion.module';
         TranslatableString,
         TranslatableText,
         Warehouse,
+        Page,
       ],
       subscribers: ['dist/subscriber/*.js'],
       migrations: ['dist/migration/*.js'],
@@ -74,6 +77,7 @@ import { PromotionModule } from './features/promotion/promotion.module';
     ClientRoleModule,
     ProductModule,
     PromotionModule,
+    PageModule,
 
     // TestModule,
   ],

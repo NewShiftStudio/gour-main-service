@@ -17,5 +17,5 @@ export class CategoryUpdateDto {
 
   @IsString()
   @ApiPropertyOptional()
-  icon?: string;
+  key?: string;
 }

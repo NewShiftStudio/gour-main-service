@@ -10,9 +10,11 @@ import {
 } from 'typeorm';
 import { AppEntity } from './AppEntity';
 import { TranslatableString } from './TranslatableString';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
 export class PageMeta extends AppEntity {
+  @ApiProperty()
   @OneToOne(() => TranslatableString, {
     cascade: true,
     eager: true,
@@ -20,6 +22,7 @@ export class PageMeta extends AppEntity {
   @JoinColumn()
   metaTitle: TranslatableString;
 
+  @ApiProperty()
   @OneToOne(() => TranslatableString, {
     cascade: true,
     eager: true,
@@ -27,6 +30,7 @@ export class PageMeta extends AppEntity {
   @JoinColumn()
   metaDescription: TranslatableString;
 
+  @ApiProperty()
   @OneToOne(() => TranslatableString, {
     cascade: true,
     eager: true,
@@ -34,6 +38,7 @@ export class PageMeta extends AppEntity {
   @JoinColumn()
   metaKeywords: TranslatableString;
 
+  @ApiProperty()
   @Column()
   isIndexed: boolean;
 }

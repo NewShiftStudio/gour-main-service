@@ -20,8 +20,5 @@ export class Category extends AppEntity {
   description: TranslatableText;
 
   @Column()
-  icon: string;
-
-  @Column()
   key: string;
 }

@@ -17,5 +17,5 @@ export class CategoryCreateDto {
 
   @IsString()
   @ApiProperty()
-  icon: string;
+  key: string;
 }
