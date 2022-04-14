@@ -4,7 +4,6 @@ import { FindOneOptions, Not, Repository } from 'typeorm';
 import { ProductGrade } from '../../entity/ProductGrade';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { ProductGradeCreateDto } from './dto/product-grade.create.dto';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
 import { Product } from '../../entity/Product';
 import { ProductGradeGetListDto } from './dto/product-grade.get-list.dto';
 
@@ -28,6 +27,7 @@ export class ProductGradeService {
     return this.productGradeRepository.find({
       ...getPaginationOptions(params.offset, params.length),
       where,
+      relations: ['product', 'client'],
     });
   }
 
@@ -45,11 +45,17 @@ export class ProductGradeService {
     return this.productGradeRepository.find({
       ...getPaginationOptions(params.offset, params.length),
       where,
+      relations: ['product', 'client'],
     });
   }
 
   getOne(id: number) {
-    return this.productGradeRepository.findOne({ id });
+    return this.productGradeRepository.findOne(
+      { id },
+      {
+        relations: ['product', 'client'],
+      },
+    );
   }
 
   async create(productId: number, productGrade: ProductGradeCreateDto) {

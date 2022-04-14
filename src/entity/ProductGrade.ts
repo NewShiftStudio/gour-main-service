@@ -5,9 +5,6 @@ import { Client } from './Client';
 
 @Entity()
 export class ProductGrade extends AppEntity {
-  @ManyToOne(() => Product)
-  product: Product;
-
   @ManyToOne(() => Client)
   client: Client;
 
@@ -22,6 +19,9 @@ export class ProductGrade extends AppEntity {
 
   @Column()
   productId: number;
+
+  @ManyToOne(() => Product)
+  product: Product;
 
   @Column({
     nullable: true,

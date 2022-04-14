@@ -12,12 +12,12 @@ import { AppEntity } from './AppEntity';
 import { TranslatableString } from './TranslatableString';
 import { TranslatableText } from './TranslatableText';
 import { Category } from './Category';
-import { ProductGrade } from './ProductGrade';
 import { ProductModification } from './ProductModification';
 import { Image } from './Image';
 import { Price } from './Price';
 import { RoleDiscount } from './RoleDiscount';
 import { PageMeta } from './PageMeta';
+import { ProductGrade } from './ProductGrade';
 
 @Entity()
 export class Product extends AppEntity {
@@ -52,9 +52,7 @@ export class Product extends AppEntity {
   })
   category: Category;
 
-  @OneToMany(() => ProductGrade, (pg) => pg.product, {
-    cascade: true,
-  })
+  @OneToMany(() => ProductGrade, (pg) => pg.product)
   productGrades: ProductGrade[];
 
   @Column({
