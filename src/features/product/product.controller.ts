@@ -17,12 +17,13 @@ import { ProductGetOneDto } from './dto/product.get-one.dto';
 import { ProductGradeService } from './product-grade.service';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
 import { ProductGradeCreateDto } from './dto/product-grade.create.dto';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProductUpdateDto } from './dto/product.update.dto';
 import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
 import { Response } from 'express';
 import { ProductGradeGetListDto } from './dto/product-grade.get-list.dto';
 import { ProductGradeUpdateDto } from './dto/product-grade.update.dto';
+import { ProductWithMetricsDto } from './dto/product-with-metrics.dto';
 
 @ApiTags('products')
 @Controller()
@@ -45,6 +46,9 @@ export class ProductController {
     return this.productService.findNovelties();
   }
 
+  @ApiResponse({
+    type: ProductWithMetricsDto,
+  })
   @Get('/products/:id')
   getOne(@Param('id') id: string, @Query() params: ProductGetOneDto = {}) {
     return this.productService.getOne(+id, params);

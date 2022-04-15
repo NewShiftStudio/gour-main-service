@@ -31,9 +31,9 @@ export class PageController {
   @ApiResponse({
     type: Page,
   })
-  @Get('/pages/:id')
-  getOne(@Param('id') id: string) {
-    return this.pageService.getOne(+id);
+  @Get('/pages/:key')
+  getOne(@Param('key') key: string) {
+    return this.pageService.getOneByKey(key);
   }
 
   @ApiResponse({

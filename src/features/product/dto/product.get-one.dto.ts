@@ -1,19 +1,24 @@
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsBoolean, IsBooleanString, IsOptional } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ProductGetOneDto {
-  @IsBoolean()
+  @IsBooleanString()
   @IsOptional()
   @ApiPropertyOptional()
   withSimilarProducts?: boolean;
 
-  @IsBoolean()
+  @IsBooleanString()
   @IsOptional()
   @ApiPropertyOptional()
   withMeta?: boolean;
 
-  @IsBoolean()
+  @IsBooleanString()
   @IsOptional()
   @ApiPropertyOptional()
   withRoleDiscounts?: boolean;
+
+  @IsBooleanString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  withMetrics?: boolean;
 }

@@ -10,12 +10,16 @@ import { RoleDiscount } from '../../entity/RoleDiscount';
 import { ProductGetListDto } from './dto/product.get-list.dto';
 import { ProductGetOneDto } from './dto/product.get-one.dto';
 import { ClientRole } from '../../entity/ClientRole';
+import { ProductGrade } from '../../entity/ProductGrade';
+import { ProductWithMetricsDto } from './dto/product-with-metrics.dto';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    @InjectRepository(ProductGrade)
+    private productGradeRepository: Repository<ProductGrade>,
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
     @InjectRepository(RoleDiscount)
@@ -44,17 +48,32 @@ export class ProductService {
     });
   }
 
-  getOne(id: number, params: ProductGetOneDto) {
-    return this.productRepository.findOne(
-      { id },
-      {
+  async getOne(
+    id: number,
+    params: ProductGetOneDto,
+  ): Promise<ProductWithMetricsDto> {
+    let result: ProductWithMetricsDto =
+      await this.productRepository.findOneOrFail(id, {
         relations: [
           params.withSimilarProducts ? 'similarProducts' : undefined,
           params.withMeta ? 'meta' : undefined,
           params.withRoleDiscounts ? 'roleDiscounts' : undefined,
         ].filter((it) => it),
-      },
-    );
+      });
+
+    if (params.withMetrics) {
+      const grades = await this.productGradeRepository.find({
+        productId: id,
+      });
+
+      result = {
+        ...result,
+        gradesCount: grades.length,
+        commentsCount: grades.filter((it) => it.comment).length,
+      };
+    }
+
+    return result;
   }
 
   async create(product: ProductCreateDto) {

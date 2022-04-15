@@ -24,6 +24,10 @@ export class PageService {
     return this.pageRepository.findOne({ id });
   }
 
+  getOneByKey(key: string) {
+    return this.pageRepository.findOne({ key });
+  }
+
   create(page: PageCreateDto) {
     return this.pageRepository.save(page);
   }

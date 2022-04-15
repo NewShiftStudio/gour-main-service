@@ -59,11 +59,23 @@ export class ProductGradeService {
   }
 
   async create(productId: number, productGrade: ProductGradeCreateDto) {
-    return this.productGradeRepository.save({
+    const grade = await this.productGradeRepository.save({
       ...productGrade,
       isApproved: productGrade.comment ? null : true,
       productId,
     });
+
+    const allProductGrades = await this.productGradeRepository.find({
+      productId,
+    });
+
+    await this.productRepository.update(productId, {
+      grade:
+        allProductGrades.reduce((acc, it) => acc + it.value, 0) /
+        allProductGrades.length,
+    });
+
+    return grade;
   }
 
   update(id: number, productGrade: Partial<ProductGrade>) {
