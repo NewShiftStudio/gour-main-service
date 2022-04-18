@@ -1,18 +1,11 @@
-import { Entity, Column, ManyToMany, ManyToOne, Index } from 'typeorm';
+import {Entity, Column, ManyToMany, ManyToOne, Index, JoinTable} from 'typeorm';
 import { AppEntity } from './AppEntity';
 import { ClientRole } from './ClientRole';
 import { Product } from './Product';
+import { City } from './City';
 
 @Entity()
 export class Client extends AppEntity {
-  @Column({
-    type: 'uuid',
-  })
-  @Index({
-    unique: true,
-  })
-  apiUserUuid: string;
-
   @ManyToOne(() => ClientRole, {
     eager: true,
   })
@@ -30,9 +23,10 @@ export class Client extends AppEntity {
     type: 'json',
     default: '{}',
   })
-  additionalInfo: Record<string, string | number>;
+  additionalInfo: Record<string, string | number | object>;
 
   @ManyToMany(() => Product)
+  @JoinTable()
   favorites: Product[];
 
   @Column({
@@ -44,6 +38,27 @@ export class Client extends AppEntity {
     default: '',
   })
   phone: string;
+
+  @ManyToOne(() => City, {
+    eager: true,
+    nullable: true,
+  })
+  city: City;
+
+  @Column({
+    nullable: true,
+  })
+  cityId: number;
+
+  @Column({
+    nullable: true,
+  })
+  referralCode: string;
+
+  @Column({
+    default: '',
+  })
+  password: string;
 }
 
 export type IClient = Client;

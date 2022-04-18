@@ -27,6 +27,8 @@ import { ProductModule } from './features/product/product.module';
 import { PromotionModule } from './features/promotion/promotion.module';
 import { PageModule } from './features/page/page.module';
 import { Page } from './entity/Page';
+import { AuthModule } from './features/auth/auth.module';
+import { OrderModule } from './features/order/order.module';
 
 @Module({
   imports: [
@@ -78,7 +80,8 @@ import { Page } from './entity/Page';
     ProductModule,
     PromotionModule,
     PageModule,
-
+    AuthModule,
+    OrderModule,
     // TestModule,
   ],
 })

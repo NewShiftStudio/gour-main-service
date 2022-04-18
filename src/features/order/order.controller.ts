@@ -16,6 +16,8 @@ import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
 import { ApiTags } from '@nestjs/swagger';
 import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
 import { Response } from 'express';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { Client } from '../../entity/Client';
 
 @ApiTags('orders')
 @Controller()
@@ -24,10 +26,10 @@ export class OrderController {
 
   @Get('/orders')
   async getAll(@Query() params: BaseGetListDto, @Res() res: Response) {
-    const [clients, count] = await this.orderService.findMany(params);
+    const [orders, count] = await this.orderService.findMany(params);
 
     res.set(TOTAL_COUNT_HEADER, count.toString());
-    return res.send(clients);
+    return res.send(orders);
   }
 
   @Get('/orders/:id')

@@ -1,12 +1,13 @@
-import { IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ClientUpdateDto {
-  @IsString()
-  @IsOptional()
-  @ApiPropertyOptional()
-  apiUserUuid?: string;
-
   @IsNumber()
   @IsOptional()
   @ApiPropertyOptional()
@@ -16,4 +17,19 @@ export class ClientUpdateDto {
   @IsOptional()
   @ApiPropertyOptional()
   additionalInfo?: Record<string, string | number>;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  name?: string;
+
+  @IsArray()
+  @IsOptional()
+  @ApiPropertyOptional()
+  favoriteIds?: number[];
+
+  @IsArray()
+  @IsOptional()
+  @ApiPropertyOptional()
+  countries?: object[];
 }

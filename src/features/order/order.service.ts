@@ -6,7 +6,6 @@ import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { OrderCreateDto } from './dto/order.create.dto';
 import { Product } from '../../entity/Product';
 import { Client } from '../../entity/Client';
-import { OrderProduct } from '../../entity/OrderProduct';
 import { OrderProfile } from '../../entity/OrderProfile';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
 
