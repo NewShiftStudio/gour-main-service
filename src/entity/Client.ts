@@ -1,8 +1,16 @@
-import {Entity, Column, ManyToMany, ManyToOne, Index, JoinTable} from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToMany,
+  ManyToOne,
+  Index,
+  JoinTable,
+} from 'typeorm';
 import { AppEntity } from './AppEntity';
 import { ClientRole } from './ClientRole';
 import { Product } from './Product';
 import { City } from './City';
+import { ReferralCode } from './ReferralCode';
 
 @Entity()
 export class Client extends AppEntity {
@@ -50,10 +58,11 @@ export class Client extends AppEntity {
   })
   cityId: number;
 
-  @Column({
+  @ManyToOne(() => ReferralCode, {
     nullable: true,
+    eager: true,
   })
-  referralCode: string;
+  referralCode: ReferralCode;
 
   @Column({
     default: '',

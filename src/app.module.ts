@@ -29,6 +29,9 @@ import { PageModule } from './features/page/page.module';
 import { Page } from './entity/Page';
 import { AuthModule } from './features/auth/auth.module';
 import { OrderModule } from './features/order/order.module';
+import { OrderProfileModule } from './features/order-profile/order-profile.module';
+import { ReferralCodeModule } from './features/referral-code/referral-code.module';
+import { ReferralCode } from './entity/ReferralCode';
 
 @Module({
   imports: [
@@ -64,6 +67,7 @@ import { OrderModule } from './features/order/order.module';
         TranslatableText,
         Warehouse,
         Page,
+        ReferralCode,
       ],
       subscribers: ['dist/subscriber/*.js'],
       migrations: ['dist/migration/*.js'],
@@ -82,6 +86,8 @@ import { OrderModule } from './features/order/order.module';
     PageModule,
     AuthModule,
     OrderModule,
+    OrderProfileModule,
+    ReferralCodeModule,
     // TestModule,
   ],
 })

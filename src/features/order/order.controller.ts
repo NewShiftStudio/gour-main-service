@@ -13,20 +13,28 @@ import {
 import { OrderCreateDto } from './dto/order.create.dto';
 import { OrderService } from './order.service';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
 import { Response } from 'express';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { Client } from '../../entity/Client';
 
+@ApiBearerAuth()
 @ApiTags('orders')
 @Controller()
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get('/orders')
-  async getAll(@Query() params: BaseGetListDto, @Res() res: Response) {
-    const [orders, count] = await this.orderService.findMany(params);
+  async getAll(
+    @CurrentUser() client: Client,
+    @Query() params: BaseGetListDto,
+    @Res() res: Response,
+  ) {
+    const [orders, count] = await this.orderService.findUsersOrders(
+      params,
+      client,
+    );
 
     res.set(TOTAL_COUNT_HEADER, count.toString());
     return res.send(orders);
@@ -38,8 +46,11 @@ export class OrderController {
   }
 
   @Post('/orders')
-  async post(@Body() order: OrderCreateDto) {
-    return this.orderService.create(order);
+  async post(
+    @CurrentUser() currentUser: Client,
+    @Body() order: OrderCreateDto,
+  ) {
+    return this.orderService.create(order, currentUser);
   }
 
   @Put('/orders/:id')

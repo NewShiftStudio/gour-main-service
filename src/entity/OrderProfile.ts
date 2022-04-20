@@ -1,12 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  ManyToMany,
-  ManyToOne,
-} from 'typeorm';
+import { Entity, Column, ManyToOne } from 'typeorm';
 import { AppEntity } from './AppEntity';
 import { City } from './City';
 import { Client } from './Client';

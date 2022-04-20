@@ -1,24 +1,64 @@
-import { IsArray, IsNumber, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsEmail,
+  IsNumber,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { OrderProductCreateDto } from './orderProduct.create.dto';
 import { Type } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiModelProperty,
+} from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 
 export class OrderCreateDto {
   @IsArray()
   @ValidateNested()
   @Type(() => OrderProductCreateDto)
-  @ApiProperty()
+  @ApiModelProperty({
+    isArray: true,
+    type: OrderProductCreateDto,
+  })
   orderProducts: OrderProductCreateDto[];
 
-  @IsNumber()
-  @ApiProperty()
-  client: number;
+  // @IsOptional()
+  // @IsNumber()
+  // @ApiPropertyOptional()
+  // orderProfile: number;
 
-  @IsNumber()
-  @ApiProperty()
-  orderProfile: number;
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional()
+  comment?: string;
 
   @IsString()
   @ApiProperty()
-  comment: string;
+  firstName: string;
+
+  @IsString()
+  @ApiProperty()
+  lastName: string;
+
+  @IsPhoneNumber()
+  @ApiProperty()
+  phone: string;
+
+  @IsEmail()
+  @ApiProperty()
+  email: string;
+
+  @IsNumber()
+  @ApiProperty()
+  cityId: number;
+
+  @IsString()
+  @ApiProperty()
+  deliveryType: string;
+
+  @IsString()
+  @ApiProperty()
+  address: string;
 }

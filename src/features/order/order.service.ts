@@ -8,19 +8,31 @@ import { Product } from '../../entity/Product';
 import { Client } from '../../entity/Client';
 import { OrderProfile } from '../../entity/OrderProfile';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { City } from '../../entity/City';
+import { OrderProduct } from '../../entity/OrderProduct';
 
 @Injectable()
 export class OrderService {
   constructor(
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
-    @InjectRepository(Product)
-    private productRepository: Repository<Product>,
+    @InjectRepository(OrderProduct)
+    private orderProductRepository: Repository<OrderProduct>,
     @InjectRepository(Client)
     private clientRepository: Repository<Client>,
     @InjectRepository(OrderProfile)
     private orderProfileRepository: Repository<OrderProfile>,
   ) {}
+
+  findUsersOrders(params: BaseGetListDto, client: Client) {
+    return this.orderRepository.findAndCount({
+      ...getPaginationOptions(params.offset, params.length),
+      relations: ['orderProducts', 'orderProfile'],
+      where: {
+        client,
+      },
+    });
+  }
 
   findMany(params: BaseGetListDto) {
     return this.orderRepository.findAndCount({
@@ -31,21 +43,26 @@ export class OrderService {
   getOne(id: number) {
     return this.orderRepository.findOne({ id });
   }
-  async create(order: OrderCreateDto) {
-    const orderProducts = await this.productRepository.findByIds(
-      order.orderProducts,
-    );
-    const client = await this.clientRepository.findOneOrFail({
-      id: order.client,
-    });
-    const orderProfile = await this.orderProfileRepository.findOneOrFail({
-      id: order.orderProfile,
+  async create(order: OrderCreateDto, client: Client) {
+    const orderProducts = [];
+    for (const orderProduct of order.orderProducts) {
+      orderProducts.push(await this.orderProductRepository.save(orderProduct));
+    }
+    const orderProfile = await this.orderProfileRepository.save({
+      title: order.address,
+      firstName: order.firstName,
+      lastName: order.lastName,
+      phone: order.phone,
+      email: order.email,
+      cityId: order.cityId,
+      deliveryType: order.deliveryType,
+      address: order.address,
     });
     return this.orderRepository.save({
-      status: OrderStatus.init,
+      status: OrderStatus.basketFilling,
       orderProducts,
       client,
-      orderProfile: orderProfile,
+      orderProfile,
       comment: order.comment,
     });
   }

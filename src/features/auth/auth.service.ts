@@ -7,12 +7,15 @@ import * as bcrypt from 'bcryptjs';
 import { SignInDto } from './dto/sign-in.dto';
 import { decodeToken, encodeJwt, verifyJwt } from './jwt.service';
 import { Request } from 'express';
+import { ReferralCode } from '../../entity/ReferralCode';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(Client)
     private clientRepository: Repository<Client>,
+    @InjectRepository(ReferralCode)
+    private referralCodeRepository: Repository<ReferralCode>,
   ) {}
 
   async sendCode(phone: string) {
@@ -33,12 +36,20 @@ export class AuthService {
       throw new HttpException('Bad code', 400);
     }
 
+    const referralCode = await this.referralCodeRepository.findOne({
+      code: dto.referralCode,
+    });
+
+    if (!referralCode) {
+      throw new HttpException('Referral code is not found', 400);
+    }
+
     return this.clientRepository.save({
       roleId: dto.roleId,
       name: dto.name,
       phone: dto.phone,
       cityId: dto.cityId,
-      referralCode: dto.referralCode,
+      referralCode: referralCode,
       password: await this.getPasswordHash(dto.password),
     });
   }

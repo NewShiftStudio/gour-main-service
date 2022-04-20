@@ -6,9 +6,18 @@ import { Order } from '../../entity/Order';
 import { Product } from '../../entity/Product';
 import { Client } from '../../entity/Client';
 import { OrderProfile } from '../../entity/OrderProfile';
+import { OrderProduct } from '../../entity/OrderProduct';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Client, Order, Product, OrderProfile])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Client,
+      Order,
+      Product,
+      OrderProfile,
+      OrderProduct,
+    ]),
+  ],
   providers: [OrderService],
   controllers: [OrderController],
   exports: [OrderService],
