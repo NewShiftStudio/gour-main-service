@@ -8,11 +8,16 @@ import {
   Post,
   Put,
   Query,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
 import { ReferralCodeCreateDto } from './dto/ReferralCodeCreateDto';
 import { ReferralCodeService } from './referral-code.service';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { createReadStream } from 'fs';
+import { join } from 'path';
+import { Response } from 'express';
 
 @ApiTags('referralCodes')
 @Controller()
@@ -37,5 +42,10 @@ export class ReferralCodeController {
   @Delete('/referralCodes/:id')
   remove(@Param('id') id: string) {
     return this.referralCodeService.remove(+id);
+  }
+
+  @Get('/referralCodes/export')
+  export() {
+    return '';
   }
 }
