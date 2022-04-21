@@ -18,6 +18,7 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { createReadStream } from 'fs';
 import { join } from 'path';
 import { Response } from 'express';
+import { ReferralCodeExportDto } from './dto/referral-code.export.dto';
 
 @ApiTags('referralCodes')
 @Controller()
@@ -45,7 +46,7 @@ export class ReferralCodeController {
   }
 
   @Get('/referralCodes/export')
-  export() {
+  export(@Query() params: ReferralCodeExportDto) {
     return '';
   }
 }
