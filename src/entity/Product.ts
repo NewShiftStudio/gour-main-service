@@ -124,4 +124,6 @@ export class Product extends AppEntity {
     default: 0,
   })
   amount: number;
+
+  discount = 10;
 }
