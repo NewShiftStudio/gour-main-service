@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import { Product } from '../../entity/Product';
@@ -52,15 +52,21 @@ export class ProductService {
     id: number,
     params: ProductGetOneDto,
   ): Promise<ProductWithMetricsDto> {
-    let result: ProductWithMetricsDto =
-      await this.productRepository.findOneOrFail(id, {
+    let result: ProductWithMetricsDto = await this.productRepository.findOne(
+      id,
+      {
         relations: [
           params.withSimilarProducts ? 'similarProducts' : undefined,
           params.withMeta ? 'meta' : undefined,
           params.withRoleDiscounts ? 'roleDiscounts' : undefined,
           params.withGrades ? 'productGrades' : undefined,
         ].filter((it) => it),
-      });
+      },
+    );
+
+    if (!result) {
+      throw new HttpException('Product with this id was not found', 404);
+    }
 
     if (params.withMetrics) {
       const grades = await this.productGradeRepository.find({
