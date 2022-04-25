@@ -21,4 +21,9 @@ export class ProductGetOneDto {
   @IsOptional()
   @ApiPropertyOptional()
   withMetrics?: boolean;
+
+  @IsBooleanString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  withGrades?: boolean;
 }

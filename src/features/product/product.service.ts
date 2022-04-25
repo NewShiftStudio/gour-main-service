@@ -58,6 +58,7 @@ export class ProductService {
           params.withSimilarProducts ? 'similarProducts' : undefined,
           params.withMeta ? 'meta' : undefined,
           params.withRoleDiscounts ? 'roleDiscounts' : undefined,
+          params.withGrades ? 'productGrades' : undefined,
         ].filter((it) => it),
       });
 
