@@ -32,9 +32,16 @@ import { OrderModule } from './features/order/order.module';
 import { OrderProfileModule } from './features/order-profile/order-profile.module';
 import { ReferralCodeModule } from './features/referral-code/referral-code.module';
 import { ReferralCode } from './entity/ReferralCode';
+import { ImageModule } from './features/image/image.module';
+import * as path from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: path.resolve(__dirname, '../', 'static'),
+      serveRoot: '/static',
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `.env`,
@@ -88,6 +95,7 @@ import { ReferralCode } from './entity/ReferralCode';
     OrderModule,
     OrderProfileModule,
     ReferralCodeModule,
+    ImageModule,
     // TestModule,
   ],
 })
