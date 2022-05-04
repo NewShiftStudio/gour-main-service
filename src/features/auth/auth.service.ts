@@ -104,5 +104,6 @@ export function getToken(req: Request): string | undefined {
   if (header) {
     return header.replace('Bearer ', '');
   }
-  return req.cookies('AccessToken');
+
+  return req.cookies['AccessToken'];
 }
