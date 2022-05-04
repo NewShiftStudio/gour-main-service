@@ -10,9 +10,7 @@ import {
 import { OrderProductCreateDto } from './orderProduct.create.dto';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  ApiModelProperty,
-} from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
+import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 
 export class OrderCreateDto {
   @IsArray()
@@ -24,41 +22,13 @@ export class OrderCreateDto {
   })
   orderProducts: OrderProductCreateDto[];
 
-  // @IsOptional()
-  // @IsNumber()
-  // @ApiPropertyOptional()
-  // orderProfile: number;
+  @IsOptional()
+  @IsNumber()
+  @ApiPropertyOptional()
+  orderProfileId: number;
 
   @IsOptional()
   @IsString()
   @ApiPropertyOptional()
   comment?: string;
-
-  @IsString()
-  @ApiProperty()
-  firstName: string;
-
-  @IsString()
-  @ApiProperty()
-  lastName: string;
-
-  @IsPhoneNumber()
-  @ApiProperty()
-  phone: string;
-
-  @IsEmail()
-  @ApiProperty()
-  email: string;
-
-  @IsNumber()
-  @ApiProperty()
-  cityId: number;
-
-  @IsString()
-  @ApiProperty()
-  deliveryType: string;
-
-  @IsString()
-  @ApiProperty()
-  address: string;
 }

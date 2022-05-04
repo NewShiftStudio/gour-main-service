@@ -12,7 +12,6 @@ async function bootstrap() {
   });
 
   const builder = new DocumentBuilder()
-    .addServer(process.env.SERVER_PATH)
     .setTitle('Cats example')
     .setDescription('The cats API description')
     .setVersion('1.0')
@@ -22,6 +21,8 @@ async function bootstrap() {
   if (process.env.NODE_ENV === 'develop') {
     builder.addServer(`http://127.0.0.1:${process.env.PORT}`);
   }
+
+  builder.addServer(process.env.SERVER_PATH);
 
   const config = builder.build();
 

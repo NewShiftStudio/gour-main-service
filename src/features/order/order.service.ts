@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order, OrderStatus } from '../../entity/Order';
@@ -43,21 +43,21 @@ export class OrderService {
   getOne(id: number) {
     return this.orderRepository.findOne({ id });
   }
+
   async create(order: OrderCreateDto, client: Client) {
+    const orderProfile = await this.orderProfileRepository.findOne(
+      order.orderProfileId,
+    );
+
+    if (!orderProfile) {
+      throw new HttpException('Order profile with this id was not found', 400);
+    }
+
     const orderProducts = [];
     for (const orderProduct of order.orderProducts) {
       orderProducts.push(await this.orderProductRepository.save(orderProduct));
     }
-    const orderProfile = await this.orderProfileRepository.save({
-      title: order.address,
-      firstName: order.firstName,
-      lastName: order.lastName,
-      phone: order.phone,
-      email: order.email,
-      cityId: order.cityId,
-      deliveryType: order.deliveryType,
-      address: order.address,
-    });
+
     return this.orderRepository.save({
       status: OrderStatus.basketFilling,
       orderProducts,
