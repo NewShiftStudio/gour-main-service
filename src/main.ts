@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
+import { Request } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -32,6 +33,13 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+
+  if (process.env.LOG_REQUESTS) {
+    app.use('*', (req: Request, res, next: () => void) => {
+      console.log(req.method.toUpperCase() + ': ' + req.baseUrl);
+      return next();
+    });
+  }
 
   await app.listen(process.env.PORT).then(() => {
     console.log('APP LISTEN ' + process.env.PORT);
