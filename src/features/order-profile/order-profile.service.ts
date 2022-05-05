@@ -38,13 +38,17 @@ export class OrderProfileService {
     }
 
     return this.orderProfileRepository.save({
-      title: orderProfileDto.address,
+      title: orderProfileDto.street + ' ' + orderProfileDto.house,
       firstName: orderProfileDto.firstName,
       lastName: orderProfileDto.lastName,
       phone: orderProfileDto.phone,
       email: orderProfileDto.email,
       deliveryType: orderProfileDto.deliveryType,
-      address: orderProfileDto.address,
+      street: orderProfileDto.street,
+      house: orderProfileDto.house,
+      apartment: orderProfileDto.apartment,
+      entrance: orderProfileDto.entrance,
+      floor: orderProfileDto.floor,
       city,
       client,
     });
