@@ -71,8 +71,11 @@ export class ProductGradeService {
 
     await this.productRepository.update(productId, {
       grade:
-        allProductGrades.reduce((acc, it) => acc + it.value, 0) /
-        allProductGrades.length,
+        Math.round(
+          (allProductGrades.reduce((acc, it) => acc + it.value, 0) /
+            allProductGrades.length) *
+            10,
+        ) / 10,
     });
 
     return grade;

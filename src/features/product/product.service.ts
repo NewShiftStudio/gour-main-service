@@ -76,7 +76,8 @@ export class ProductService {
       result = {
         ...result,
         gradesCount: grades.length,
-        commentsCount: grades.filter((it) => it.comment).length,
+        commentsCount: grades.filter((it) => it.comment && it.isApproved)
+          .length,
       };
     }
 

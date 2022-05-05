@@ -13,10 +13,10 @@ import { PriceDto } from '../../../common/dto/PriceDto';
 import { PageMetaDto } from '../../../common/dto/PageMetaDto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  ApiModelProperty,
   ApiModelPropertyOptional,
 } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { RoleDiscountDto } from '../../../common/dto/RoleDiscountDto';
+import { Column } from 'typeorm';
 
 export class ProductCreateDto {
   @ValidateNested()
@@ -69,4 +69,8 @@ export class ProductCreateDto {
   @ValidateNested()
   @IsOptional()
   roleDiscounts?: RoleDiscountDto[];
+
+  @ApiProperty()
+  @Column()
+  isWeightGood: boolean;
 }
