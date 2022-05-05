@@ -27,7 +27,25 @@ export class OrderProfile extends AppEntity {
   deliveryType: string;
 
   @Column()
-  address: string;
+  street: string;
+
+  @Column()
+  house: string;
+
+  @Column({
+    nullable: true,
+  })
+  apartment: string;
+
+  @Column({
+    nullable: true,
+  })
+  entrance: string;
+
+  @Column({
+    nullable: true,
+  })
+  floor: string;
 
   @ManyToOne(() => Client)
   client: Client;

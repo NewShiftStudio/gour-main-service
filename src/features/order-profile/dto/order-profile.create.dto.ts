@@ -1,11 +1,11 @@
 import {
-  IsArray,
   IsEmail,
   IsNumber,
+  IsOptional,
   IsPhoneNumber,
   IsString,
 } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class OrderProfileCreateDto {
   @IsString()
@@ -34,5 +34,24 @@ export class OrderProfileCreateDto {
 
   @IsString()
   @ApiProperty()
-  address: string;
+  street: string;
+
+  @IsString()
+  @ApiProperty()
+  house: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  apartment?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  entrance?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  floor?: string;
 }
