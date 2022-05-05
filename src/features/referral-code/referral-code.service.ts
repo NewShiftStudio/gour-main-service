@@ -1,4 +1,4 @@
-import {HttpException, Injectable} from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ReferralCode } from '../../entity/ReferralCode';
@@ -39,5 +39,18 @@ export class ReferralCodeService {
 
   remove(id: number) {
     return this.referralCodeRepository.softDelete(id);
+  }
+
+  async getDiscount(): Promise<number> {
+    return (await this.referralCodeRepository.findOne()).discount || 0;
+  }
+
+  async setDiscount(discount: number) {
+    return this.referralCodeRepository.update(
+      {},
+      {
+        discount,
+      },
+    );
   }
 }

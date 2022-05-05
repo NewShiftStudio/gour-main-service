@@ -8,17 +8,13 @@ import {
   Post,
   Put,
   Query,
-  Res,
-  StreamableFile,
 } from '@nestjs/common';
 import { ReferralCodeCreateDto } from './dto/ReferralCodeCreateDto';
 import { ReferralCodeService } from './referral-code.service';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { createReadStream } from 'fs';
-import { join } from 'path';
-import { Response } from 'express';
+import { ApiTags } from '@nestjs/swagger';
 import { ReferralCodeExportDto } from './dto/referral-code.export.dto';
+import { ReferralCodeSetDiscountDto } from './dto/referral-code.set-discount.dto';
 
 @ApiTags('referralCodes')
 @Controller()
@@ -48,5 +44,15 @@ export class ReferralCodeController {
   @Get('/referralCodes/export')
   export(@Query() params: ReferralCodeExportDto) {
     return '';
+  }
+
+  @Get('/referralCodes/discount')
+  getDiscount() {
+    return this.referralCodeService.getDiscount();
+  }
+
+  @Post('/referralCodes/discount')
+  setDiscount(@Body() { discount }: ReferralCodeSetDiscountDto) {
+    return this.referralCodeService.setDiscount(discount);
   }
 }
