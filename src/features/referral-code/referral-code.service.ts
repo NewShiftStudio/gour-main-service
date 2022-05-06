@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { ReferralCode } from '../../entity/ReferralCode';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { ReferralCodeCreateDto } from './dto/ReferralCodeCreateDto';
 
 @Injectable()
 export class ReferralCodeService {
@@ -22,9 +23,13 @@ export class ReferralCodeService {
     return this.referralCodeRepository.findOne({ id });
   }
 
-  async create(referralCode: Partial<ReferralCode>) {
+  async create(referralCode: ReferralCodeCreateDto) {
     try {
-      return await this.referralCodeRepository.save(referralCode);
+      const discount = await this.getDiscount();
+      return await this.referralCodeRepository.save({
+        discount,
+        code: referralCode.code,
+      });
     } catch (e) {
       throw new HttpException(e.driverError.detail, 400);
     }
