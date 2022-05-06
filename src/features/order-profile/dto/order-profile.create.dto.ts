@@ -10,19 +10,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class OrderProfileCreateDto {
   @IsString()
   @ApiProperty()
-  firstName: string;
-
-  @IsString()
-  @ApiProperty()
-  lastName: string;
-
-  @IsPhoneNumber()
-  @ApiProperty()
-  phone: string;
-
-  @IsEmail()
-  @ApiProperty()
-  email: string;
+  title: string;
 
   @IsNumber()
   @ApiProperty()

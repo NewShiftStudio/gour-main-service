@@ -31,4 +31,20 @@ export class OrderCreateDto {
   @IsString()
   @ApiPropertyOptional()
   comment?: string;
+
+  @IsString()
+  @ApiProperty()
+  firstName: string;
+
+  @IsString()
+  @ApiProperty()
+  lastName: string;
+
+  @IsPhoneNumber()
+  @ApiProperty()
+  phone: string;
+
+  @IsEmail()
+  @ApiProperty()
+  email: string;
 }
