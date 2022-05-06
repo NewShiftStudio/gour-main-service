@@ -31,7 +31,7 @@ export class ReferralCodeService {
         code: referralCode.code,
       });
     } catch (e) {
-      throw new HttpException(e.driverError.detail, 400);
+      throw new HttpException(e?.driverError?.detail || 'error', 400);
     }
   }
 
@@ -47,7 +47,7 @@ export class ReferralCodeService {
   }
 
   async getDiscount(): Promise<number> {
-    return (await this.referralCodeRepository.findOne()).discount || 0;
+    return (await this.referralCodeRepository.findOne())?.discount || 0;
   }
 
   async setDiscount(discount: number) {
