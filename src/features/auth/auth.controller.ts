@@ -15,8 +15,8 @@ export interface AppRequest extends Request {
   token?: string;
 }
 
-@ApiTags('auth')
-@Controller('auth')
+@ApiTags('client-auth')
+@Controller('client-auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,

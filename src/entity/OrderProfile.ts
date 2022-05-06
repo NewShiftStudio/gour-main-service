@@ -8,18 +8,6 @@ export class OrderProfile extends AppEntity {
   @Column()
   title: string;
 
-  @Column()
-  firstName: string;
-
-  @Column()
-  lastName: string;
-
-  @Column()
-  phone: string;
-
-  @Column()
-  email: string;
-
   @ManyToOne(() => City)
   city: City;
 

@@ -37,4 +37,16 @@ export class Order extends AppEntity {
     type: 'text',
   })
   comment: string;
+
+  @Column()
+  firstName: string;
+
+  @Column()
+  lastName: string;
+
+  @Column()
+  phone: string;
+
+  @Column()
+  email: string;
 }
