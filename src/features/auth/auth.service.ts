@@ -86,6 +86,30 @@ export class AuthService {
     }
   }
 
+  async signinById(id: number): Promise<{
+    token: string;
+    client: Client;
+  }> {
+    const user = await this.clientRepository.findOne({
+      id,
+    });
+
+    if (user && user.isApproved) {
+      return {
+        token: encodeJwt(user),
+        client: user,
+      };
+    }
+
+    if (!user) {
+      throw new HttpException('User is not found', 401);
+    }
+
+    if (!user.isApproved) {
+      throw new HttpException('User is not approved', 401);
+    }
+  }
+
   decodeToken(token: string) {
     if (!verifyJwt(token)) {
       throw new HttpException('Bad token', 401);
