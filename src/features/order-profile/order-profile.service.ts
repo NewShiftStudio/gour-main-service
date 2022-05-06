@@ -38,11 +38,9 @@ export class OrderProfileService {
     }
 
     return this.orderProfileRepository.save({
-      title: orderProfileDto.street + ' ' + orderProfileDto.house,
-      firstName: orderProfileDto.firstName,
-      lastName: orderProfileDto.lastName,
-      phone: orderProfileDto.phone,
-      email: orderProfileDto.email,
+      title:
+        orderProfileDto.title ||
+        orderProfileDto.street + ' ' + orderProfileDto.house,
       deliveryType: orderProfileDto.deliveryType,
       street: orderProfileDto.street,
       house: orderProfileDto.house,
