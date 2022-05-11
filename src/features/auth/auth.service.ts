@@ -36,12 +36,24 @@ export class AuthService {
       throw new HttpException('Bad code', 400);
     }
 
-    const referralCode = await this.referralCodeRepository.findOne({
-      code: dto.referralCode,
+    const foundUser = this.clientRepository.findOne({
+      phone: dto.phone,
     });
 
-    if (!referralCode) {
-      throw new HttpException('Referral code is not found', 400);
+    if (foundUser) {
+      throw new HttpException('User with this phone already exists', 400);
+    }
+
+    let referralCode;
+
+    if (dto.referralCode) {
+      referralCode = await this.referralCodeRepository.findOne({
+        code: dto.referralCode,
+      });
+
+      if (!referralCode) {
+        throw new HttpException('Referral code is not found', 400);
+      }
     }
 
     return this.clientRepository.save({
