@@ -36,7 +36,7 @@ export class AuthService {
       throw new HttpException('Bad code', 400);
     }
 
-    const foundUser = this.clientRepository.findOne({
+    const foundUser = await this.clientRepository.findOne({
       phone: dto.phone,
     });
 
