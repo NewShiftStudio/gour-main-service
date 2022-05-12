@@ -65,6 +65,11 @@ export class Client extends AppEntity {
   referralCode: ReferralCode;
 
   @Column({
+    nullable: true,
+  })
+  referralCodeId: number;
+
+  @Column({
     default: '',
   })
   password: string;

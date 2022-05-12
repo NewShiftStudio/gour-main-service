@@ -1,21 +1,43 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindManyOptions, IsNull, MoreThan, Not, Repository } from 'typeorm';
 import { ReferralCode } from '../../entity/ReferralCode';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
 import { ReferralCodeCreateDto } from './dto/ReferralCodeCreateDto';
+import { ReferralCodeGetListDto } from './dto/referral-code.get-list.dto';
+import { Client } from '../../entity/Client';
 
 @Injectable()
 export class ReferralCodeService {
   constructor(
     @InjectRepository(ReferralCode)
     private referralCodeRepository: Repository<ReferralCode>,
+    @InjectRepository(Client)
+    private clientRepository: Repository<Client>,
   ) {}
 
   findMany(params: BaseGetListDto) {
     return this.referralCodeRepository.find({
       ...getPaginationOptions(params.offset, params.length),
+    });
+  }
+
+  async getClientStat(params: ReferralCodeGetListDto): Promise<Client[]> {
+    const options: FindManyOptions<Client> = {
+      ...getPaginationOptions(params.offset, params.length),
+      relations: ['referralCode'],
+      where: {
+        referralCodeId: Not(IsNull()),
+      },
+    };
+
+    const result = await this.clientRepository.find(options);
+    return result.filter((it) => {
+      return (
+        (params.start ? it.createdAt >= new Date(params.start) : true) &&
+        (params.end ? it.createdAt <= new Date(params.end) : true)
+      );
     });
   }
 

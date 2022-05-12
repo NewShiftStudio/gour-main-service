@@ -43,7 +43,7 @@ export class ReferralCodeController {
 
   @Get('/referralCodes/export')
   export(@Query() params: ReferralCodeExportDto) {
-    return '';
+    return this.referralCodeService.getClientStat(params);
   }
 
   @Get('/referralCodes/discount')
