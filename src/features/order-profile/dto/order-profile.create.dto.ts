@@ -18,10 +18,6 @@ export class OrderProfileCreateDto {
 
   @IsString()
   @ApiProperty()
-  deliveryType: string;
-
-  @IsString()
-  @ApiProperty()
   street: string;
 
   @IsString()

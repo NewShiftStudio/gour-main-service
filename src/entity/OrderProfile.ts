@@ -12,9 +12,6 @@ export class OrderProfile extends AppEntity {
   city: City;
 
   @Column()
-  deliveryType: string;
-
-  @Column()
   street: string;
 
   @Column()

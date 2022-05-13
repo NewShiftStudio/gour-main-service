@@ -18,7 +18,6 @@ import { ReferralCodeExportDto } from './dto/referral-code.export.dto';
 import { ReferralCodeSetDiscountDto } from './dto/referral-code.set-discount.dto';
 import * as XLSX from 'xlsx';
 import { Response } from 'express';
-import { Readable } from 'stream';
 import { Client } from '../../entity/Client';
 
 @ApiTags('referralCodes')

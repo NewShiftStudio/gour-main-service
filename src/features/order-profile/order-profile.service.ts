@@ -41,7 +41,6 @@ export class OrderProfileService {
       title:
         orderProfileDto.title ||
         orderProfileDto.street + ' ' + orderProfileDto.house,
-      deliveryType: orderProfileDto.deliveryType,
       street: orderProfileDto.street,
       house: orderProfileDto.house,
       apartment: orderProfileDto.apartment,
