@@ -13,6 +13,7 @@ import { PriceDto } from '../../../common/dto/PriceDto';
 import { PageMetaDto } from '../../../common/dto/PageMetaDto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  ApiModelProperty,
   ApiModelPropertyOptional,
 } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { RoleDiscountDto } from '../../../common/dto/RoleDiscountDto';
@@ -34,10 +35,12 @@ export class ProductCreateDto {
   @ApiPropertyOptional()
   moyskladCode?: number;
 
-  @ValidateNested()
-  @Type(() => ImageDto)
-  @ApiProperty()
-  images: ImageDto[];
+  @IsArray()
+  @ApiModelProperty({
+    type: Number,
+    isArray: true,
+  })
+  images: number[];
 
   @IsNumber()
   @ApiProperty()

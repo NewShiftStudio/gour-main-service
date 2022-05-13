@@ -14,7 +14,10 @@ import { PriceDto } from '../../../common/dto/PriceDto';
 import { PageMetaDto } from '../../../common/dto/PageMetaDto';
 import { RoleDiscountDto } from '../../../common/dto/RoleDiscountDto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { ApiModelPropertyOptional } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
+import {
+  ApiModelProperty,
+  ApiModelPropertyOptional,
+} from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 
 export class ProductUpdateDto {
   @ValidateNested()
@@ -34,11 +37,13 @@ export class ProductUpdateDto {
   @ApiPropertyOptional()
   moyskladId?: string;
 
-  @ValidateNested()
+  @IsArray()
   @IsOptional()
-  @Type(() => ImageDto)
-  @ApiPropertyOptional()
-  images?: ImageDto[];
+  @ApiModelPropertyOptional({
+    type: Number,
+    isArray: true,
+  })
+  images: number[];
 
   @IsNumber()
   @IsOptional()

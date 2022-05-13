@@ -12,6 +12,7 @@ import { ProductGetOneDto } from './dto/product.get-one.dto';
 import { ClientRole } from '../../entity/ClientRole';
 import { ProductGrade } from '../../entity/ProductGrade';
 import { ProductWithMetricsDto } from './dto/product-with-metrics.dto';
+import { Image } from '../../entity/Image';
 
 @Injectable()
 export class ProductService {
@@ -26,6 +27,8 @@ export class ProductService {
     private roleDiscountRepository: Repository<RoleDiscount>,
     @InjectRepository(ClientRole)
     private clientRoleRepository: Repository<ClientRole>,
+    @InjectRepository(Image)
+    private imageRepository: Repository<Image>,
   ) {}
 
   findMany(params: ProductGetListDto) {
@@ -87,11 +90,12 @@ export class ProductService {
   async create(product: ProductCreateDto) {
     const saveParams: Omit<
       ProductCreateDto,
-      'category' | 'similarProducts' | 'roleDiscounts'
+      'category' | 'similarProducts' | 'roleDiscounts' | 'images'
     > & {
       category?: Category | number;
       similarProducts?: (Product | number)[];
       roleDiscounts?: (RoleDiscount | object)[];
+      images?: (Image | number)[];
     } = product;
     saveParams.category = await this.categoryRepository.findOne(
       product.category,
@@ -121,15 +125,39 @@ export class ProductService {
       }
       saveParams.roleDiscounts = roleDiscounts;
     }
+
+    saveParams.images = [];
+    for (const imageId of product.images) {
+      const image = await this.imageRepository.findOne(imageId);
+      if (!image) {
+        throw new HttpException(`Image with id=${imageId} was not found`, 400);
+      }
+      saveParams.images.push(image);
+    }
+
     return this.productRepository.save(saveParams as DeepPartial<Product>);
   }
 
   async update(id: number, product: ProductUpdateDto) {
+    const images = [];
+    if (product.images) {
+      for (const imageId of product.images) {
+        const image = await this.imageRepository.findOne(imageId);
+        if (!image) {
+          throw new HttpException(
+            `Image with id=${imageId} was not found`,
+            400,
+          );
+        }
+        images.push(image);
+      }
+    }
+
     const saveParams: DeepPartial<Product> = {
       title: product.title,
       description: product.description,
       moyskladId: product.moyskladId,
-      images: product.images,
+      images,
       price: product.price,
       characteristics: product.characteristics,
       meta: product.meta,

@@ -8,6 +8,7 @@ import { RoleDiscount } from '../../entity/RoleDiscount';
 import { ProductGrade } from '../../entity/ProductGrade';
 import { ProductGradeService } from './product-grade.service';
 import { ClientRole } from '../../entity/ClientRole';
+import { Image } from '../../entity/Image';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ClientRole } from '../../entity/ClientRole';
       RoleDiscount,
       ProductGrade,
       ClientRole,
+      Image,
     ]),
   ],
   providers: [ProductService, ProductGradeService],
