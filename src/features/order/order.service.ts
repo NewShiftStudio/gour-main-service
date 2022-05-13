@@ -60,6 +60,10 @@ export class OrderService {
 
     return this.orderRepository.save({
       status: OrderStatus.basketFilling,
+      firstName: order.firstName,
+      lastName: order.lastName,
+      phone: order.phone,
+      email: order.email,
       orderProducts,
       client,
       orderProfile,
