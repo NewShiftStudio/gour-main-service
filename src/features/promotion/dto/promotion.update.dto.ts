@@ -8,8 +8,9 @@ import {
 import { Type } from 'class-transformer';
 import { TranslatableStringDto } from '../../../common/dto/TranslatableStringDto';
 import { TranslatableTextDto } from '../../../common/dto/TranslatableTextDto';
-import { ImageDto } from '../../../common/dto/ImageDto';
-import {ApiPropertyOptional} from "@nestjs/swagger";
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiModelPropertyOptional } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
+import { PageMetaDto } from '../../../common/dto/PageMetaDto';
 
 export class PromotionUpdateDto {
   @ValidateNested()
@@ -24,17 +25,15 @@ export class PromotionUpdateDto {
   @ApiPropertyOptional()
   description?: TranslatableTextDto;
 
-  @ValidateNested()
-  @Type(() => ImageDto)
+  @IsNumber()
   @IsOptional()
   @ApiPropertyOptional()
-  cardImage?: ImageDto;
+  cardImageId?: number;
 
-  @ValidateNested()
+  @IsNumber()
   @IsOptional()
-  @Type(() => ImageDto)
   @ApiPropertyOptional()
-  pageImage?: ImageDto;
+  pageImageId?: number;
 
   @IsNumber()
   @IsOptional()
@@ -55,4 +54,11 @@ export class PromotionUpdateDto {
   @IsOptional()
   @ApiPropertyOptional()
   products: number[];
+
+  @ValidateNested()
+  @IsOptional()
+  @ApiModelPropertyOptional({
+    type: () => PageMetaDto,
+  })
+  pageMeta: PageMetaDto;
 }

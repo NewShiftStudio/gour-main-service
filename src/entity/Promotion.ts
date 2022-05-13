@@ -11,6 +11,7 @@ import { Product } from './Product';
 import { Image } from './Image';
 import { TranslatableString } from './TranslatableString';
 import { TranslatableText } from './TranslatableText';
+import { PageMeta } from './PageMeta';
 
 @Entity()
 export class Promotion extends AppEntity {
@@ -56,6 +57,13 @@ export class Promotion extends AppEntity {
   })
   @JoinTable()
   products: Product[];
+
+  @OneToOne(() => PageMeta, {
+    cascade: true,
+    eager: true,
+  })
+  @JoinColumn()
+  pageMeta: PageMeta;
 }
 
 export type IPromotion = Promotion;

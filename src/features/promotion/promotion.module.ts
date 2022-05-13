@@ -3,9 +3,11 @@ import { PromotionService } from './promotion.service';
 import { PromotionController } from './promotion.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Promotion } from '../../entity/Promotion';
+import { Image } from '../../entity/Image';
+import { Product } from '../../entity/Product';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Promotion])],
+  imports: [TypeOrmModule.forFeature([Promotion, Image, Product])],
   providers: [PromotionService],
   controllers: [PromotionController],
   exports: [PromotionService],

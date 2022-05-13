@@ -10,6 +10,8 @@ import { TranslatableStringDto } from '../../../common/dto/TranslatableStringDto
 import { TranslatableTextDto } from '../../../common/dto/TranslatableTextDto';
 import { ImageDto } from '../../../common/dto/ImageDto';
 import { ApiProperty } from '@nestjs/swagger';
+import { PageMetaDto } from '../../../common/dto/PageMetaDto';
+import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 
 export class PromotionCreateDto {
   @ValidateNested()
@@ -22,15 +24,13 @@ export class PromotionCreateDto {
   @ApiProperty()
   description: TranslatableTextDto;
 
-  @ValidateNested()
-  @Type(() => ImageDto)
+  @IsNumber()
   @ApiProperty()
-  cardImage: ImageDto;
+  cardImageId: number;
 
-  @ValidateNested()
-  @Type(() => ImageDto)
+  @IsNumber()
   @ApiProperty()
-  pageImage: ImageDto;
+  pageImageId: number;
 
   @IsNumber()
   @ApiProperty()
@@ -48,4 +48,10 @@ export class PromotionCreateDto {
   @IsOptional()
   @ApiProperty()
   products: number[];
+
+  @ValidateNested()
+  @ApiModelProperty({
+    type: () => PageMetaDto,
+  })
+  pageMeta: PageMetaDto;
 }
