@@ -79,6 +79,7 @@ export class ClientsService {
 
     const updatedObj: DeepPartial<Client> = {
       name: dto.name,
+      avatarId: dto.avatarId,
       additionalInfo: {
         ...client.additionalInfo,
         ...(dto.additionalInfo || {}),
@@ -102,8 +103,6 @@ export class ClientsService {
       for (const favoriteId of dto.favoriteIds) {
         favorites.push(await this.productRepository.findOne(favoriteId));
       }
-
-      console.log('favorites', favorites);
 
       updatedObj.favorites = favorites;
     }

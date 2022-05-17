@@ -5,12 +5,15 @@ import {
   ManyToOne,
   Index,
   JoinTable,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { AppEntity } from './AppEntity';
 import { ClientRole } from './ClientRole';
 import { Product } from './Product';
 import { City } from './City';
 import { ReferralCode } from './ReferralCode';
+import { Image } from './Image';
 
 @Entity()
 export class Client extends AppEntity {
@@ -73,6 +76,18 @@ export class Client extends AppEntity {
     default: '',
   })
   password: string;
+
+  @OneToOne(() => Image, {
+    nullable: true,
+    eager: true,
+  })
+  @JoinColumn()
+  avatar: Image;
+
+  @Column({
+    nullable: true,
+  })
+  avatarId: number;
 }
 
 export type IClient = Client;

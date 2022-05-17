@@ -18,6 +18,8 @@ import { ChangePhoneDto } from './dto/change-phone.dto';
 import { decodePhoneCode, encodePhoneCode } from './jwt.service';
 import { Response, Request } from 'express';
 import { SendCodeDto } from './dto/send-code.dto';
+import { CurrentUserService } from './current-user.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 const PHONE_CODE_KEY = 'PhoneCode';
 
@@ -27,25 +29,17 @@ export class CurrentUserController {
   constructor(
     private readonly authService: AuthService,
     private readonly clientsService: ClientsService,
+    private readonly currentUserService: CurrentUserService,
   ) {}
   @ApiBearerAuth()
   @Get('/')
   getCurrentUser(@CurrentUser() currentUser: Client) {
-    return currentUser;
+    return this.currentUserService.getUser(currentUser.id);
   }
 
   @ApiBearerAuth()
   @Put('/')
   updateCurrentUser(
-    @CurrentUser() currentUser: Client,
-    @Body() dto: UpdateUserDto,
-  ) {
-    return this.clientsService.update(currentUser.id, dto);
-  }
-
-  @ApiBearerAuth()
-  @Put('/')
-  changePassword(
     @CurrentUser() currentUser: Client,
     @Body() dto: UpdateUserDto,
   ) {
@@ -61,9 +55,7 @@ export class CurrentUserController {
   ) {
     const code = await this.authService.sendCode(dto.phone);
     const hashedCode = encodePhoneCode(dto.phone, code);
-    res.cookie(PHONE_CODE_KEY, hashedCode, {
-      // path: '/auth/currentUser/phone/change',
-    });
+    res.cookie(PHONE_CODE_KEY, hashedCode);
 
     return res.send({
       result: 'Code successfully sent',
@@ -79,27 +71,20 @@ export class CurrentUserController {
     @Res() res: Response,
   ) {
     const hashedCode = req.cookies[PHONE_CODE_KEY];
+    await this.currentUserService.changePhone(currentUser, hashedCode, dto);
 
-    if (!hashedCode) {
-      throw new HttpException('Cookie code was not found', 400);
-    }
-    const { code, phone } = decodePhoneCode(hashedCode || '');
-
-    if (phone !== dto.phone) {
-      throw new HttpException('Wrong phone', 400);
-    }
     res.cookie(PHONE_CODE_KEY, '');
-
-    console.log('code', code, dto.code);
-    console.log('phone', phone, dto.phone);
-
-    if (+code !== dto.code) {
-      throw new HttpException('Wrong code, please, try again', 400);
-    }
-
-    await this.clientsService.updatePhone(currentUser.id, dto.phone);
     return res.send({
       result: true,
     });
+  }
+
+  @ApiBearerAuth()
+  @Post('/change-password')
+  async changePassword(
+    @CurrentUser() currentUser: Client,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return this.currentUserService.changePassword(currentUser.id, dto);
   }
 }

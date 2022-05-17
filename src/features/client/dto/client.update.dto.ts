@@ -32,4 +32,9 @@ export class ClientUpdateDto {
   @IsOptional()
   @ApiPropertyOptional()
   countries?: object[];
+
+  @IsNumber()
+  @IsOptional()
+  @ApiPropertyOptional()
+  avatarId?: number;
 }
