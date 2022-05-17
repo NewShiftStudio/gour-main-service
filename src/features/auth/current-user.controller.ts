@@ -22,7 +22,7 @@ import { SendCodeDto } from './dto/send-code.dto';
 const PHONE_CODE_KEY = 'PhoneCode';
 
 @ApiTags('current-user')
-@Controller('auth/currentUser')
+@Controller('client-auth/currentUser')
 export class CurrentUserController {
   constructor(
     private readonly authService: AuthService,
