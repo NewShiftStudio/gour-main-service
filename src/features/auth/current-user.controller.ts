@@ -60,7 +60,7 @@ export class CurrentUserController {
     @Res() res: Response,
   ) {
     const code = await this.authService.sendCode(dto.phone);
-    const hashedCode = encodePhoneCode(code);
+    const hashedCode = encodePhoneCode(dto.phone, code);
     res.cookie(PHONE_CODE_KEY, hashedCode, {
       // path: '/auth/currentUser/phone/change',
     });
@@ -79,13 +79,21 @@ export class CurrentUserController {
     @Res() res: Response,
   ) {
     const hashedCode = req.cookies[PHONE_CODE_KEY];
-    const code = decodePhoneCode(hashedCode || '');
-    if (!code) {
+
+    if (!hashedCode) {
       throw new HttpException('Cookie code was not found', 400);
     }
-    res.cookie('CODE', '');
+    const { code, phone } = decodePhoneCode(hashedCode || '');
 
-    if (code !== dto.code) {
+    if (phone !== dto.phone) {
+      throw new HttpException('Wrong phone', 400);
+    }
+    res.cookie(PHONE_CODE_KEY, '');
+
+    console.log('code', code, dto.code);
+    console.log('phone', phone, dto.phone);
+
+    if (+code !== dto.code) {
       throw new HttpException('Wrong code, please, try again', 400);
     }
 

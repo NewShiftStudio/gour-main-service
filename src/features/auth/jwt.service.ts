@@ -23,19 +23,24 @@ export function decodeToken(token: string) {
 
 const HASH_SEPARATOR = '___';
 
-export function decodePhoneCode(hash: string): number | null {
+export function decodePhoneCode(
+  hash: string,
+): { phone: string; code: string } | null {
   const bytes = AES.decrypt(hash, process.env.PHONE_CODE_SECRET_KEY);
   const result = bytes.toString(enc.Utf8);
   if (!result) {
     return null;
   }
-  const [prefix, phoneCode] = result.split(HASH_SEPARATOR);
-  return phoneCode;
+  const [prefix, phone, code] = result.split(HASH_SEPARATOR);
+  return {
+    phone,
+    code,
+  };
 }
 
-export function encodePhoneCode(code: number): string {
+export function encodePhoneCode(phone: string, code: number): string {
   return AES.encrypt(
-    `PHONE_CODE${HASH_SEPARATOR}${code}`,
+    `PHONE_CODE${HASH_SEPARATOR}${phone}${HASH_SEPARATOR}${code}`,
     process.env.PHONE_CODE_SECRET_KEY,
   ).toString();
 }
