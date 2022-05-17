@@ -110,4 +110,11 @@ export class ClientsService {
 
     return this.clientRepository.save(updatedObj);
   }
+
+  updatePhone(id: number, phone: string) {
+    return this.clientRepository.save({
+      id,
+      phone,
+    });
+  }
 }

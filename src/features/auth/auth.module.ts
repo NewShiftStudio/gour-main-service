@@ -5,13 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Client } from '../../entity/Client';
 import { ClientModule } from '../client/client.module';
 import { ReferralCode } from '../../entity/ReferralCode';
+import { CurrentUserController } from './current-user.controller';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Client, ReferralCode]),
     forwardRef(() => ClientModule),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, CurrentUserController],
   providers: [AuthService],
   exports: [AuthService],
 })

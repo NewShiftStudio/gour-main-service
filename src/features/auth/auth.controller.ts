@@ -54,20 +54,4 @@ export class AuthController {
       token,
     });
   }
-
-  @ApiBearerAuth()
-  @Get('/currentUser')
-  getCurrentUser(@CurrentUser() currentUser: Client) {
-    console.log('currentUser', currentUser);
-    return currentUser;
-  }
-
-  @ApiBearerAuth()
-  @Put('/currentUser')
-  updateCurrentUser(
-    @CurrentUser() currentUser: Client,
-    @Body() dto: UpdateUserDto,
-  ) {
-    return this.clientsService.update(currentUser.id, dto);
-  }
 }

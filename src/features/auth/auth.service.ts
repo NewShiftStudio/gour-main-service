@@ -18,7 +18,7 @@ export class AuthService {
     private referralCodeRepository: Repository<ReferralCode>,
   ) {}
 
-  async sendCode(phone: string) {
+  async sendCode(phone: string): Promise<number> {
     const foundPhone = await this.clientRepository.findOne({
       phone,
     });
@@ -27,7 +27,8 @@ export class AuthService {
       throw new HttpException('phone_exists_error', 400);
     }
 
-    //
+    // TODO: Добавить сервис отправки сообщений
+    return 1234;
   }
 
   async signup(dto: SignUpDto) {
