@@ -43,7 +43,7 @@ export class CurrentUserController {
     @CurrentUser() currentUser: Client,
     @Body() dto: UpdateUserDto,
   ) {
-    return this.clientsService.update(currentUser.id, dto);
+    return this.currentUserService.updateCurrentUser(currentUser.id, dto);
   }
 
   @ApiBearerAuth()

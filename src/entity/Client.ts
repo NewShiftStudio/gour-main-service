@@ -14,6 +14,7 @@ import { Product } from './Product';
 import { City } from './City';
 import { ReferralCode } from './ReferralCode';
 import { Image } from './Image';
+import { OrderProfile } from './OrderProfile';
 
 @Entity()
 export class Client extends AppEntity {
@@ -43,12 +44,22 @@ export class Client extends AppEntity {
   @Column({
     default: '',
   })
-  name: string;
+  firstName: string;
+
+  @Column({
+    default: '',
+  })
+  lastName: string;
 
   @Column({
     default: '',
   })
   phone: string;
+
+  @Column({
+    default: '',
+  })
+  email: string;
 
   @ManyToOne(() => City, {
     eager: true,
@@ -88,6 +99,12 @@ export class Client extends AppEntity {
     nullable: true,
   })
   avatarId: number;
+
+  @OneToOne(() => OrderProfile, {
+    nullable: true,
+  })
+  @JoinColumn()
+  mainOrderProfile: OrderProfile;
 }
 
 export type IClient = Client;

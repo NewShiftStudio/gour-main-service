@@ -34,4 +34,9 @@ export class OrderProfile extends AppEntity {
 
   @ManyToOne(() => Client)
   client: Client;
+
+  @Column({
+    nullable: true
+  })
+  comment: string;
 }

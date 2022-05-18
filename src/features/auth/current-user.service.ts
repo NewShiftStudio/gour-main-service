@@ -7,12 +7,23 @@ import { Repository } from 'typeorm';
 
 import * as bcrypt from 'bcryptjs';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ClientUpdateDto } from '../client/dto/client.update.dto';
+import { ClientRole } from '../../entity/ClientRole';
+import { DeepPartial } from 'typeorm/common/DeepPartial';
+import { Product } from '../../entity/Product';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { Image } from '../../entity/Image';
+import { OrderProfile } from '../../entity/OrderProfile';
 
 @Injectable()
 export class CurrentUserService {
   constructor(
     @InjectRepository(Client)
     private clientRepository: Repository<Client>,
+    @InjectRepository(Image)
+    private imageRepository: Repository<Image>,
+    @InjectRepository(OrderProfile)
+    private orderProfileRepository: Repository<OrderProfile>,
   ) {}
 
   getUser(id: number) {
@@ -60,5 +71,33 @@ export class CurrentUserService {
       id: currentUserId,
       password: await bcrypt.hash(dto.newPassword, 5),
     });
+  }
+
+  async updateCurrentUser(id: number, dto: UpdateUserDto) {
+    const updatedObj: DeepPartial<Client> = {
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      id,
+    };
+
+    if (dto.avatarId) {
+      const avatar = await this.imageRepository.findOne(dto.avatarId);
+      if (!avatar) {
+        throw new HttpException('Avatar with this id was not found', 400);
+      }
+      updatedObj.avatar = avatar;
+    }
+
+    if (dto.mainOrderProfileId) {
+      const orderProfile = await this.orderProfileRepository.findOne(
+        dto.mainOrderProfileId,
+      );
+      if (!orderProfile) {
+        throw new HttpException('Order profile with this id was not found', 400);
+      }
+      updatedObj.mainOrderProfile = orderProfile;
+    }
+
+    return this.clientRepository.save(updatedObj);
   }
 }

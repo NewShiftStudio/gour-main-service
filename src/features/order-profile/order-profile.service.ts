@@ -7,6 +7,8 @@ import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
 import { OrderProfileCreateDto } from './dto/order-profile.create.dto';
 import { Client } from '../../entity/Client';
 import { City } from '../../entity/City';
+import { DeepPartial } from 'typeorm/browser';
+import { OrderProfileUpdateDto } from './dto/order-profile.update.dto';
 
 @Injectable()
 export class OrderProfileService {
@@ -51,11 +53,28 @@ export class OrderProfileService {
     });
   }
 
-  update(id: number, orderProfile: Partial<OrderProfile>) {
-    return this.orderProfileRepository.save({
-      ...orderProfile,
+  async update(id: number, dto: OrderProfileUpdateDto) {
+    const entity: DeepPartial<OrderProfile> = {
+      title: dto.title,
+      street: dto.street,
+      house: dto.house,
+      apartment: dto.apartment,
+      entrance: dto.entrance,
+      floor: dto.floor,
+      comment: dto.comment,
       id,
-    });
+    };
+
+    if (dto.cityId) {
+      const city = await this.cityRepository.findOne(dto.cityId);
+      if (!city) {
+        throw new HttpException('City with this id was not found', 400);
+      }
+
+      entity.city = city;
+    }
+
+    return this.orderProfileRepository.save(entity);
   }
 
   remove(id: number) {

@@ -1,28 +1,30 @@
 import {
-  IsEmail,
   IsNumber,
   IsOptional,
-  IsPhoneNumber,
   IsString,
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
-export class OrderProfileCreateDto {
+export class OrderProfileUpdateDto {
+  @IsOptional()
   @IsString()
-  @ApiProperty()
-  title: string;
+  @ApiPropertyOptional()
+  title?: string;
 
+  @IsOptional()
   @IsNumber()
-  @ApiProperty()
-  cityId: number;
+  @ApiPropertyOptional()
+  cityId?: number;
 
+  @IsOptional()
   @IsString()
-  @ApiProperty()
-  street: string;
+  @ApiPropertyOptional()
+  street?: string;
 
+  @IsOptional()
   @IsString()
-  @ApiProperty()
-  house: string;
+  @ApiPropertyOptional()
+  house?: string;
 
   @IsString()
   @IsOptional()

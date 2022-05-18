@@ -15,6 +15,7 @@ import { OrderProfileCreateDto } from './dto/order-profile.create.dto';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { Client } from '../../entity/Client';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {OrderProfileUpdateDto} from "./dto/order-profile.update.dto";
 
 @ApiBearerAuth()
 @ApiTags('orderProfile')
@@ -41,8 +42,8 @@ export class OrderProfileController {
   }
 
   @Put('/order-profiles/:id')
-  put(@Param('id') id: string, @Body() orderProfile: Partial<OrderProfile>) {
-    return this.orderProfileService.update(+id, orderProfile);
+  put(@Param('id') id: string, @Body() dto: OrderProfileUpdateDto) {
+    return this.orderProfileService.update(+id, dto);
   }
 
   @Delete('/order-profiles/:id')

@@ -76,7 +76,7 @@ export class ReferralCodeController {
       ['Code', 'Client Name', 'Date'],
       ...clients.map((client) => [
         client.referralCode.code,
-        client.name,
+        `${client.firstName || ''} ${client.lastName || ''}`,
         client.createdAt,
       ]),
     ]);
