@@ -45,6 +45,8 @@ export class AuthController {
     const { token, client } = await this.authService.signin(dto);
     res.cookie('AccessToken', token, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production',
     });
 
     req.user = client;
