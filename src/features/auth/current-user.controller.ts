@@ -87,4 +87,9 @@ export class CurrentUserController {
   ) {
     return this.currentUserService.changePassword(currentUser.id, dto);
   }
+
+  @Get('/favorites')
+  getFavoritesProducts(@CurrentUser() currentUser: Client) {
+    return this.clientsService.getFavorites(currentUser.id);
+  }
 }

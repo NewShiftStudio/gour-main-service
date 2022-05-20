@@ -44,6 +44,14 @@ export class ClientsService {
     return this.clientRepository.findOne(id);
   }
 
+  async getFavorites(id: number): Promise<Product[]> {
+    return (
+      await this.clientRepository.findOne(id, {
+        relations: ['favorites'],
+      })
+    ).favorites;
+  }
+
   async remove(id: number): Promise<void> {
     await this.clientRepository.softDelete(id);
   }

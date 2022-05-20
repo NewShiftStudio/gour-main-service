@@ -77,6 +77,7 @@ export class CurrentUserService {
     const updatedObj: DeepPartial<Client> = {
       firstName: dto.firstName,
       lastName: dto.lastName,
+      email: dto.email,
       id,
     };
 
