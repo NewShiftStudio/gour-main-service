@@ -13,11 +13,12 @@ import {
 import { OrderCreateDto } from './dto/order.create.dto';
 import { OrderService } from './order.service';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
 import { Response } from 'express';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { Client } from '../../entity/Client';
+import { OrderExtendedDto } from './dto/order.extended.dto';
 
 @ApiBearerAuth()
 @ApiTags('orders')
@@ -26,6 +27,10 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get('/orders')
+  @ApiResponse({
+    isArray: true,
+    type: OrderExtendedDto,
+  })
   async getAll(
     @CurrentUser() client: Client,
     @Query() params: BaseGetListDto,
@@ -36,8 +41,27 @@ export class OrderController {
       client,
     );
 
+    // TODO: интегрировать амо, сделать расчет скидок
+    const response: OrderExtendedDto[] = orders.map((order) => ({
+      order,
+      crmInfo: {
+        id: 'TX-123456789',
+        status: {
+          name: 'Создан',
+          color: '#0f0',
+        },
+      },
+      promotions: [
+        {
+          title: 'Скидка за наеденность',
+          value: 100,
+          currency: 'rub',
+        },
+      ],
+    }));
+
     res.set(TOTAL_COUNT_HEADER, count.toString());
-    return res.send(orders);
+    return res.send(response);
   }
 
   @Get('/orders/:id')
