@@ -2,8 +2,10 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
+  Param,
   Post,
   Put,
   Req,
@@ -20,6 +22,7 @@ import { Response, Request } from 'express';
 import { SendCodeDto } from './dto/send-code.dto';
 import { CurrentUserService } from './current-user.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { AddToFavoritesDto } from './dto/add-to-favorites.dto';
 
 const PHONE_CODE_KEY = 'PhoneCode';
 
@@ -91,5 +94,24 @@ export class CurrentUserController {
   @Get('/favorites')
   getFavoritesProducts(@CurrentUser() currentUser: Client) {
     return this.clientsService.getFavorites(currentUser.id);
+  }
+
+  @Post('/favorites')
+  addProductToFavorites(
+    @CurrentUser() currentUser: Client,
+    @Body() addToFavoritesDto: AddToFavoritesDto,
+  ) {
+    return this.clientsService.addToFavorites(
+      currentUser.id,
+      addToFavoritesDto.productId,
+    );
+  }
+
+  @Delete('/favorites/:productId')
+  removeProductFromFavorites(
+    @CurrentUser() currentUser: Client,
+    @Param('productId') productId: string,
+  ) {
+    return this.clientsService.removeFromFavorites(currentUser.id, +productId);
   }
 }

@@ -52,6 +52,28 @@ export class ClientsService {
     ).favorites;
   }
 
+  async addToFavorites(clientId: number, productId: number) {
+    const newProduct = await this.productRepository.findOne(productId);
+
+    if (!newProduct) {
+      throw new HttpException('Product was not found', 400);
+    }
+
+    const favorites = await this.getFavorites(clientId);
+    return this.clientRepository.save({
+      id: clientId,
+      favorites: [...favorites, newProduct],
+    });
+  }
+
+  async removeFromFavorites(clientId: number, productId: number) {
+    const favorites = await this.getFavorites(clientId);
+    return this.clientRepository.save({
+      id: clientId,
+      favorites: [...favorites.filter((it) => it.id !== productId)],
+    });
+  }
+
   async remove(id: number): Promise<void> {
     await this.clientRepository.softDelete(id);
   }
