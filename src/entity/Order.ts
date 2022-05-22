@@ -3,6 +3,7 @@ import { AppEntity } from './AppEntity';
 import { OrderProduct } from './OrderProduct';
 import { Client } from './Client';
 import { OrderProfile } from './OrderProfile';
+import { ApiProperty } from '@nestjs/swagger';
 
 export enum OrderStatus {
   init = 'init',
@@ -20,6 +21,9 @@ export enum OrderStatus {
 export class Order extends AppEntity {
   @Column({
     type: 'enum',
+    enum: OrderStatus,
+  })
+  @ApiProperty({
     enum: OrderStatus,
   })
   status: OrderStatus;
