@@ -15,8 +15,8 @@ async function bootstrap() {
   });
 
   const builder = new DocumentBuilder()
-    .setTitle('Cats example')
-    .setDescription('The cats API description')
+    .setTitle('Gour Food')
+    .setDescription('Gour Food API description')
     .setVersion('1.0')
     .addBearerAuth()
     .setBasePath('v1');
