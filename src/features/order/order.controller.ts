@@ -19,12 +19,17 @@ import { Response } from 'express';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { Client } from '../../entity/Client';
 import { OrderExtendedDto } from './dto/order.extended.dto';
+import { AmoCrmService } from './amo-crm.service';
+import { LeadDto } from './dto/lead.dto';
 
 @ApiBearerAuth()
 @ApiTags('orders')
 @Controller()
 export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(
+    private readonly orderService: OrderService,
+    private readonly amoCrmService: AmoCrmService,
+  ) {}
 
   @Get('/orders')
   @ApiResponse({
@@ -36,21 +41,21 @@ export class OrderController {
     @Query() params: BaseGetListDto,
     @Res() res: Response,
   ) {
+    const leads = await this.amoCrmService.getLeadList();
+
+    const leadsById = leads.reduce((acc, it) => {
+      acc[it.id] = it;
+      return acc;
+    });
+
     const [orders, count] = await this.orderService.findUsersOrders(
       params,
       client,
     );
 
-    // TODO: интегрировать амо, сделать расчет скидок
     const response: OrderExtendedDto[] = orders.map((order) => ({
       order,
-      crmInfo: {
-        id: 'TX-123456789',
-        status: {
-          name: 'Создан',
-          color: '#0f0',
-        },
-      },
+      crmInfo: leadsById[order.leadId],
       promotions: [
         {
           title: 'Скидка за наеденность',
@@ -65,8 +70,13 @@ export class OrderController {
   }
 
   @Get('/orders/:id')
-  getOne(@Param('id') id: string) {
-    return this.orderService.getOne(+id);
+  async getOne(@Param('id') id: string) {
+    const order = await this.orderService.getOne(+id);
+    const lead = await this.amoCrmService.getLead(order.leadId);
+    return {
+      ...order,
+      lead,
+    };
   }
 
   @Post('/orders')

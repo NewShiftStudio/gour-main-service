@@ -53,4 +53,9 @@ export class Order extends AppEntity {
 
   @Column()
   email: string;
+
+  @Column({
+    nullable: false,
+  })
+  leadId: number;
 }
