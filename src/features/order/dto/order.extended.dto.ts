@@ -25,9 +25,9 @@ class OrderPromotionDescription {
   value: number;
 
   @ApiProperty({
-    enum: ['rub', 'eur', 'percent'],
+    enum: ['cheeseCoin', 'percent'],
   })
-  currency: 'rub' | 'eur' | 'percent';
+  currency: 'cheeseCoin' | 'percent';
 }
 
 export class OrderExtendedDto {
