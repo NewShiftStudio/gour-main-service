@@ -118,8 +118,7 @@ export class ProductService {
         roleDiscounts.push(
           await this.roleDiscountRepository.create({
             role,
-            rub: roleDiscount.rub,
-            eur: roleDiscount.eur,
+            value: roleDiscount.value,
           }),
         );
       }

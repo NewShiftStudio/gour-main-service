@@ -60,7 +60,7 @@ export class OrderController {
         {
           title: 'Скидка за наеденность',
           value: 100,
-          currency: 'rub',
+          currency: 'cheeseCoin',
         },
       ],
     }));

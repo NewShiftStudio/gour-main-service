@@ -81,12 +81,16 @@ export class CurrentUserService {
       id,
     };
 
-    if (dto.avatarId) {
-      const avatar = await this.imageRepository.findOne(dto.avatarId);
-      if (!avatar) {
-        throw new HttpException('Avatar with this id was not found', 400);
+    if ('avatarId' in dto) {
+      if (dto.avatarId === null) {
+        updatedObj.avatar = null;
+      } else if (dto.avatarId) {
+        const avatar = await this.imageRepository.findOne(dto.avatarId);
+        if (!avatar) {
+          throw new HttpException('Avatar with this id was not found', 400);
+        }
+        updatedObj.avatar = avatar;
       }
-      updatedObj.avatar = avatar;
     }
 
     if (dto.mainOrderProfileId) {
@@ -94,7 +98,10 @@ export class CurrentUserService {
         dto.mainOrderProfileId,
       );
       if (!orderProfile) {
-        throw new HttpException('Order profile with this id was not found', 400);
+        throw new HttpException(
+          'Order profile with this id was not found',
+          400,
+        );
       }
       updatedObj.mainOrderProfile = orderProfile;
     }

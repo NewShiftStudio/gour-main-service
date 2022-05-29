@@ -23,16 +23,4 @@ export class RoleDiscount extends AppEntity {
     nullable: true,
   })
   value: number;
-
-  @Column({
-    type: 'float',
-    nullable: true,
-  })
-  rub: number;
-
-  @Column({
-    type: 'float',
-    nullable: true,
-  })
-  eur: number;
 }

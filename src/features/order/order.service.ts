@@ -27,7 +27,7 @@ export class OrderService {
   findUsersOrders(params: BaseGetListDto, client: Client) {
     return this.orderRepository.findAndCount({
       ...getPaginationOptions(params.offset, params.length),
-      relations: ['orderProducts', 'orderProfile'],
+      relations: ['orderProducts', 'orderProfile', 'orderProfile.city'],
       where: {
         client,
       },
@@ -37,11 +37,17 @@ export class OrderService {
   findMany(params: BaseGetListDto) {
     return this.orderRepository.findAndCount({
       ...getPaginationOptions(params.offset, params.length),
+      relations: ['orderProducts', 'orderProfile', 'orderProfile.city'],
     });
   }
 
   getOne(id: number) {
-    return this.orderRepository.findOne({ id });
+    return this.orderRepository.findOne(
+      { id },
+      {
+        relations: ['orderProducts', 'orderProfile', 'orderProfile.city'],
+      },
+    );
   }
 
   async create(order: OrderCreateDto, client: Client) {
@@ -79,6 +85,6 @@ export class OrderService {
   }
 
   remove(id: number) {
-    return this.orderRepository.delete(id);
+    return this.orderRepository.softDelete(id);
   }
 }
