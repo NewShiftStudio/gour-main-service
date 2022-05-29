@@ -6,10 +6,5 @@ export class Price extends AppEntity {
   @Column({
     type: 'float',
   })
-  rub: number;
-
-  @Column({
-    type: 'float',
-  })
-  eur: number;
+  cheeseCoin: number;
 }
