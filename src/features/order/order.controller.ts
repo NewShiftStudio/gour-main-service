@@ -21,6 +21,8 @@ import { Client } from '../../entity/Client';
 import { OrderExtendedDto } from './dto/order.extended.dto';
 import { AmoCrmService } from './amo-crm.service';
 import { LeadDto } from './dto/lead.dto';
+import { OrderProduct } from '../../entity/OrderProduct';
+import { ProductService } from '../product/product.service';
 
 @ApiBearerAuth()
 @ApiTags('orders')
@@ -29,6 +31,7 @@ export class OrderController {
   constructor(
     private readonly orderService: OrderService,
     private readonly amoCrmService: AmoCrmService,
+    private readonly productService: ProductService,
   ) {}
 
   @Get('/orders')
@@ -73,6 +76,7 @@ export class OrderController {
   async getOne(@Param('id') id: string) {
     const order = await this.orderService.getOne(+id);
     const lead = await this.amoCrmService.getLead(order.leadId);
+
     return {
       ...order,
       lead,
@@ -84,7 +88,22 @@ export class OrderController {
     @CurrentUser() currentUser: Client,
     @Body() order: OrderCreateDto,
   ) {
-    return this.orderService.create(order, currentUser);
+    const { id } = await this.orderService.create(order, currentUser);
+    const fullOrder = await this.orderService.getOne(id);
+    const description = this.orderService.getDescription(fullOrder);
+    const lead = await this.amoCrmService.createLead({
+      name: 'TEST',
+      description,
+      price: 200,
+    });
+    await this.orderService.update(id, {
+      leadId: lead.id,
+    });
+    //
+    return {
+      ...fullOrder,
+      lead,
+    };
   }
 
   @Put('/orders/:id')

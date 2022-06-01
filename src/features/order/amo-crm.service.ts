@@ -13,6 +13,7 @@ const amoCrmApi: AxiosInstance = axios.create({
 const pipelineId = 4569880;
 const websiteTicketStatus = 45278836;
 const paymentSuccessStatus = 42092803;
+const COMMENT_CUSTOM_FIELD_ID = 1401695;
 
 const META_REFRESH_TOKEN_KEY = 'AMO_REFRESH_TOKEN';
 const META_ACCESS_TOKEN_KEY = 'AMO_ACCESS_TOKEN';
@@ -41,12 +42,15 @@ export class AmoCrmService {
         client_id: process.env.AMO_CLIENT_ID,
         client_secret: process.env.AMO_CLIENT_SECRECT,
         grant_type: 'refresh_token',
-        //todo текущий рефреш токен(он не истекает 3 месяца) но при запросе нового аксеса - меняется!
-        refresh_token: process.env.REFRESH_TOKEN_AMO,
+        refresh_token: await this.metaService.getValue(META_REFRESH_TOKEN_KEY),
         redirect_uri: process.env.AMO_REDIRECT_URI,
       });
 
-      console.log('auth.response', response);
+      console.log(
+        'auth.response',
+        this.metaService.getValue(META_REFRESH_TOKEN_KEY),
+        response,
+      );
 
       this.metaService.setValue(
         META_REFRESH_TOKEN_KEY,
@@ -57,20 +61,12 @@ export class AmoCrmService {
         response.data.access_token,
       );
       this.access_token = response.data.access_token;
-      //Todo Положить токен в базу вместе со временем сессии и запрашивать по окончанию или при работе, дальше можно работать с аксесс токеном
-      // Важно(!) рефреш токен всегда приходит новый вместе с аксесс токеном
-      // "token_type": "Bearer",
-      // "expires_in": 86400,
-      // function saveToken(token) {
-      // this.access_token = token.access_token
-      //     setItem('tokenData', JSON.stringify(token)); ?
-      //
       if (response.status === 200 || response.status === 201) {
         return response;
       }
     } catch (error) {
       console.error(error);
-      console.error('getAuthToken refresh_token error', error);
+      console.error('getAuthToken refresh_token error');
     }
   }
 
@@ -95,6 +91,16 @@ export class AmoCrmService {
             name: createLeadDto.name,
             price: createLeadDto.price,
             status_id: websiteTicketStatus,
+            custom_fields_values: [
+              {
+                field_id: COMMENT_CUSTOM_FIELD_ID,
+                values: [
+                  {
+                    value: createLeadDto.description,
+                  },
+                ],
+              },
+            ],
           },
         ],
         {
@@ -109,10 +115,11 @@ export class AmoCrmService {
     }
   }
 
+  /**
+   * Может быть полезен для получения списка существующих статусов
+   */
   async getAllOrderStatuses(): Promise<[]> {
-    if (!this.access_token) {
-      await this.auth();
-    }
+    await this.auth();
     try {
       const orders = await amoCrmApi.get(
         `/api/v4/leads/pipelines/${pipelineId}`,
@@ -155,6 +162,8 @@ export class AmoCrmService {
 
   async getLead(id: number): Promise<LeadDto> {
     try {
+      await this.auth();
+
       const { data: lead } = await amoCrmApi.get(`/api/v4/leads/${id}`, {
         headers: { Authorization: `Bearer ${this.access_token}` },
       });
@@ -200,5 +209,17 @@ export class AmoCrmService {
     } catch (error) {
       console.error('updateStatusAMO error', error);
     }
+  }
+
+  async getFields() {
+    await this.auth();
+    const { data: fields } = await amoCrmApi.get(
+      '/api/v4/leads/custom_fields',
+      {
+        headers: { Authorization: `Bearer ${this.access_token}` },
+      },
+    );
+
+    return fields;
   }
 }

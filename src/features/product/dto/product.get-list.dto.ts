@@ -17,4 +17,9 @@ export class ProductGetListDto extends BaseGetListDto {
   @IsOptional()
   @ApiPropertyOptional()
   withRoleDiscounts?: boolean;
+
+  @IsBooleanString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  withDiscount?: boolean;
 }

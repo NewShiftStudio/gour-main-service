@@ -17,14 +17,17 @@ import { ProductGetOneDto } from './dto/product.get-one.dto';
 import { ProductGradeService } from './product-grade.service';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
 import { ProductGradeCreateDto } from './dto/product-grade.create.dto';
-import { ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProductUpdateDto } from './dto/product.update.dto';
 import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
 import { Response } from 'express';
 import { ProductGradeGetListDto } from './dto/product-grade.get-list.dto';
 import { ProductGradeUpdateDto } from './dto/product-grade.update.dto';
 import { ProductWithMetricsDto } from './dto/product-with-metrics.dto';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { Client } from '../../entity/Client';
 
+@ApiBearerAuth()
 @ApiTags('products')
 @Controller()
 export class ProductController {
@@ -34,11 +37,18 @@ export class ProductController {
   ) {}
 
   @Get('/products')
-  async getAll(@Query() params: ProductGetListDto, @Res() res: Response) {
-    const [clients, count] = await this.productService.findMany(params);
+  async getAll(
+    @Query() params: ProductGetListDto,
+    @Res() res: Response,
+    @CurrentUser() client: Client,
+  ) {
+    const [products, count] = await this.productService.findMany(
+      params,
+      client,
+    );
 
     res.set(TOTAL_COUNT_HEADER, count.toString());
-    return res.send(clients);
+    return res.send(products);
   }
 
   @Get('/products/novelties')
@@ -50,8 +60,12 @@ export class ProductController {
     type: ProductWithMetricsDto,
   })
   @Get('/products/:id')
-  getOne(@Param('id') id: string, @Query() params: ProductGetOneDto = {}) {
-    return this.productService.getOne(+id, params);
+  getOne(
+    @Param('id') id: string,
+    @Query() params: ProductGetOneDto = {},
+    @CurrentUser() client: Client,
+  ) {
+    return this.productService.getOne(+id, params, client);
   }
 
   @Post('/products')
