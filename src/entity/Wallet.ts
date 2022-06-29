@@ -10,7 +10,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { WalletChange } from './WalletChange';
+import { WalletTransaction } from './WalletTransaction';
 
 @Entity()
 export class Wallet {
@@ -27,8 +27,8 @@ export class Wallet {
   @Column()
   signature: string;
 
-  @OneToMany(() => WalletChange, (wc) => wc.wallet)
-  changes: WalletChange[];
+  @OneToMany(() => WalletTransaction, (wc) => wc.wallet)
+  transactions: WalletTransaction[];
 
   @CreateDateColumn()
   createdAt: Date;

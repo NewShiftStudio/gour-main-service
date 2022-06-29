@@ -1,14 +1,14 @@
 import { IsEnum, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { WalletChangeStatus } from '../../../entity/WalletChange';
+import { WalletTransactionStatus } from '../../../entity/WalletTransaction';
 
 export class WalletConfirmPaymentDto {
   @ApiProperty({
-    enum: WalletChangeStatus,
-    default: WalletChangeStatus.approved,
+    enum: WalletTransactionStatus,
+    default: WalletTransactionStatus.init,
   })
-  @IsEnum(WalletChangeStatus)
-  status: WalletChangeStatus;
+  @IsEnum(WalletTransactionStatus)
+  status: WalletTransactionStatus;
 
   @ApiProperty()
   @IsString()

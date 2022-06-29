@@ -7,10 +7,7 @@ import { Repository } from 'typeorm';
 
 import * as bcrypt from 'bcryptjs';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { ClientUpdateDto } from '../client/dto/client.update.dto';
-import { ClientRole } from '../../entity/ClientRole';
 import { DeepPartial } from 'typeorm/common/DeepPartial';
-import { Product } from '../../entity/Product';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Image } from '../../entity/Image';
 import { OrderProfile } from '../../entity/OrderProfile';

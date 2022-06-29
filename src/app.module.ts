@@ -37,7 +37,7 @@ import * as path from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { WalletModule } from './features/wallet/wallet.module';
 import { Wallet } from './entity/Wallet';
-import { WalletChange } from './entity/WalletChange';
+import { WalletTransaction } from './entity/WalletTransaction';
 
 @Module({
   imports: [
@@ -79,7 +79,7 @@ import { WalletChange } from './entity/WalletChange';
         Page,
         ReferralCode,
         Wallet,
-        WalletChange,
+        WalletTransaction,
       ],
       subscribers: ['dist/subscriber/*.js'],
       migrations: ['dist/migration/*.js'],

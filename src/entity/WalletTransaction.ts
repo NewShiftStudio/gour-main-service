@@ -8,19 +8,19 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export enum WalletChangeType {
+export enum WalletTransactionType {
   income = 'income',
   expense = 'expense',
 }
 
-export enum WalletChangeStatus {
+export enum WalletTransactionStatus {
   init = 'init',
   approved = 'approved',
   rejected = 'rejected',
 }
 
 @Entity()
-export class WalletChange {
+export class WalletTransaction {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
 
@@ -29,15 +29,15 @@ export class WalletChange {
 
   @Column({
     type: 'enum',
-    enum: WalletChangeType,
+    enum: WalletTransactionType,
   })
-  type: WalletChangeType;
+  type: WalletTransactionType;
 
   @Column({
     type: 'enum',
-    enum: WalletChangeStatus,
+    enum: WalletTransactionStatus,
   })
-  status: WalletChangeStatus;
+  status: WalletTransactionStatus;
 
   @Column()
   secretToken: string;

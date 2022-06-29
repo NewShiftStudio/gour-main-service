@@ -15,6 +15,7 @@ import { City } from './City';
 import { ReferralCode } from './ReferralCode';
 import { Image } from './Image';
 import { OrderProfile } from './OrderProfile';
+import { Wallet } from './Wallet';
 
 @Entity()
 export class Client extends AppEntity {
@@ -105,6 +106,12 @@ export class Client extends AppEntity {
   })
   @JoinColumn()
   mainOrderProfile: OrderProfile;
+
+  @OneToOne(() => Wallet, {
+    nullable: true,
+  })
+  @JoinColumn()
+  wallet: Wallet;
 }
 
 export type IClient = Client;

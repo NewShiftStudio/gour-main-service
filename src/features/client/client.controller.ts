@@ -1,10 +1,8 @@
-import { Client } from '../../entity/Client';
 import {
   Body,
   Controller,
   Delete,
   Get,
-  Header,
   Param,
   Post,
   Put,
