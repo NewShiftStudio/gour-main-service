@@ -56,4 +56,14 @@ export class AuthController {
       token,
     });
   }
+
+  @Post('/signout')
+  async signout(@Res() res: Response) {
+    res.clearCookie('AccessToken');
+
+    // req.user = undefined;
+    // req.token = undefined;
+
+    return res.send('User was successfully logged out');
+  }
 }
