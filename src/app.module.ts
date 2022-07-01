@@ -35,6 +35,9 @@ import { ReferralCode } from './entity/ReferralCode';
 import { ImageModule } from './features/image/image.module';
 import * as path from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { WalletModule } from './features/wallet/wallet.module';
+import { Wallet } from './entity/Wallet';
+import { WalletTransaction } from './entity/WalletTransaction';
 
 @Module({
   imports: [
@@ -75,6 +78,8 @@ import { ServeStaticModule } from '@nestjs/serve-static';
         Warehouse,
         Page,
         ReferralCode,
+        Wallet,
+        WalletTransaction,
       ],
       subscribers: ['dist/subscriber/*.js'],
       migrations: ['dist/migration/*.js'],
@@ -96,6 +101,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     OrderProfileModule,
     ReferralCodeModule,
     ImageModule,
+    WalletModule,
     // TestModule,
   ],
 })
