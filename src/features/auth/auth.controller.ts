@@ -86,7 +86,9 @@ export class AuthController {
 
   @Post('/refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
-    const user = decodeToken(req.cookies['RefreshToken']) as { id: number };
+    const user = decodeToken(
+      req.cookies[this.cookieService.REFRESH_TOKEN_NAME],
+    ) as { id: number };
     const payload = {
       id: user.id,
     };
