@@ -5,9 +5,16 @@ import { Repository } from 'typeorm';
 import { Client } from '../../entity/Client';
 import * as bcrypt from 'bcryptjs';
 import { SignInDto } from './dto/sign-in.dto';
-import { decodeToken, encodeJwt, verifyJwt } from './jwt.service';
+import {
+  decodeToken,
+  encodeJwt,
+  encodeRefreshJwt,
+  verifyJwt,
+} from './jwt.service';
 import { Request } from 'express';
 import { ReferralCode } from '../../entity/ReferralCode';
+
+const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
 @Injectable()
 export class AuthService {
@@ -69,6 +76,7 @@ export class AuthService {
 
   async signin(dto: SignInDto): Promise<{
     token: string;
+    refreshToken: string;
     client: Client;
   }> {
     const user = await this.clientRepository.findOne({
@@ -82,6 +90,7 @@ export class AuthService {
     ) {
       return {
         token: encodeJwt(user),
+        refreshToken: encodeRefreshJwt(user),
         client: user,
       };
     }
@@ -124,7 +133,7 @@ export class AuthService {
   }
 
   decodeToken(token: string) {
-    if (!verifyJwt(token)) {
+    if (!verifyJwt(token, ACCESS_SECRET)) {
       throw new HttpException('Bad token', 401);
     }
 

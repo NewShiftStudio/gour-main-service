@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Put, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Req,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { SendCodeDto } from './dto/send-code.dto';
 import { SignUpDto } from './dto/sign-up.dto';
 import { AuthService } from './auth.service';
@@ -9,6 +18,8 @@ import { Client } from '../../entity/Client';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ClientsService } from '../client/client.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { CookieService } from './cookie.service';
+import { decodeToken, encodeJwt, encodeRefreshJwt } from './jwt.service';
 
 export interface AppRequest extends Request {
   user?: Client;
@@ -20,6 +31,7 @@ export interface AppRequest extends Request {
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly cookieService: CookieService,
     private readonly clientsService: ClientsService,
   ) {}
 
@@ -42,18 +54,64 @@ export class AuthController {
     @Res() res: Response,
     @Req() req: AppRequest,
   ) {
-    const { token, client } = await this.authService.signin(dto);
-    res.cookie('AccessToken', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    });
+    const { token, client, refreshToken } = await this.authService.signin(dto);
+
+    res.cookie(
+      this.cookieService.ACCESS_TOKEN_NAME,
+      token,
+      this.cookieService.accessTokenOptions,
+    );
+    res.cookie(
+      this.cookieService.REFRESH_TOKEN_NAME,
+      refreshToken,
+      this.cookieService.refreshTokenOptions,
+    );
 
     req.user = client;
     req.token = token;
 
     return res.send({
       token,
+    });
+  }
+
+  @Post('/signout')
+  async signout(@Res() res: Response) {
+    this.cookieService.clearAllTokens(res);
+
+    return res.status(200).json({
+      message: 'User logged out',
+    });
+  }
+
+  @Post('/refresh')
+  async refresh(@Req() req: Request, @Res() res: Response) {
+    const user = decodeToken(
+      req.cookies[this.cookieService.REFRESH_TOKEN_NAME],
+    ) as { id: number };
+    const payload = {
+      id: user.id,
+    };
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    const token = encodeJwt(payload);
+    const refreshToken = encodeRefreshJwt(payload);
+
+    res.cookie(
+      this.cookieService.ACCESS_TOKEN_NAME,
+      token,
+      this.cookieService.accessTokenOptions,
+    );
+    res.cookie(
+      this.cookieService.REFRESH_TOKEN_NAME,
+      refreshToken,
+      this.cookieService.refreshTokenOptions,
+    );
+
+    return res.status(200).json({
+      message: 'Refresh success',
     });
   }
 }
