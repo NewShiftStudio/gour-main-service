@@ -9,6 +9,7 @@ import { CurrentUserController } from './current-user.controller';
 import { CurrentUserService } from './current-user.service';
 import { OrderProfile } from '../../entity/OrderProfile';
 import { Image } from '../../entity/Image';
+import { CookieService } from './cookie.service';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { Image } from '../../entity/Image';
     forwardRef(() => ClientModule),
   ],
   controllers: [AuthController, CurrentUserController],
-  providers: [AuthService, CurrentUserService],
+  providers: [AuthService, CurrentUserService, CookieService],
   exports: [AuthService],
 })
 export class AuthModule {}
