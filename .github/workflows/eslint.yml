@@ -12,7 +12,7 @@ jobs:
         run: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
       - name: Install node.js
         env:
-          NODE_VERSION: 16.14.2
+          NODE_VERSION: 16.14
         run: export NVM_DIR="$HOME/.nvm" && . "$NVM_DIR/nvm.sh" --no-use && nvm install
       - name: Install dependencies
         run: npm install
