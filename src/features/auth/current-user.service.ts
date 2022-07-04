@@ -70,6 +70,13 @@ export class CurrentUserService {
     });
   }
 
+  async changeCityId(currentUserId: number, cityId: number) {
+    await this.clientRepository.save({
+      id: currentUserId,
+      cityId,
+    });
+  }
+
   async updateCurrentUser(id: number, dto: UpdateUserDto) {
     const updatedObj: DeepPartial<Client> = {
       firstName: dto.firstName,
