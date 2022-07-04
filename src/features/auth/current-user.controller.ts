@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   HttpException,
+  Logger,
   Param,
   Post,
   Put,
@@ -23,6 +24,7 @@ import { SendCodeDto } from './dto/send-code.dto';
 import { CurrentUserService } from './current-user.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { AddToFavoritesDto } from './dto/add-to-favorites.dto';
+import { ChangeCityDto } from './dto/change-city.dto';
 
 const PHONE_CODE_KEY = 'PhoneCode';
 
@@ -113,5 +115,16 @@ export class CurrentUserController {
     @Param('productId') productId: string,
   ) {
     return this.clientsService.removeFromFavorites(currentUser.id, +productId);
+  }
+
+  @Put('/change-city')
+  changeCity(
+    @CurrentUser() currentUser: Client,
+    @Body() changeCityDto: ChangeCityDto,
+  ) {
+    return this.currentUserService.changeCityId(
+      currentUser.id,
+      changeCityDto.cityId,
+    );
   }
 }

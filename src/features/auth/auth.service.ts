@@ -83,11 +83,7 @@ export class AuthService {
       phone: dto.phone,
     });
 
-    if (
-      user &&
-      user.isApproved &&
-      (await bcrypt.compare(dto.password, user.password))
-    ) {
+    if (user && (await bcrypt.compare(dto.password, user.password))) {
       return {
         token: encodeJwt(user),
         refreshToken: encodeRefreshJwt(user),
