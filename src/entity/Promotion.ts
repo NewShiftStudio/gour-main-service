@@ -52,8 +52,9 @@ export class Promotion extends AppEntity {
   @Column()
   end: Date;
 
-  @ManyToMany(() => Product, {
+  @ManyToMany(() => Product, (p) => p.promotions, {
     eager: true,
+    cascade: true,
   })
   @JoinTable()
   products: Product[];

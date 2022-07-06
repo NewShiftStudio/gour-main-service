@@ -97,9 +97,9 @@ export class Product extends AppEntity {
   })
   roleDiscounts: RoleDiscount[];
 
-  @ApiProperty()
-  @ManyToMany(() => Promotion)
-  @JoinTable()
+  @ManyToMany(() => Promotion, (p) => p.products, {
+    onDelete: 'CASCADE',
+  })
   promotions: Promotion[];
 
   @ApiProperty()
