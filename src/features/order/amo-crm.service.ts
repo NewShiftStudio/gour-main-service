@@ -78,7 +78,7 @@ export class AmoCrmService {
     createdAt: createdAt,
     name: name,
     price: price,
-  }): Promise<{}> {
+  }): Promise<object> {
     //todo связать на id и их их паплайн ид и наш чтобы это было частью продукта
     try {
       const response = await amoCrmApi.patch(`/api/v4/leads/${id}`, [

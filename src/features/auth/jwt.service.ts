@@ -43,7 +43,10 @@ export function decodePhoneCode(
   if (!result) {
     return null;
   }
-  const [prefix, phone, code] = result.split(HASH_SEPARATOR);
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_, phone, code] = result.split(HASH_SEPARATOR);
+
   return {
     phone,
     code,

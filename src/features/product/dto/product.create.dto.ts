@@ -8,7 +8,6 @@ import {
 import { Type } from 'class-transformer';
 import { TranslatableStringDto } from '../../../common/dto/TranslatableStringDto';
 import { TranslatableTextDto } from '../../../common/dto/TranslatableTextDto';
-import { ImageDto } from '../../../common/dto/ImageDto';
 import { PriceDto } from '../../../common/dto/PriceDto';
 import { PageMetaDto } from '../../../common/dto/PageMetaDto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
