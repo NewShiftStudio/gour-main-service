@@ -13,6 +13,8 @@ import {
 } from './jwt.service';
 import { Request } from 'express';
 import { ReferralCode } from '../../entity/ReferralCode';
+import { SmsSenderService } from '../sms-sender/sms-sender.service';
+import { generateSmsCode } from 'src/utils/generateSmsCode';
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
@@ -23,6 +25,7 @@ export class AuthService {
     private clientRepository: Repository<Client>,
     @InjectRepository(ReferralCode)
     private referralCodeRepository: Repository<ReferralCode>,
+    private smsSenderService: SmsSenderService,
   ) {}
 
   async sendCode(phone: string): Promise<number> {
@@ -34,8 +37,9 @@ export class AuthService {
       throw new HttpException('phone_exists_error', 400);
     }
 
-    // TODO: Добавить сервис отправки сообщений
-    return 1234;
+    const code = generateSmsCode();
+    await this.smsSenderService.sendCode(phone, code);
+    return code;
   }
 
   async signup(dto: SignUpDto) {
@@ -83,11 +87,9 @@ export class AuthService {
       phone: dto.phone,
     });
 
-    if (
-      user &&
-      user.isApproved &&
-      (await bcrypt.compare(dto.password, user.password))
-    ) {
+    console.log(user);
+
+    if (user && (await bcrypt.compare(dto.password, user.password))) {
       return {
         token: encodeJwt(user),
         refreshToken: encodeRefreshJwt(user),

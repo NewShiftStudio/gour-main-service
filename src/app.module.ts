@@ -38,6 +38,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { WalletModule } from './features/wallet/wallet.module';
 import { Wallet } from './entity/Wallet';
 import { WalletTransaction } from './entity/WalletTransaction';
+import { SmsSenderModule } from './features/sms-sender/sms-sender.module';
 
 @Module({
   imports: [
@@ -102,6 +103,7 @@ import { WalletTransaction } from './entity/WalletTransaction';
     ReferralCodeModule,
     ImageModule,
     WalletModule,
+    SmsSenderModule,
     // TestModule,
   ],
 })
