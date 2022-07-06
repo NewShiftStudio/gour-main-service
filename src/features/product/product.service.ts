@@ -31,13 +31,14 @@ export class ProductService {
     private imageRepository: Repository<Image>,
   ) {}
 
-  findMany(params: ProductGetListDto) {
+  async findMany(params: ProductGetListDto) {
     return this.productRepository.findAndCount({
       ...getPaginationOptions(params.offset, params.length),
       relations: [
         params.withSimilarProducts ? 'similarProducts' : undefined,
         params.withMeta ? 'meta' : undefined,
         params.withRoleDiscounts ? 'roleDiscounts' : undefined,
+        params.withPromotions ? 'promotions' : undefined,
       ].filter((it) => it),
     });
   }

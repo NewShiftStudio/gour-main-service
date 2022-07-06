@@ -15,6 +15,7 @@ import { Category } from './Category';
 import { ProductModification } from './ProductModification';
 import { Image } from './Image';
 import { Price } from './Price';
+import { Promotion } from './Promotion';
 import { RoleDiscount } from './RoleDiscount';
 import { PageMeta } from './PageMeta';
 import { ProductGrade } from './ProductGrade';
@@ -125,5 +126,8 @@ export class Product extends AppEntity {
   })
   amount: number;
 
-  discount = 10;
+  @ApiProperty()
+  @ManyToMany(() => Promotion)
+  @JoinTable()
+  promotions: Promotion[];
 }

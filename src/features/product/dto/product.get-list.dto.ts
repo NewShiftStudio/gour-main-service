@@ -1,6 +1,6 @@
-import {IsBoolean, IsBooleanString, IsOptional} from 'class-validator';
+import { IsBoolean, IsBooleanString, IsOptional } from 'class-validator';
 import { BaseGetListDto } from '../../../common/dto/BaseGetListDto';
-import {ApiProperty, ApiPropertyOptional} from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ProductGetListDto extends BaseGetListDto {
   @IsBooleanString()
@@ -17,4 +17,9 @@ export class ProductGetListDto extends BaseGetListDto {
   @IsOptional()
   @ApiPropertyOptional()
   withRoleDiscounts?: boolean;
+
+  @IsBooleanString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  withPromotions?: boolean;
 }

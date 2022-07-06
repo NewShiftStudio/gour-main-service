@@ -53,7 +53,7 @@ export class Promotion extends AppEntity {
   end: Date;
 
   @ManyToMany(() => Product, {
-    cascade: true,
+    eager: true,
   })
   @JoinTable()
   products: Product[];
