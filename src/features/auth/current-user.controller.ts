@@ -5,7 +5,6 @@ import {
   Delete,
   Get,
   HttpException,
-  Logger,
   Param,
   Post,
   Put,

@@ -1,4 +1,3 @@
-import { Product } from '../../entity/Product';
 import {
   Body,
   Controller,
@@ -15,9 +14,8 @@ import { ProductCreateDto } from './dto/product.create.dto';
 import { ProductService } from './product.service';
 import { ProductGetOneDto } from './dto/product.get-one.dto';
 import { ProductGradeService } from './product-grade.service';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
 import { ProductGradeCreateDto } from './dto/product-grade.create.dto';
-import { ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProductUpdateDto } from './dto/product.update.dto';
 import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
 import { Response } from 'express';
@@ -35,15 +33,15 @@ export class ProductController {
 
   @Get('/products')
   async getAll(@Query() params: ProductGetListDto, @Res() res: Response) {
-    const [clients, count] = await this.productService.findMany(params);
+    const [products, count] = await this.productService.findMany(params);
 
     res.set(TOTAL_COUNT_HEADER, count.toString());
-    return res.send(clients);
+    return res.send(products);
   }
 
   @Get('/products/novelties')
   getNovelties(@Query() params: ProductGetListDto) {
-    return this.productService.findNovelties();
+    return this.productService.findNovelties(params);
   }
 
   @ApiResponse({
