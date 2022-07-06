@@ -44,7 +44,6 @@ export function decodePhoneCode(
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, phone, code] = result.split(HASH_SEPARATOR);
 
   return {
