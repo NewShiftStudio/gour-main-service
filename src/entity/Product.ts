@@ -97,6 +97,11 @@ export class Product extends AppEntity {
   })
   roleDiscounts: RoleDiscount[];
 
+  @ManyToMany(() => Promotion, (p) => p.products, {
+    onDelete: 'CASCADE',
+  })
+  promotions: Promotion[];
+
   @ApiProperty()
   @Column('json')
   characteristics: Record<string, string | number>;
@@ -125,9 +130,4 @@ export class Product extends AppEntity {
     default: 0,
   })
   amount: number;
-
-  @ApiProperty()
-  @ManyToMany(() => Promotion)
-  @JoinTable()
-  promotions: Promotion[];
 }
