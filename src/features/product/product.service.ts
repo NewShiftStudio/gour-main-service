@@ -43,12 +43,18 @@ export class ProductService {
     });
   }
 
-  findNovelties() {
+  findNovelties(params: ProductGetListDto) {
     return this.productRepository.find({
       order: {
         id: 'DESC',
       },
       take: 10,
+      relations: [
+        params.withSimilarProducts ? 'similarProducts' : undefined,
+        params.withMeta ? 'meta' : undefined,
+        params.withRoleDiscounts ? 'roleDiscounts' : undefined,
+        params.withPromotions ? 'promotions' : undefined,
+      ].filter((it) => it),
     });
   }
 
@@ -64,6 +70,7 @@ export class ProductService {
           params.withMeta ? 'meta' : undefined,
           params.withRoleDiscounts ? 'roleDiscounts' : undefined,
           params.withGrades ? 'productGrades' : undefined,
+          params.withPromotions ? 'promotions' : undefined,
         ].filter((it) => it),
       },
     );

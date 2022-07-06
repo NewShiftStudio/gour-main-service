@@ -1,4 +1,4 @@
-import { IsBoolean, IsBooleanString, IsOptional } from 'class-validator';
+import { IsBooleanString, IsOptional } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ProductGetOneDto {
@@ -26,4 +26,9 @@ export class ProductGetOneDto {
   @IsOptional()
   @ApiPropertyOptional()
   withGrades?: boolean;
+
+  @IsBooleanString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  withPromotions?: boolean;
 }

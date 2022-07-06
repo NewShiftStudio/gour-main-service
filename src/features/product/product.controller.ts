@@ -41,7 +41,7 @@ export class ProductController {
 
   @Get('/products/novelties')
   getNovelties(@Query() params: ProductGetListDto) {
-    return this.productService.findNovelties();
+    return this.productService.findNovelties(params);
   }
 
   @ApiResponse({
