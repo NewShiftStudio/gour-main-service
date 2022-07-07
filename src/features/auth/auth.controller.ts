@@ -1,9 +1,7 @@
 import {
   Body,
   Controller,
-  Get,
   Post,
-  Put,
   Req,
   Res,
   UnauthorizedException,
@@ -13,11 +11,8 @@ import { SignUpDto } from './dto/sign-up.dto';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { Response, Request } from 'express';
-import { CurrentUser } from './current-user.decorator';
 import { Client } from '../../entity/Client';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { ClientsService } from '../client/client.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { CookieService } from './cookie.service';
 import { decodeToken, encodeJwt, encodeRefreshJwt } from './jwt.service';
 
@@ -32,7 +27,6 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly cookieService: CookieService,
-    private readonly clientsService: ClientsService,
   ) {}
 
   @Post('/sendCode')

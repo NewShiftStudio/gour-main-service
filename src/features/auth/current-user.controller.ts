@@ -4,8 +4,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
-  Logger,
   Param,
   Post,
   Put,
@@ -18,7 +16,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthService } from './auth.service';
 import { ClientsService } from '../client/client.service';
 import { ChangePhoneDto } from './dto/change-phone.dto';
-import { decodePhoneCode, encodePhoneCode } from './jwt.service';
+import { encodePhoneCode } from './jwt.service';
 import { Response, Request } from 'express';
 import { SendCodeDto } from './dto/send-code.dto';
 import { CurrentUserService } from './current-user.service';

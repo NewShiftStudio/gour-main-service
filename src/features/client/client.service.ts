@@ -1,10 +1,10 @@
-import { Body, HttpException, Injectable, Param } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository } from 'typeorm';
 import { Client } from '../../entity/Client';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
-import { ClientCreateDto } from './dto/ClientCreateDto';
-import { ClientGetListDto } from './dto/ClientGetListDto';
+import { ClientCreateDto } from './dto/сlientCreateDto';
+import { ClientGetListDto } from './dto/сlientGetListDto';
 import { ClientUpdateDto } from './dto/client.update.dto';
 import { ClientRole } from '../../entity/ClientRole';
 import { DeepPartial } from 'typeorm/common/DeepPartial';

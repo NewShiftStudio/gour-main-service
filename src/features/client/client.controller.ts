@@ -9,8 +9,8 @@ import {
   Query,
   Res,
 } from '@nestjs/common';
-import { ClientGetListDto } from './dto/ClientGetListDto';
-import { ClientCreateDto } from './dto/ClientCreateDto';
+import { ClientGetListDto } from './dto/сlientGetListDto';
+import { ClientCreateDto } from './dto/сlientCreateDto';
 import { ClientsService } from './client.service';
 import { ApiHeader, ApiTags } from '@nestjs/swagger';
 import { ClientUpdateDto } from './dto/client.update.dto';

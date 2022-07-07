@@ -36,7 +36,7 @@ export class OrderProfile extends AppEntity {
   client: Client;
 
   @Column({
-    nullable: true
+    nullable: true,
   })
   comment: string;
 }

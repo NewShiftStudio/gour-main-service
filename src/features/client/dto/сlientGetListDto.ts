@@ -1,4 +1,4 @@
-import { IsOptional, ValidateNested } from 'class-validator';
+import { IsOptional } from 'class-validator';
 import { BaseGetListDto } from '../../../common/dto/BaseGetListDto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEntityExists } from '../../../common/validationDecorators/IsEntityExists';

@@ -15,6 +15,7 @@ import { Category } from './Category';
 import { ProductModification } from './ProductModification';
 import { Image } from './Image';
 import { Price } from './Price';
+import { Promotion } from './Promotion';
 import { RoleDiscount } from './RoleDiscount';
 import { PageMeta } from './PageMeta';
 import { ProductGrade } from './ProductGrade';
@@ -96,6 +97,11 @@ export class Product extends AppEntity {
   })
   roleDiscounts: RoleDiscount[];
 
+  @ManyToMany(() => Promotion, (p) => p.products, {
+    onDelete: 'CASCADE',
+  })
+  promotions: Promotion[];
+
   @ApiProperty()
   @Column('json')
   characteristics: Record<string, string | number>;
@@ -124,6 +130,4 @@ export class Product extends AppEntity {
     default: 0,
   })
   amount: number;
-
-  discount = 10;
 }

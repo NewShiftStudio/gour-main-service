@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, IsNull, MoreThan, Not, Repository } from 'typeorm';
+import { FindManyOptions, IsNull, Not, Repository } from 'typeorm';
 import { ReferralCode } from '../../entity/ReferralCode';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';

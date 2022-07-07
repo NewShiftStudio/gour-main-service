@@ -4,11 +4,9 @@ import { Repository } from 'typeorm';
 import { Order, OrderStatus } from '../../entity/Order';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { OrderCreateDto } from './dto/order.create.dto';
-import { Product } from '../../entity/Product';
 import { Client } from '../../entity/Client';
 import { OrderProfile } from '../../entity/OrderProfile';
 import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
-import { City } from '../../entity/City';
 import { OrderProduct } from '../../entity/OrderProduct';
 
 @Injectable()
