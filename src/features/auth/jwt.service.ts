@@ -43,7 +43,9 @@ export function decodePhoneCode(
   if (!result) {
     return null;
   }
-  const [prefix, phone, code] = result.split(HASH_SEPARATOR);
+
+  const [_, phone, code] = result.split(HASH_SEPARATOR);
+
   return {
     phone,
     code,

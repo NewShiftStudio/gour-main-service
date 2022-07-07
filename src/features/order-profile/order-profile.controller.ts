@@ -1,4 +1,3 @@
-import { OrderProfile } from '../../entity/OrderProfile';
 import {
   Body,
   Controller,
@@ -15,7 +14,7 @@ import { OrderProfileCreateDto } from './dto/order-profile.create.dto';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { Client } from '../../entity/Client';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import {OrderProfileUpdateDto} from "./dto/order-profile.update.dto";
+import { OrderProfileUpdateDto } from './dto/order-profile.update.dto';
 
 @ApiBearerAuth()
 @ApiTags('orderProfile')

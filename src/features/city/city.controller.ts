@@ -1,4 +1,3 @@
-import { City } from '../../entity/City';
 import {
   Body,
   Controller,
