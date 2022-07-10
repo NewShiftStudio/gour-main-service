@@ -42,21 +42,21 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Lint source code with ESLint
         run: npm run lint
-  prettier:
-    needs: build
-    name: Prettier
-    runs-on: ubuntu-latest
+#  prettier:
+#    needs: build
+#    name: Prettier
+#    runs-on: ubuntu-latest
 #    container:
 #      image: node:16.14.2-alpine
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install nvm
-        run: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-      - name: Install node.js
-        env:
-          NODE_VERSION: 16.14.2
-        run: export NVM_DIR="$HOME/.nvm" && . "$NVM_DIR/nvm.sh" --no-use && nvm install $NODE_VERSION
-      - name: Install dependencies
-        run: npm install
-      - name: Lint source code with Prettier
-        run: npm run check:format
+#    steps:
+#      - uses: actions/checkout@v2
+#      - name: Install nvm
+#        run: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+#      - name: Install node.js
+#        env:
+#          NODE_VERSION: 16.14.2
+#        run: export NVM_DIR="$HOME/.nvm" && . "$NVM_DIR/nvm.sh" --no-use && nvm install $NODE_VERSION
+#      - name: Install dependencies
+#        run: npm install
+#      - name: Lint source code with Prettier
+#        run: npm run check:format
