@@ -31,4 +31,4 @@ jobs:
 #          . deploy@devshift:~/gour-back/
       - name: Restart the application
         run: |
-          ssh zolkinka@92.53.97.252 "pushd /var/www/gour/gour-back && npm install && npm run build && pm2 restart ecosystem.config.js"
+          ssh deploy@92.53.97.252 "pushd /var/www/gour/gour-back && npm install && npm run build && pm2 restart ecosystem.config.js"
