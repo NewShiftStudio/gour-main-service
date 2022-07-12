@@ -13,11 +13,13 @@ export class WalletController {
 
   @Post('/:uuid')
   confirmPayment(@Body() dto: WalletConfirmPaymentDto) {
+    console.log(dto);
     // Webhook handler from payment service
   }
 
   @Patch('/:uuid')
   changeValue(@Body() dto: WalletChangeValueDto) {
+    console.log(dto);
     // Only for admins
   }
 

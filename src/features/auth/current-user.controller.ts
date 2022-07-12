@@ -4,7 +4,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
   Param,
   Post,
   Put,
@@ -17,12 +16,13 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthService } from './auth.service';
 import { ClientsService } from '../client/client.service';
 import { ChangePhoneDto } from './dto/change-phone.dto';
-import { decodePhoneCode, encodePhoneCode } from './jwt.service';
+import { encodePhoneCode } from './jwt.service';
 import { Response, Request } from 'express';
 import { SendCodeDto } from './dto/send-code.dto';
 import { CurrentUserService } from './current-user.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { AddToFavoritesDto } from './dto/add-to-favorites.dto';
+import { ChangeCityDto } from './dto/change-city.dto';
 
 const PHONE_CODE_KEY = 'PhoneCode';
 
@@ -113,5 +113,16 @@ export class CurrentUserController {
     @Param('productId') productId: string,
   ) {
     return this.clientsService.removeFromFavorites(currentUser.id, +productId);
+  }
+
+  @Put('/change-city')
+  changeCity(
+    @CurrentUser() currentUser: Client,
+    @Body() changeCityDto: ChangeCityDto,
+  ) {
+    return this.currentUserService.changeCityId(
+      currentUser.id,
+      changeCityDto.cityId,
+    );
   }
 }

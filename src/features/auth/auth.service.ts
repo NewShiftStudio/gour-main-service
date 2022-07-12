@@ -87,8 +87,6 @@ export class AuthService {
       phone: dto.phone,
     });
 
-    console.log(user);
-
     if (user && (await bcrypt.compare(dto.password, user.password))) {
       return {
         token: encodeJwt(user),

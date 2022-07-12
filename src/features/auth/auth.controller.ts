@@ -38,8 +38,8 @@ export class AuthController {
   }
 
   @Post('/signup')
-  signup(@Body() dto: object) {
-    return this.authService.signup(dto as SignUpDto);
+  signup(@Body() dto: SignUpDto) {
+    return this.authService.signup(dto);
   }
 
   @Post('/signin')
@@ -48,25 +48,31 @@ export class AuthController {
     @Res() res: Response,
     @Req() req: AppRequest,
   ) {
-    const { token, client, refreshToken } = await this.authService.signin(dto);
+    try {
+      const { token, client, refreshToken } = await this.authService.signin(
+        dto,
+      );
 
-    res.cookie(
-      this.cookieService.ACCESS_TOKEN_NAME,
-      token,
-      this.cookieService.accessTokenOptions,
-    );
-    res.cookie(
-      this.cookieService.REFRESH_TOKEN_NAME,
-      refreshToken,
-      this.cookieService.refreshTokenOptions,
-    );
+      res.cookie(
+        this.cookieService.ACCESS_TOKEN_NAME,
+        token,
+        this.cookieService.accessTokenOptions,
+      );
+      res.cookie(
+        this.cookieService.REFRESH_TOKEN_NAME,
+        refreshToken,
+        this.cookieService.refreshTokenOptions,
+      );
 
-    req.user = client;
-    req.token = token;
+      req.user = client;
+      req.token = token;
 
-    return res.send({
-      token,
-    });
+      return res.status(200).json({
+        token,
+      });
+    } catch (error) {
+      res.status(500).json({ error });
+    }
   }
 
   @Post('/signout')
