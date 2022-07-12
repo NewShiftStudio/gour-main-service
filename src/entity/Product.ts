@@ -20,6 +20,7 @@ import { RoleDiscount } from './RoleDiscount';
 import { PageMeta } from './PageMeta';
 import { ProductGrade } from './ProductGrade';
 import { ApiProperty } from '@nestjs/swagger';
+import { Promotion } from './Promotion';
 
 @Entity()
 export class Product extends AppEntity {

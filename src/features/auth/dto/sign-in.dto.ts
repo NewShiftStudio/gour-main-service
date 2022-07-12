@@ -5,6 +5,7 @@ export class SignInDto {
   @ApiProperty({
     default: '+79999999999',
   })
+  @IsPhoneNumber()
   phone: string;
 
   @ApiProperty({

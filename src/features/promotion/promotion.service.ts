@@ -26,7 +26,7 @@ export class PromotionService {
     });
   }
 
-  getOne(id: number) {
+  async getOne(id: number) {
     return this.promotionRepository.findOne({ id });
   }
 

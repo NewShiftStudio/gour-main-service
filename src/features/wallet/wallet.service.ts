@@ -50,7 +50,6 @@ export class WalletService {
   }
 
   async getBalanceByCLientId(id: number): Promise<number> {
-    console.log(123);
     const wallet = await this.getByClientId(id);
     return wallet.value;
   }

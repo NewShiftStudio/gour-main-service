@@ -90,7 +90,7 @@ export class AuthController {
       req.cookies[this.cookieService.REFRESH_TOKEN_NAME],
     ) as { id: number };
     const payload = {
-      id: user.id,
+      id: user?.id,
     };
     if (!user) {
       throw new UnauthorizedException();
