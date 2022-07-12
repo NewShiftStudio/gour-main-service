@@ -13,7 +13,6 @@ import {
 } from './jwt.service';
 import { Request } from 'express';
 import { ReferralCode } from '../../entity/ReferralCode';
-import { SmsSenderService } from '../sms-sender/sms-sender.service';
 import { generateSmsCode } from 'src/utils/generateSmsCode';
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
@@ -25,7 +24,6 @@ export class AuthService {
     private clientRepository: Repository<Client>,
     @InjectRepository(ReferralCode)
     private referralCodeRepository: Repository<ReferralCode>,
-    private smsSenderService: SmsSenderService,
   ) {}
 
   async sendCode(phone: string): Promise<number> {
@@ -38,7 +36,7 @@ export class AuthService {
     }
 
     const code = generateSmsCode();
-    await this.smsSenderService.sendCode(phone, code);
+    // await this.smsSenderService.sendCode(phone, code);
     return code;
   }
 

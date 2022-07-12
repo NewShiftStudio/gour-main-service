@@ -10,7 +10,6 @@ import { CurrentUserService } from './current-user.service';
 import { OrderProfile } from '../../entity/OrderProfile';
 import { Image } from '../../entity/Image';
 import { CookieService } from './cookie.service';
-import { SmsSenderService } from '../sms-sender/sms-sender.service';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({
@@ -20,7 +19,7 @@ import { HttpModule } from '@nestjs/axios';
     HttpModule,
   ],
   controllers: [AuthController, CurrentUserController],
-  providers: [AuthService, CurrentUserService, CookieService, SmsSenderService],
+  providers: [AuthService, CurrentUserService, CookieService],
   exports: [AuthService],
 })
 export class AuthModule {}
