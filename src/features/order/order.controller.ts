@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { OrderCreateDto } from './dto/order.create.dto';
 import { OrderService } from './order.service';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
 import { Response } from 'express';

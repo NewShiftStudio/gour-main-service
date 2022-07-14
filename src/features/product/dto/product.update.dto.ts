@@ -7,11 +7,11 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { TranslatableStringDto } from '../../../common/dto/TranslatableStringDto';
-import { TranslatableTextDto } from '../../../common/dto/TranslatableTextDto';
-import { PriceDto } from '../../../common/dto/PriceDto';
-import { PageMetaDto } from '../../../common/dto/PageMetaDto';
-import { RoleDiscountDto } from '../../../common/dto/RoleDiscountDto';
+import { TranslatableStringDto } from '../../../common/dto/translatable-string.dto';
+import { TranslatableTextDto } from '../../../common/dto/translatable-text.dto';
+import { PriceDto } from '../../../common/dto/price.dto';
+import { PageMetaDto } from '../../../common/dto/page-meta.dto';
+import { RoleDiscountDto } from '../../../common/dto/role-discount.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { ApiModelPropertyOptional } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 

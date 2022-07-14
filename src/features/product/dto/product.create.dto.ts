@@ -6,16 +6,16 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { TranslatableStringDto } from '../../../common/dto/TranslatableStringDto';
-import { TranslatableTextDto } from '../../../common/dto/TranslatableTextDto';
-import { PriceDto } from '../../../common/dto/PriceDto';
-import { PageMetaDto } from '../../../common/dto/PageMetaDto';
+import { TranslatableStringDto } from '../../../common/dto/translatable-string.dto';
+import { TranslatableTextDto } from '../../../common/dto/translatable-text.dto';
+import { PriceDto } from '../../../common/dto/price.dto';
+import { PageMetaDto } from '../../../common/dto/page-meta.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   ApiModelProperty,
   ApiModelPropertyOptional,
 } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
-import { RoleDiscountDto } from '../../../common/dto/RoleDiscountDto';
+import { RoleDiscountDto } from '../../../common/dto/role-discount.dto';
 import { Column } from 'typeorm';
 
 export class ProductCreateDto {

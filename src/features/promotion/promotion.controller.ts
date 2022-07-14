@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { PromotionCreateDto } from './dto/promotion.create.dto';
 import { PromotionService } from './promotion.service';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { PromotionUpdateDto } from './dto/promotion.update.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
