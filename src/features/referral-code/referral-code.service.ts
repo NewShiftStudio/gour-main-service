@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, IsNull, Not, Repository } from 'typeorm';
 import { ReferralCode } from '../../entity/ReferralCode';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { ReferralCodeCreateDto } from './dto/ReferralCodeCreateDto';
 import { ReferralCodeGetListDto } from './dto/referral-code.get-list.dto';
 import { Client } from '../../entity/Client';

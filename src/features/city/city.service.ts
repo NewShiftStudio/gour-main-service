@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { City } from '../../entity/City';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { CityCreateDto } from './dto/CityCreateDto';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { CityUpdateDto } from './dto/city.update.dto';
 
 @Injectable()

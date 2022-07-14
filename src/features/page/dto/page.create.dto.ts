@@ -1,4 +1,4 @@
-import { PageMetaDto } from '../../../common/dto/PageMetaDto';
+import { PageMetaDto } from '../../../common/dto/page-meta.dto';
 import {
   IsObject,
   IsOptional,

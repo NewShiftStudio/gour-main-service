@@ -6,11 +6,11 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { TranslatableStringDto } from '../../../common/dto/TranslatableStringDto';
-import { TranslatableTextDto } from '../../../common/dto/TranslatableTextDto';
+import { TranslatableStringDto } from '../../../common/dto/translatable-string.dto';
+import { TranslatableTextDto } from '../../../common/dto/translatable-text.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { ApiModelPropertyOptional } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
-import { PageMetaDto } from '../../../common/dto/PageMetaDto';
+import { PageMetaDto } from '../../../common/dto/page-meta.dto';
 
 export class PromotionUpdateDto {
   @ValidateNested()

@@ -1,5 +1,5 @@
-import { TranslatableStringDto } from '../../../common/dto/TranslatableStringDto';
-import { TranslatableTextDto } from '../../../common/dto/TranslatableTextDto';
+import { TranslatableStringDto } from '../../../common/dto/translatable-string.dto';
+import { TranslatableTextDto } from '../../../common/dto/translatable-text.dto';
 import { Type } from 'class-transformer';
 import { IsString, ValidateNested } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';

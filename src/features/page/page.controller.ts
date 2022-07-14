@@ -9,7 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { PageService } from './page.service';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { PageCreateDto } from './dto/page.create.dto';
 import { PageUpdateDto } from './dto/page.update.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';

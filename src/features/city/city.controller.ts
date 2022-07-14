@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { CityCreateDto } from './dto/CityCreateDto';
 import { CityService } from './city.service';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { CityUpdateDto } from './dto/city.update.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
