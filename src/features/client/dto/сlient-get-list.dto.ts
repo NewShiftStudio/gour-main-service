@@ -1,5 +1,5 @@
 import { IsOptional } from 'class-validator';
-import { BaseGetListDto } from '../../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../../common/dto/base-get-list.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEntityExists } from '../../../common/validationDecorators/IsEntityExists';
 import { ClientRole } from '../../../entity/ClientRole';

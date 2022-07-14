@@ -9,11 +9,11 @@ import {
   Query,
   Res,
 } from '@nestjs/common';
-import { ClientGetListDto } from './dto/сlientGetListDto';
-import { ClientCreateDto } from './dto/сlientCreateDto';
+import { ClientGetListDto } from './dto/сlient-get-list.dto';
+import { ClientCreateDto } from './dto/сlient-create.dto';
 import { ClientsService } from './client.service';
 import { ApiHeader, ApiTags } from '@nestjs/swagger';
-import { ClientUpdateDto } from './dto/client.update.dto';
+import { ClientUpdateDto } from './dto/client-update.dto';
 import { Response } from 'express';
 import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
 import { AuthService } from '../auth/auth.service';
