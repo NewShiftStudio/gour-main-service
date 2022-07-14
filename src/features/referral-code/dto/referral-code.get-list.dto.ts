@@ -1,4 +1,4 @@
-import { BaseGetListDto } from '../../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../../common/dto/base-get-list.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsDateString, IsOptional } from 'class-validator';
 

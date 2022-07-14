@@ -1,5 +1,5 @@
 import { IsBooleanString, IsOptional } from 'class-validator';
-import { BaseGetListDto } from '../../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../../common/dto/base-get-list.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ProductGetListDto extends BaseGetListDto {

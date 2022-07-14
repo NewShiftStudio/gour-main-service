@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ReferralCodeCreateDto } from './dto/ReferralCodeCreateDto';
 import { ReferralCodeService } from './referral-code.service';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { ReferralCodeExportDto } from './dto/referral-code.export.dto';
 import { ReferralCodeSetDiscountDto } from './dto/referral-code.set-discount.dto';

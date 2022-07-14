@@ -9,7 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { OrderProfileService } from './order-profile.service';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { OrderProfileCreateDto } from './dto/order-profile.create.dto';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { Client } from '../../entity/Client';

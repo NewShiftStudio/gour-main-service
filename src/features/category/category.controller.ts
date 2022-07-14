@@ -1,6 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { CategoryService } from './category.service';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { CategoryCreateDto } from './dto/category.create.dto';
 import { CategoryUpdateDto } from './dto/category.update.dto';
 import { ApiTags } from '@nestjs/swagger';

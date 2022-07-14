@@ -6,10 +6,10 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { TranslatableStringDto } from '../../../common/dto/TranslatableStringDto';
-import { TranslatableTextDto } from '../../../common/dto/TranslatableTextDto';
+import { TranslatableStringDto } from '../../../common/dto/translatable-string.dto';
+import { TranslatableTextDto } from '../../../common/dto/translatable-text.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { PageMetaDto } from '../../../common/dto/PageMetaDto';
+import { PageMetaDto } from '../../../common/dto/page-meta.dto';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 
 export class PromotionCreateDto {

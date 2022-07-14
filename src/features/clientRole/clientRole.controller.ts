@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ClientRoleCreateDto } from './dto/clientRole.create.dto';
 import { ClientRoleService } from './clientRole.service';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
 import { Response } from 'express';
