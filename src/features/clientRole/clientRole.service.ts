@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ClientRole } from '../../entity/ClientRole';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 
 @Injectable()
 export class ClientRoleService {
