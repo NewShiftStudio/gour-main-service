@@ -18,8 +18,7 @@ export class ClientController {
 
   @MessagePattern('get-clients')
   getAll(@Payload() params: ClientGetListDto) {
-    // return this.clientService.findMany(params);
-    return [{ text: '1234' }];
+    return this.clientService.findMany(params);
   }
 
   @MessagePattern('get-client')
