@@ -21,7 +21,7 @@ import { TranslatableString } from './entity/TranslatableString';
 import { TranslatableText } from './entity/TranslatableText';
 import { Warehouse } from './entity/Warehouse';
 import { CategoryModule } from './features/category/category.module';
-import { ClientRoleModule } from './features/clientRole/clientRole.module';
+import { ClientRoleModule } from './features/client-role/client-role.module';
 import { CityModule } from './features/city/city.module';
 import { ProductModule } from './features/product/product.module';
 import { PromotionModule } from './features/promotion/promotion.module';
