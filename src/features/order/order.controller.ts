@@ -1,89 +1,46 @@
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { ApiTags } from '@nestjs/swagger';
+
 import { Order } from '../../entity/Order';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-  Res,
-} from '@nestjs/common';
-import { OrderCreateDto } from './dto/order.create.dto';
+import { Client } from '../../entity/Client';
 import { OrderService } from './order.service';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
-import { Response } from 'express';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { Client } from '../../entity/Client';
-import { OrderExtendedDto } from './dto/order.extended.dto';
+import { OrderCreateDto } from './dto/order-create.dto';
 
-@ApiBearerAuth()
 @ApiTags('orders')
-@Controller()
+@Controller('orders')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  @Get('/orders')
-  @ApiResponse({
-    isArray: true,
-    type: OrderExtendedDto,
-  })
-  async getAll(
-    @CurrentUser() client: Client,
-    @Query() params: BaseGetListDto,
-    @Res() res: Response,
+  @MessagePattern('get-orders')
+  getAll(
+    @Payload('client') client: Client,
+    @Payload('params') params: BaseGetListDto,
   ) {
-    const [orders, count] = await this.orderService.findUsersOrders(
-      params,
-      client,
-    );
-
-    // TODO: интегрировать амо, сделать расчет скидок
-    const response: OrderExtendedDto[] = orders.map((order) => ({
-      order,
-      crmInfo: {
-        id: 'TX-123456789',
-        status: {
-          name: 'Создан',
-          color: '#0f0',
-        },
-      },
-      promotions: [
-        {
-          title: 'Скидка за наеденность',
-          value: 100,
-          currency: 'cheeseCoin',
-        },
-      ],
-    }));
-
-    res.set(TOTAL_COUNT_HEADER, count.toString());
-    return res.send(response);
+    return this.orderService.findUsersOrders(params, client);
   }
 
-  @Get('/orders/:id')
-  getOne(@Param('id') id: string) {
-    return this.orderService.getOne(+id);
+  @MessagePattern('get-order')
+  getOne(@Payload() id: number) {
+    return this.orderService.getOne(id);
   }
 
-  @Post('/orders')
-  async post(
-    @CurrentUser() currentUser: Client,
-    @Body() order: OrderCreateDto,
+  @MessagePattern('create-order')
+  post(
+    @Payload('client') client: Client,
+    @Payload('order') order: OrderCreateDto,
   ) {
-    return this.orderService.create(order, currentUser);
+    return this.orderService.create(order, client);
   }
 
-  @Put('/orders/:id')
-  put(@Param('id') id: string, @Body() order: Partial<Order>) {
-    return this.orderService.update(+id, order);
+  @MessagePattern('edit-order')
+  put(@Payload('id') id: number, @Payload('order') order: Partial<Order>) {
+    return this.orderService.update(id, order);
   }
 
-  @Delete('/orders/:id')
-  remove(@Param('id') id: string) {
-    return this.orderService.remove(+id);
+  @MessagePattern('delete-order')
+  remove(@Payload() id: number) {
+    return this.orderService.remove(id);
   }
 }
