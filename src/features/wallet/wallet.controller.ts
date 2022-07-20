@@ -1,40 +1,40 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
-import { WalletService } from './wallet.service';
-import { WalletChangeValueDto } from './dto/wallet.change-value.dto';
-import { WalletConfirmPaymentDto } from './dto/wallet.confirm-payment.dto';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { Client } from 'src/entity/Client';
+
+import { WalletService } from './wallet.service';
+import { WalletChangeValueDto } from './dto/wallet-change-value.dto';
+import { WalletConfirmPaymentDto } from './dto/wallet-confirm-payment.dto';
 
 @ApiTags('wallet')
-@Controller('wallet')
+@Controller()
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
-  @Post('/:uuid')
-  confirmPayment(@Body() dto: WalletConfirmPaymentDto) {
+  @MessagePattern('wallet-confirm-payment')
+  confirmPayment(@Payload() dto: WalletConfirmPaymentDto) {
     console.log(dto);
     // Webhook handler from payment service
   }
 
-  @Patch('/:uuid')
-  changeValue(@Body() dto: WalletChangeValueDto) {
+  @MessagePattern('wallet-change-value')
+  changeValue(@Payload() dto: WalletChangeValueDto) {
     console.log(dto);
     // Only for admins
   }
 
-  @Get('/current')
-  getCurrentWallet(@CurrentUser() user: Client) {
-    return this.walletService.getByClientId(user.id);
+  @MessagePattern('get-client-wallet')
+  getCurrentWallet(@Payload() id: number) {
+    return this.walletService.getByClientId(id);
   }
 
-  @Get('/current-balance')
-  getCurrentBalance(@CurrentUser() user: Client) {
-    return this.walletService.getBalanceByCLientId(user.id);
+  @MessagePattern('get-client-wallet-balance')
+  getCurrentBalance(@Payload() id: number) {
+    return this.walletService.getBalanceByClientId(id);
   }
 
-  @Get('/:uuid')
-  getWalletById(@Param('uuid') uuid: string) {
+  @MessagePattern('get-wallet')
+  getWalletById(@Payload() uuid: string) {
     return this.walletService.getById(uuid);
   }
 }

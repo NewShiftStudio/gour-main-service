@@ -49,7 +49,7 @@ export class WalletService {
     return wallet;
   }
 
-  async getBalanceByCLientId(id: number): Promise<number> {
+  async getBalanceByClientId(id: number): Promise<number> {
     const wallet = await this.getByClientId(id);
     return wallet.value;
   }
