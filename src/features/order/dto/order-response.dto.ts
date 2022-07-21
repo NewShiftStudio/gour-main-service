@@ -30,7 +30,7 @@ class OrderPromotionDescription {
   currency: 'cheeseCoin' | 'percent';
 }
 
-export class OrderExtendedDto {
+export class OrderResponseDto {
   @ApiModelProperty({
     type: () => Order,
   })

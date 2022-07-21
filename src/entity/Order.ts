@@ -28,7 +28,9 @@ export class Order extends AppEntity {
   })
   status: OrderStatus;
 
-  @OneToMany(() => OrderProduct, (op) => op.order)
+  @OneToMany(() => OrderProduct, (op) => op.order, {
+    onDelete: 'CASCADE',
+  })
   orderProducts: OrderProduct[];
 
   @ManyToOne(() => Client)
