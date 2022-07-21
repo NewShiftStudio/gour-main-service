@@ -17,23 +17,15 @@ export class CategoryController {
   }
 
   @MessagePattern('get-category')
-  async getOne(@Payload() id: string) {
-    const category = await this.categoryService.getOne(+id);
-
-    console.log(category);
-
-    return category;
+  getOne(@Payload() id: string) {
+    return this.categoryService.getOne(+id);
   }
 
   // TODO update or delete on table "category" violates foreign key constraint on table "product"
 
   @MessagePattern('create-category')
-  async post(@Payload() category: CategoryCreateDto) {
-    const newCategory = await this.categoryService.create(category);
-
-    console.log(newCategory);
-
-    return newCategory;
+  post(@Payload() category: CategoryCreateDto) {
+    return this.categoryService.create(category);
   }
 
   @MessagePattern('edit-category')
