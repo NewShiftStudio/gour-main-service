@@ -1,33 +1,16 @@
-import {
-  Controller,
-  HttpException,
-  Post,
-  UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Controller, HttpException } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { ApiTags } from '@nestjs/swagger';
+
 import { ImageService } from './image.service';
-import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('images')
-@Controller('images')
+@Controller()
 export class ImageController {
   constructor(readonly imageService: ImageService) {}
-  @Post('upload')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        image: {
-          type: 'string',
-          format: 'binary',
-        },
-      },
-    },
-  })
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('image'))
-  uploadFile(@UploadedFile() image: Express.Multer.File) {
+
+  @MessagePattern('upload-image')
+  uploadFile(@Payload() image: Express.Multer.File) {
     if (!image) {
       throw new HttpException('field image must be provided', 400);
     }
