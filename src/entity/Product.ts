@@ -55,6 +55,7 @@ export class Product extends AppEntity {
 
   @ApiProperty()
   @ManyToOne(() => Category, {
+    onDelete: 'CASCADE',
     eager: true,
   })
   category: Category;
