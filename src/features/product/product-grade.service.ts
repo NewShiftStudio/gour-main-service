@@ -3,9 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, Not, Repository } from 'typeorm';
 import { ProductGrade } from '../../entity/ProductGrade';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
-import { ProductGradeCreateDto } from './dto/product-grade.create.dto';
+import { ProductGradeCreateDto } from './dto/product-grade-create.dto';
 import { Product } from '../../entity/Product';
-import { ProductGradeGetListDto } from './dto/product-grade.get-list.dto';
+import { ProductGradeGetListDto } from './dto/product-grade-get-list.dto';
 
 @Injectable()
 export class ProductGradeService {
