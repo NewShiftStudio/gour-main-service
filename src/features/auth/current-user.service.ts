@@ -29,11 +29,7 @@ export class CurrentUserService {
     });
   }
 
-  async changePhone(
-    currentUser: Client,
-    hashedCode: string,
-    dto: ChangePhoneDto,
-  ) {
+  async changePhone(userId: number, hashedCode: string, dto: ChangePhoneDto) {
     if (!hashedCode) {
       throw new HttpException('Cookie code was not found', 400);
     }
@@ -48,7 +44,7 @@ export class CurrentUserService {
     }
 
     await this.clientRepository.save({
-      id: currentUser.id,
+      id: userId,
       phone: dto.phone,
     });
   }

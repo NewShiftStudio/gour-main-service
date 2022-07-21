@@ -1,30 +1,15 @@
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Req,
-  Res,
-} from '@nestjs/common';
-import { CurrentUser } from './current-user.decorator';
-import { Client } from '../../entity/Client';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { ApiTags } from '@nestjs/swagger';
+
 import { AuthService } from './auth.service';
 import { ClientsService } from '../client/client.service';
-import { ChangePhoneDto } from './dto/change-phone.dto';
-import { encodePhoneCode } from './jwt.service';
-import { Response, Request } from 'express';
-import { SendCodeDto } from './dto/send-code.dto';
 import { CurrentUserService } from './current-user.service';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { ChangePhoneDto } from './dto/change-phone.dto';
+import { SendCodeDto } from './dto/send-code.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { AddToFavoritesDto } from './dto/add-to-favorites.dto';
-import { ChangeCityDto } from './dto/change-city.dto';
-
-const PHONE_CODE_KEY = 'PhoneCode';
+import { encodePhoneCode } from './jwt.service';
 
 @ApiTags('current-user')
 @Controller('client-auth/currentUser')
@@ -34,95 +19,71 @@ export class CurrentUserController {
     private readonly clientsService: ClientsService,
     private readonly currentUserService: CurrentUserService,
   ) {}
-  @ApiBearerAuth()
-  @Get('/')
-  getCurrentUser(@CurrentUser() currentUser: Client) {
-    return this.currentUserService.getUser(currentUser.id);
+
+  @MessagePattern('get-current-user')
+  getCurrentUser(@Payload() id: number) {
+    return this.currentUserService.getUser(id);
   }
 
-  @ApiBearerAuth()
-  @Put('/')
+  @MessagePattern('edit-current-user')
   updateCurrentUser(
-    @CurrentUser() currentUser: Client,
-    @Body() dto: UpdateUserDto,
+    @Payload('id') id: number,
+    @Payload('dto') dto: UpdateUserDto,
   ) {
-    return this.currentUserService.updateCurrentUser(currentUser.id, dto);
+    return this.currentUserService.updateCurrentUser(id, dto);
   }
 
-  @ApiBearerAuth()
-  @Post('/phone/sendCode')
-  async sendCode(
-    @CurrentUser() currentUser: Client,
-    @Body() dto: SendCodeDto,
-    @Res() res: Response,
-  ) {
+  @MessagePattern('send-phone-code')
+  async sendCode(@Payload() dto: SendCodeDto) {
     const code = await this.authService.sendCode(dto.phone);
     const hashedCode = encodePhoneCode(dto.phone, code);
-    res.cookie(PHONE_CODE_KEY, hashedCode);
 
-    return res.send({
-      result: 'Code successfully sent',
-    });
+    return hashedCode;
   }
 
-  @ApiBearerAuth()
-  @Post('/phone/change')
-  async changePhone(
-    @CurrentUser() currentUser: Client,
-    @Body() dto: ChangePhoneDto,
-    @Req() req: Request,
-    @Res() res: Response,
+  @MessagePattern('change-phone')
+  changePhone(
+    @Payload('id') id: number,
+    @Payload('hashedCode') hashedCode: string,
+    @Payload('dto') dto: ChangePhoneDto,
   ) {
-    const hashedCode = req.cookies[PHONE_CODE_KEY];
-    await this.currentUserService.changePhone(currentUser, hashedCode, dto);
-
-    res.cookie(PHONE_CODE_KEY, '');
-    return res.send({
-      result: true,
-    });
+    return this.currentUserService.changePhone(id, hashedCode, dto);
   }
 
-  @ApiBearerAuth()
-  @Post('/change-password')
-  async changePassword(
-    @CurrentUser() currentUser: Client,
-    @Body() dto: ChangePasswordDto,
+  @MessagePattern('change-password')
+  changePassword(
+    @Payload('id') id: number,
+    @Payload('dto') dto: ChangePasswordDto,
   ) {
-    return this.currentUserService.changePassword(currentUser.id, dto);
+    return this.currentUserService.changePassword(id, dto);
   }
 
-  @Get('/favorites')
-  getFavoritesProducts(@CurrentUser() currentUser: Client) {
-    return this.clientsService.getFavorites(currentUser.id);
+  @MessagePattern('get-favorites')
+  getFavoritesProducts(@Payload('id') id: number) {
+    return this.clientsService.getFavorites(id);
   }
 
-  @Post('/favorites')
+  @MessagePattern('add-to-favorites')
   addProductToFavorites(
-    @CurrentUser() currentUser: Client,
-    @Body() addToFavoritesDto: AddToFavoritesDto,
+    @Payload('clientId') clientId: number,
+    @Payload('productId') productId: number,
   ) {
-    return this.clientsService.addToFavorites(
-      currentUser.id,
-      addToFavoritesDto.productId,
-    );
+    return this.clientsService.addToFavorites(clientId, productId);
   }
 
-  @Delete('/favorites/:productId')
+  @MessagePattern('remove-from-favorites')
   removeProductFromFavorites(
-    @CurrentUser() currentUser: Client,
-    @Param('productId') productId: string,
+    @Payload('clientId') clientId: number,
+    @Payload('productId') productId: number,
   ) {
-    return this.clientsService.removeFromFavorites(currentUser.id, +productId);
+    return this.clientsService.removeFromFavorites(clientId, productId);
   }
 
-  @Put('/change-city')
+  @MessagePattern('change-city')
   changeCity(
-    @CurrentUser() currentUser: Client,
-    @Body() changeCityDto: ChangeCityDto,
+    @Payload('clientId') clientId: number,
+    @Payload('cityId') cityId: number,
   ) {
-    return this.currentUserService.changeCityId(
-      currentUser.id,
-      changeCityDto.cityId,
-    );
+    return this.currentUserService.changeCityId(clientId, cityId);
   }
 }
