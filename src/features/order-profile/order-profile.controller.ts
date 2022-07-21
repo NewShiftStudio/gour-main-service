@@ -1,20 +1,13 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+
+import { Client } from '../../entity/Client';
 import { OrderProfileService } from './order-profile.service';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { OrderProfileCreateDto } from './dto/order-profile.create.dto';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { Client } from '../../entity/Client';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { OrderProfileUpdateDto } from './dto/order-profile.update.dto';
+import { CurrentUser } from '../auth/current-user.decorator';
 
 @ApiBearerAuth()
 @ApiTags('orderProfile')
@@ -22,31 +15,37 @@ import { OrderProfileUpdateDto } from './dto/order-profile.update.dto';
 export class OrderProfileController {
   constructor(private readonly orderProfileService: OrderProfileService) {}
 
-  @Get('/order-profiles')
-  getAll(@Query() params: BaseGetListDto, @CurrentUser() currentUser: Client) {
+  @MessagePattern('get-order-profiles')
+  getAll(
+    @Payload() params: BaseGetListDto,
+    @CurrentUser() currentUser: Client,
+  ) {
     return this.orderProfileService.findMany(currentUser, params);
   }
 
-  @Get('/order-profiles/:id')
-  getOne(@Param('id') id: string) {
+  @MessagePattern('get-order-profile')
+  getOne(@Payload() id: string) {
     return this.orderProfileService.getOne(+id);
   }
 
-  @Post('/order-profiles')
-  async post(
-    @Body() orderProfile: OrderProfileCreateDto,
+  @MessagePattern('create-order-profile')
+  post(
+    @Payload() orderProfile: OrderProfileCreateDto,
     @CurrentUser() currentUser: Client,
   ) {
     return this.orderProfileService.create(orderProfile, currentUser);
   }
 
-  @Put('/order-profiles/:id')
-  put(@Param('id') id: string, @Body() dto: OrderProfileUpdateDto) {
-    return this.orderProfileService.update(+id, dto);
+  @MessagePattern('edit-order-profile')
+  put(
+    @Payload('id') id: string,
+    @Payload('orderProfile') orderProfile: OrderProfileUpdateDto,
+  ) {
+    return this.orderProfileService.update(+id, orderProfile);
   }
 
-  @Delete('/order-profiles/:id')
-  remove(@Param('id') id: string) {
+  @MessagePattern('delete-order-profile')
+  remove(@Payload() id: string) {
     return this.orderProfileService.remove(+id);
   }
 }
