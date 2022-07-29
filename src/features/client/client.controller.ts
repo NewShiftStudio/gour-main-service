@@ -9,7 +9,7 @@ import { ClientCreateDto } from './dto/сlient-create.dto';
 import { ClientUpdateDto } from './dto/client-update.dto';
 
 @ApiTags('clients')
-@Controller()
+@Controller('clients')
 export class ClientController {
   constructor(
     private readonly clientService: ClientsService,
@@ -22,27 +22,30 @@ export class ClientController {
   }
 
   @MessagePattern('get-client')
-  getOne(@Payload() id: string) {
-    return this.clientService.findOne(+id);
+  async getOne(@Payload() id: number) {
+    const client = await this.clientService.findOne(id);
+
+    return [client];
   }
 
   @MessagePattern('create-client')
-  post(@Payload() client: ClientCreateDto) {
-    return this.clientService.create(client);
+  post(@Payload() dto: ClientCreateDto) {
+    console.log(dto);
+    return this.clientService.create(dto);
   }
 
   @MessagePattern('edit-client')
-  put(@Payload('id') id: string, @Payload('client') client: ClientUpdateDto) {
-    return this.clientService.update(+id, client);
+  put(@Payload('id') id: number, @Payload('dto') dto: ClientUpdateDto) {
+    return this.clientService.update(id, dto);
   }
 
   @MessagePattern('delete-client')
-  remove(@Payload() id: string) {
-    return this.clientService.remove(+id);
+  remove(@Payload() id: number) {
+    return this.clientService.remove(id);
   }
 
   @MessagePattern('login-client')
-  login(@Payload() id: string) {
-    return this.authService.signinById(+id);
+  login(@Payload() id: number) {
+    return this.authService.signinById(id);
   }
 }

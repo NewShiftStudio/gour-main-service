@@ -5,7 +5,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { ImageService } from './image.service';
 
 @ApiTags('images')
-@Controller()
+@Controller('images')
 export class ImageController {
   constructor(readonly imageService: ImageService) {}
 

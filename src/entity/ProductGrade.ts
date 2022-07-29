@@ -5,7 +5,9 @@ import { Client } from './Client';
 
 @Entity()
 export class ProductGrade extends AppEntity {
-  @ManyToOne(() => Client)
+  @ManyToOne(() => Client, {
+    onDelete: 'CASCADE',
+  })
   client: Client;
 
   @Column()
@@ -17,10 +19,9 @@ export class ProductGrade extends AppEntity {
   })
   comment: string;
 
-  @Column()
-  productId: number;
-
-  @ManyToOne(() => Product)
+  @ManyToOne(() => Product, {
+    onDelete: 'CASCADE',
+  })
   product: Product;
 
   @Column({

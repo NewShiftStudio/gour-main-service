@@ -1,10 +1,40 @@
-import { IsNumber, IsObject, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+} from 'class-validator';
 
 export class ClientCreateDto {
-  @IsNumber()
   @ApiProperty()
-  role: number;
+  @IsString()
+  name: string;
+
+  @ApiProperty()
+  @IsPhoneNumber()
+  phone: string;
+
+  @ApiProperty()
+  @IsNumber()
+  code: number;
+
+  @ApiProperty()
+  @IsString()
+  password: string;
+
+  @ApiProperty()
+  @IsString()
+  referralCode: string;
+
+  @ApiProperty()
+  @IsNumber()
+  cityId: number;
+
+  @ApiProperty()
+  @IsNumber()
+  roleId: number;
 
   @IsObject()
   @IsOptional()

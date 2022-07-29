@@ -7,9 +7,11 @@ import { ReferralCodeService } from './referral-code.service';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { ReferralCodeCreateDto } from './dto/referral-code-create.dto';
 import { ReferralCodeExportDto } from './dto/referral-code-export.dto';
+import console from 'console';
+import { ReferralCodeEditDto } from './dto/referral-code-edit.dto';
 
-@ApiTags('referralCodes')
-@Controller()
+@ApiTags('referral-codes')
+@Controller('referral-codes')
 export class ReferralCodeController {
   constructor(private readonly referralCodeService: ReferralCodeService) {}
 
@@ -23,19 +25,19 @@ export class ReferralCodeController {
     return this.referralCodeService.create(dto);
   }
 
-  @MessagePattern('edit-referral-codes')
-  put(@Payload('id') id: number, @Payload('dto') dto: Partial<ReferralCode>) {
+  @MessagePattern('edit-referral-code')
+  put(@Payload('id') id: number, @Payload('dto') dto: ReferralCodeEditDto) {
     return this.referralCodeService.update(id, dto);
   }
 
-  @MessagePattern('delete-referral-codes')
+  @MessagePattern('delete-referral-code')
   remove(@Payload() id: number) {
     return this.referralCodeService.remove(id);
   }
 
-  @MessagePattern('export-referral-codes')
+  @MessagePattern('get-referrals')
   export(@Payload() params: ReferralCodeExportDto) {
-    return this.referralCodeService.getClientStat(params);
+    return this.referralCodeService.getReferrals(params);
   }
 
   @MessagePattern('get-referral-discount')

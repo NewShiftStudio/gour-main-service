@@ -12,7 +12,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { encodePhoneCode } from './jwt.service';
 
 @ApiTags('current-user')
-@Controller('client-auth/currentUser')
+@Controller('client-auth/current-user')
 export class CurrentUserController {
   constructor(
     private readonly authService: AuthService,
@@ -21,8 +21,10 @@ export class CurrentUserController {
   ) {}
 
   @MessagePattern('get-current-user')
-  getCurrentUser(@Payload() id: number) {
-    return this.currentUserService.getUser(id);
+  async getCurrentUser(@Payload() id: number) {
+    const currentUser = await this.currentUserService.getUser(id);
+
+    return [currentUser];
   }
 
   @MessagePattern('edit-current-user')

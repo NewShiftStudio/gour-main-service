@@ -42,13 +42,13 @@ export class AuthController {
   refresh(@Payload() token: string) {
     const user = decodeToken(token) as { id: number };
 
-    const payload = {
-      id: user?.id,
-    };
-
     if (!user) {
       throw new UnauthorizedException();
     }
+
+    const payload = {
+      id: user?.id,
+    };
 
     const accessToken = encodeJwt(payload);
     const refreshToken = encodeRefreshJwt(payload);

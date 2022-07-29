@@ -31,15 +31,18 @@ export class ProductController {
   }
 
   @MessagePattern('get-product')
-  getOne(
+  async getOne(
     @Payload('id') id: number,
     @Payload('params') params: ProductGetOneDto = {},
   ) {
-    return this.productService.getOne(id, params);
+    const product = await this.productService.getOne(id, params);
+
+    return [product];
   }
 
   @MessagePattern('create-product')
-  post(@Payload() dto: ProductCreateDto) {
+  post(@Payload('dto') dto: ProductCreateDto) {
+    console.log(dto);
     return this.productService.create(dto);
   }
 

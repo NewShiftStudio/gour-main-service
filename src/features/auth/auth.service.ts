@@ -114,20 +114,16 @@ export class AuthService {
       id,
     });
 
-    if (user && user.isApproved) {
+    if (user)
       return {
         token: encodeJwt(user),
         client: user,
       };
-    }
+    else throw new HttpException('User is not found', 401);
 
-    if (!user) {
-      throw new HttpException('User is not found', 401);
-    }
-
-    if (!user.isApproved) {
-      throw new HttpException('User is not approved', 401);
-    }
+    // if (!user.isApproved) {
+    //   throw new HttpException('User is not approved', 401);
+    // }
   }
 
   decodeToken(token: string) {

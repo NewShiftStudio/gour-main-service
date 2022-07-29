@@ -18,12 +18,14 @@ export class PageController {
   }
 
   @MessagePattern('get-page')
-  getOne(@Payload() key: string) {
-    return this.pageService.getOneByKey(key);
+  async getOne(@Payload() key: string) {
+    const page = await this.pageService.getOneByKey(key);
+
+    return [page];
   }
 
   @MessagePattern('create-page')
-  post(@Payload() dto: PageCreateDto) {
+  post(@Payload('dto') dto: PageCreateDto) {
     return this.pageService.create(dto);
   }
 
