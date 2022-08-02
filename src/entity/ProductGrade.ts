@@ -24,6 +24,9 @@ export class ProductGrade extends AppEntity {
   })
   product: Product;
 
+  @Column()
+  productId: number;
+
   @Column({
     nullable: true,
   })

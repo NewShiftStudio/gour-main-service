@@ -42,9 +42,7 @@ export class AuthController {
   refresh(@Payload() token: string) {
     const user = decodeToken(token) as { id: number };
 
-    if (!user) {
-      throw new UnauthorizedException();
-    }
+    if (!user) throw new UnauthorizedException();
 
     const payload = {
       id: user?.id,

@@ -49,24 +49,25 @@ export class ClientsService {
   }
 
   async getFavorites(id: number): Promise<Product[]> {
-    return (
-      await this.clientRepository.findOne(id, {
-        relations: ['favorites'],
-      })
-    ).favorites;
+    const { favorites } = await this.clientRepository.findOne(id, {
+      relations: ['favorites'],
+    });
+
+    return favorites;
   }
 
   async addToFavorites(clientId: number, productId: number) {
-    const newProduct = await this.productRepository.findOne(productId);
+    const product = await this.productRepository.findOne(productId);
 
-    if (!newProduct) {
+    if (!product) {
       throw new HttpException('Product was not found', 400);
     }
 
     const favorites = await this.getFavorites(clientId);
+
     return this.clientRepository.save({
       id: clientId,
-      favorites: [...favorites, newProduct],
+      favorites: [...favorites, product],
     });
   }
 
@@ -74,7 +75,7 @@ export class ClientsService {
     const favorites = await this.getFavorites(clientId);
     return this.clientRepository.save({
       id: clientId,
-      favorites: [...favorites.filter((it) => it.id !== productId)],
+      favorites: favorites.filter((it) => it.id !== productId),
     });
   }
 

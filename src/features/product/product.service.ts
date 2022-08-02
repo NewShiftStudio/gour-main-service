@@ -113,9 +113,7 @@ export class ProductService {
     if (product.similarProducts) {
       const similarProducts: Product[] = [];
       for (const productId of product.similarProducts) {
-        similarProducts.push(
-          await this.productRepository.findOne({ id: productId }),
-        );
+        similarProducts.push(await this.productRepository.findOne(productId));
       }
       saveParams.similarProducts = similarProducts;
     }

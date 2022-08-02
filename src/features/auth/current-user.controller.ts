@@ -61,7 +61,7 @@ export class CurrentUserController {
   }
 
   @MessagePattern('get-favorites')
-  getFavoritesProducts(@Payload('id') id: number) {
+  getFavoritesProducts(@Payload() id: number) {
     return this.clientsService.getFavorites(id);
   }
 
