@@ -52,35 +52,42 @@ export class PromotionService {
     });
   }
 
-  async update(id: number, promotionDto: PromotionUpdateDto) {
+  async update(id: number, dto: PromotionUpdateDto) {
+    const promotion = await this.promotionRepository.findOne(id);
+
+    if (!promotion) {
+      throw new HttpException('Promotion with this id was not found', 400);
+    }
+
     let cardImage: Image | undefined;
     let pageImage: Image | undefined;
     let products: Product[] = [];
-    if (promotionDto.cardImageId) {
-      cardImage = await this.imageRepository.findOne(promotionDto.cardImageId);
+
+    if (dto.cardImageId) {
+      cardImage = await this.imageRepository.findOne(dto.cardImageId);
       if (!cardImage) {
         throw new HttpException('cardImage was not found', 400);
       }
     }
 
-    if (promotionDto.pageImageId) {
-      pageImage = await this.imageRepository.findOne(promotionDto.pageImageId);
+    if (dto.pageImageId) {
+      pageImage = await this.imageRepository.findOne(dto.pageImageId);
 
       if (!pageImage) {
         throw new HttpException('pageImage was not found', 400);
       }
     }
 
-    if (promotionDto.products) {
-      products = await this.productRepository.findByIds(promotionDto.products);
+    if (dto.products) {
+      products = await this.productRepository.findByIds(dto.products);
     }
 
     return this.promotionRepository.save({
-      ...promotionDto,
+      ...promotion,
+      ...dto,
       cardImage,
       pageImage,
       products,
-      id,
     });
   }
 

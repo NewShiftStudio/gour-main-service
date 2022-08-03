@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { ClientRole } from '../../entity/ClientRole';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
+import { ClientRoleCreateDto } from './dto/client-role-create.dto';
+import { ClientRoleUpdateDto } from './dto/client-role-update.dto';
 
 @Injectable()
 export class ClientRoleService {
@@ -22,11 +24,11 @@ export class ClientRoleService {
     return this.clientRoleRepository.findOne({ id });
   }
 
-  create(clientRole: Partial<ClientRole>) {
+  create(clientRole: ClientRoleCreateDto) {
     return this.clientRoleRepository.save(clientRole);
   }
 
-  update(id: number, clientRole: Partial<ClientRole>) {
+  update(id: number, clientRole: ClientRoleUpdateDto) {
     return this.clientRoleRepository.save({
       ...clientRole,
       id,

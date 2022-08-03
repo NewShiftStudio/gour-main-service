@@ -8,7 +8,7 @@ import { PromotionCreateDto } from './dto/promotion-create.dto';
 import { PromotionUpdateDto } from './dto/promotion-update.dto';
 
 @ApiTags('promotions')
-@Controller()
+@Controller('promotions')
 export class PromotionController {
   constructor(private readonly promotionService: PromotionService) {}
 
@@ -18,8 +18,10 @@ export class PromotionController {
   }
 
   @MessagePattern('get-promotion')
-  getOne(@Payload() id: number) {
-    return this.promotionService.getOne(id);
+  async getOne(@Payload() id: number) {
+    const promotion = await this.promotionService.getOne(id);
+
+    return [promotion];
   }
 
   @MessagePattern('create-promotion')

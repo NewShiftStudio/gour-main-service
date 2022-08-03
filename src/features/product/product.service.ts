@@ -81,7 +81,7 @@ export class ProductService {
 
     if (params.withMetrics) {
       const grades = await this.productGradeRepository.find({
-        productId: id,
+        product: { id },
       });
 
       result = {
@@ -105,6 +105,7 @@ export class ProductService {
       roleDiscounts?: (RoleDiscount | object)[];
       images?: (Image | number)[];
     } = product;
+
     saveParams.category = await this.categoryRepository.findOne(
       product.category,
     );
@@ -112,9 +113,7 @@ export class ProductService {
     if (product.similarProducts) {
       const similarProducts: Product[] = [];
       for (const productId of product.similarProducts) {
-        similarProducts.push(
-          await this.productRepository.findOne({ id: productId }),
-        );
+        similarProducts.push(await this.productRepository.findOne(productId));
       }
       saveParams.similarProducts = similarProducts;
     }

@@ -29,10 +29,6 @@ export class CityService {
   }
 
   update(id: number, city: CityUpdateDto) {
-    console.log({
-      ...city,
-      id,
-    });
     return this.cityRepository.save({
       ...city,
       id,

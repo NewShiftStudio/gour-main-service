@@ -7,6 +7,7 @@ import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { ReferralCodeCreateDto } from './dto/referral-code-create.dto';
 import { ReferralCodeGetListDto } from './dto/referral-code-get-list.dto';
 import { Client } from '../../entity/Client';
+import { ReferralCodeEditDto } from './dto/referral-code-edit.dto';
 
 @Injectable()
 export class ReferralCodeService {
@@ -23,7 +24,7 @@ export class ReferralCodeService {
     });
   }
 
-  async getClientStat(params: ReferralCodeGetListDto): Promise<Client[]> {
+  async getReferrals(params: ReferralCodeGetListDto): Promise<Client[]> {
     const options: FindManyOptions<Client> = {
       ...getPaginationOptions(params.offset, params.length),
       relations: ['referralCode'],
@@ -33,12 +34,12 @@ export class ReferralCodeService {
     };
 
     const result = await this.clientRepository.find(options);
-    return result.filter((it) => {
-      return (
+
+    return result.filter(
+      (it) =>
         (params.start ? it.createdAt >= new Date(params.start) : true) &&
-        (params.end ? it.createdAt <= new Date(params.end) : true)
-      );
-    });
+        (params.end ? it.createdAt <= new Date(params.end) : true),
+    );
   }
 
   getOne(id: number) {
@@ -57,9 +58,9 @@ export class ReferralCodeService {
     }
   }
 
-  update(id: number, referralCode: Partial<ReferralCode>) {
+  update(id: number, dto: ReferralCodeEditDto) {
     return this.referralCodeRepository.save({
-      ...referralCode,
+      ...dto,
       id,
     });
   }

@@ -17,6 +17,10 @@ export class ImageService {
     readonly imageRepository: Repository<Image>,
   ) {}
 
+  findOne(id: number): Promise<Image> {
+    return this.imageRepository.findOne(id);
+  }
+
   async uploadImage(file: Express.Multer.File): Promise<Image> {
     try {
       const split = file.originalname.split('.');

@@ -1,14 +1,14 @@
 import { IsOptional, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
-export class ClientRoleCreateDto {
+export class ClientRoleUpdateDto {
   @IsString()
   @ApiPropertyOptional()
   @IsOptional()
-  title: string;
+  title?: string;
 
   @IsString()
   @ApiPropertyOptional()
   @IsOptional()
-  key: string;
+  key?: string;
 }

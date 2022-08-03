@@ -7,7 +7,7 @@ import { WalletChangeValueDto } from './dto/wallet-change-value.dto';
 import { WalletConfirmPaymentDto } from './dto/wallet-confirm-payment.dto';
 
 @ApiTags('wallet')
-@Controller()
+@Controller('wallet')
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
@@ -25,6 +25,7 @@ export class WalletController {
 
   @MessagePattern('get-client-wallet')
   getCurrentWallet(@Payload() id: number) {
+    console.log(id);
     return this.walletService.getByClientId(id);
   }
 

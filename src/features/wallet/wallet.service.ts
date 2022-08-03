@@ -37,21 +37,20 @@ export class WalletService {
 
   async getByClientId(id: number): Promise<Wallet> {
     const wallet = await this.walletRepository.findOne({
-      where: {
-        client: {
-          id,
-        },
+      client: {
+        id,
       },
     });
 
-    if (!wallet) throw new NotFoundException();
+    // TODO не у всех есть кошелёк
+    // if (!wallet) throw new NotFoundException();
 
     return wallet;
   }
 
   async getBalanceByClientId(id: number): Promise<number> {
     const wallet = await this.getByClientId(id);
-    return wallet.value;
+    return wallet ? wallet.value : 0;
   }
 
   async useCoins(uuid: string, value: number) {
