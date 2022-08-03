@@ -1,52 +1,43 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-  Res,
-} from '@nestjs/common';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { ApiTags } from '@nestjs/swagger';
+
 import { CategoryService } from './category.service';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { CategoryCreateDto } from './dto/category.create.dto';
 import { CategoryUpdateDto } from './dto/category.update.dto';
-import { ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
-import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
 
 @ApiTags('categories')
-@Controller()
+@Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
-  @Get('/categories')
-  async getAll(@Query() params: BaseGetListDto, @Res() res: Response) {
-    const [clients, count] = await this.categoryService.findMany(params);
-
-    res.set(TOTAL_COUNT_HEADER, count.toString());
-    return res.send(clients);
+  @MessagePattern('get-categories')
+  getAll(@Payload() params: BaseGetListDto) {
+    return this.categoryService.findMany(params);
   }
 
-  @Get('/categories/:id')
-  getOne(@Param('id') id: string) {
-    return this.categoryService.getOne(+id);
+  @MessagePattern('get-category')
+  async getOne(@Payload() id: number) {
+    const category = await this.categoryService.getOne(id);
+
+    return [category];
   }
 
-  @Post('/categories')
-  post(@Body() category: CategoryCreateDto) {
-    return this.categoryService.create(category);
+  // TODO update or delete on table "category" violates foreign key constraint on table "product"
+
+  @MessagePattern('create-category')
+  async post(@Payload() dto: CategoryCreateDto) {
+    return this.categoryService.create(dto);
   }
 
-  @Put('/categories/:id')
-  put(@Param('id') id: string, @Body() category: CategoryUpdateDto) {
-    return this.categoryService.update(+id, category);
+  @MessagePattern('edit-category')
+  put(@Payload('id') id: number, @Payload('dto') dto: CategoryUpdateDto) {
+    return this.categoryService.update(id, dto);
   }
 
-  @Delete('/categories/:id')
-  remove(@Param('id') id: string) {
-    return this.categoryService.remove(+id);
+  @MessagePattern('delete-category')
+  remove(@Payload() id: number) {
+    return this.categoryService.remove(id);
   }
 }

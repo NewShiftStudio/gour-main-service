@@ -1,48 +1,27 @@
-import { Order } from '../../entity/Order';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-  Res,
-} from '@nestjs/common';
-import { OrderCreateDto } from './dto/order.create.dto';
-import { OrderService } from './order.service';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
-import { Response } from 'express';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { Client } from '../../entity/Client';
-import { OrderExtendedDto } from './dto/order.extended.dto';
-import { AmoCrmService } from './amo-crm.service';
-import { LeadDto } from './dto/lead.dto';
-import { OrderProduct } from '../../entity/OrderProduct';
-import { ProductService } from '../product/product.service';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { ApiTags } from '@nestjs/swagger';
 
-@ApiBearerAuth()
+import { Order } from '../../entity/Order';
+import { Client } from '../../entity/Client';
+import { OrderResponseDto } from '../order/dto/order-response.dto';
+import { AmoCrmService } from './amo-crm.service';
+import { OrderService } from './order.service';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
+import { OrderCreateDto } from './dto/order-create.dto';
+
 @ApiTags('orders')
-@Controller()
+@Controller('orders')
 export class OrderController {
   constructor(
     private readonly orderService: OrderService,
     private readonly amoCrmService: AmoCrmService,
-    private readonly productService: ProductService,
   ) {}
 
-  @Get('/orders')
-  @ApiResponse({
-    isArray: true,
-    type: OrderExtendedDto,
-  })
+  @MessagePattern('get-orders')
   async getAll(
-    @CurrentUser() client: Client,
-    @Query() params: BaseGetListDto,
-    @Res() res: Response,
+    @Payload('client') client: Client,
+    @Payload('params') params: BaseGetListDto,
   ) {
     const leads = await this.amoCrmService.getLeadList();
 
@@ -56,7 +35,7 @@ export class OrderController {
       client,
     );
 
-    const response: OrderExtendedDto[] = orders.map((order) => ({
+    const response: OrderResponseDto[] = orders.map((order) => ({
       order,
       crmInfo: leadsById[order.leadId],
       promotions: [
@@ -68,13 +47,13 @@ export class OrderController {
       ],
     }));
 
-    res.set(TOTAL_COUNT_HEADER, count.toString());
-    return res.send(response);
+    return [response, count];
   }
 
-  @Get('/orders/:id')
-  async getOne(@Param('id') id: string) {
-    const order = await this.orderService.getOne(+id);
+  @MessagePattern('get-order')
+  async getOne(@Payload() id: number) {
+    const order = await this.orderService.getOne(id);
+
     const lead = await this.amoCrmService.getLead(order.leadId);
 
     return {
@@ -83,36 +62,40 @@ export class OrderController {
     };
   }
 
-  @Post('/orders')
+  @MessagePattern('create-order')
   async post(
-    @CurrentUser() currentUser: Client,
-    @Body() order: OrderCreateDto,
+    @Payload('client') client: Client,
+    @Payload('order') order: OrderCreateDto,
   ) {
-    const { id } = await this.orderService.create(order, currentUser);
+    const { id } = await this.orderService.create(order, client);
+
     const fullOrder = await this.orderService.getOne(id);
+
     const description = this.orderService.getDescription(fullOrder);
+
     const lead = await this.amoCrmService.createLead({
       name: 'TEST',
       description,
       price: 200,
     });
+
     await this.orderService.update(id, {
       leadId: lead.id,
     });
-    //
+
     return {
       ...fullOrder,
       lead,
     };
   }
 
-  @Put('/orders/:id')
-  put(@Param('id') id: string, @Body() order: Partial<Order>) {
-    return this.orderService.update(+id, order);
+  @MessagePattern('edit-order')
+  put(@Payload('id') id: number, @Payload('order') order: Partial<Order>) {
+    return this.orderService.update(id, order);
   }
 
-  @Delete('/orders/:id')
-  remove(@Param('id') id: string) {
-    return this.orderService.remove(+id);
+  @MessagePattern('delete-order')
+  remove(@Payload() id: number) {
+    return this.orderService.remove(id);
   }
 }

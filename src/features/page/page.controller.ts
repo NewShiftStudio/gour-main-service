@@ -1,59 +1,41 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { ApiTags } from '@nestjs/swagger';
+
 import { PageService } from './page.service';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
-import { PageCreateDto } from './dto/page.create.dto';
-import { PageUpdateDto } from './dto/page.update.dto';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Page } from '../../entity/Page';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
+import { PageCreateDto } from './dto/page-create.dto';
+import { PageUpdateDto } from './dto/page-update.dto';
 
 @ApiTags('pages')
-@Controller()
+@Controller('pages')
 export class PageController {
   constructor(private readonly pageService: PageService) {}
 
-  @ApiResponse({
-    type: [Page],
-  })
-  @Get('/pages')
-  getAll(@Query() params: BaseGetListDto): Promise<Page[]> {
+  @MessagePattern('get-pages')
+  getAll(@Payload() params: BaseGetListDto) {
     return this.pageService.findMany(params);
   }
 
-  @ApiResponse({
-    type: Page,
-  })
-  @Get('/pages/:key')
-  getOne(@Param('key') key: string) {
-    return this.pageService.getOneByKey(key);
+  @MessagePattern('get-page')
+  async getOne(@Payload() key: string) {
+    const page = await this.pageService.getOneByKey(key);
+
+    return [page];
   }
 
-  @ApiResponse({
-    type: Page,
-  })
-  @Post('/pages')
-  async post(@Body() page: PageCreateDto) {
-    return this.pageService.create(page);
+  @MessagePattern('create-page')
+  post(@Payload('dto') dto: PageCreateDto) {
+    return this.pageService.create(dto);
   }
 
-  @ApiResponse({
-    type: Page,
-  })
-  @Put('/pages/:id')
-  put(@Param('id') id: string, @Body() page: PageUpdateDto) {
-    return this.pageService.update(+id, page);
+  @MessagePattern('edit-page')
+  put(@Payload('id') id: number, @Payload('dto') dto: PageUpdateDto) {
+    return this.pageService.update(id, dto);
   }
 
-  @Delete('/pages/:id')
-  remove(@Param('id') id: string) {
-    return this.pageService.remove(+id);
+  @MessagePattern('delete-page')
+  remove(@Payload() id: number) {
+    return this.pageService.remove(id);
   }
 }

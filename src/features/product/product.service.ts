@@ -3,12 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, LessThan, MoreThan, Repository } from 'typeorm';
 import { Product } from '../../entity/Product';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
-import { ProductCreateDto } from './dto/product.create.dto';
+import { ProductCreateDto } from './dto/product-create.dto';
 import { Category } from '../../entity/Category';
-import { ProductUpdateDto } from './dto/product.update.dto';
+import { ProductUpdateDto } from './dto/product-update.dto';
 import { RoleDiscount } from '../../entity/RoleDiscount';
-import { ProductGetListDto } from './dto/product.get-list.dto';
-import { ProductGetOneDto } from './dto/product.get-one.dto';
+import { ProductGetListDto } from './dto/product-get-list.dto';
+import { ProductGetOneDto } from './dto/product-get-one.dto';
 import { ClientRole } from '../../entity/ClientRole';
 import { ProductGrade } from '../../entity/ProductGrade';
 import { ProductWithMetricsDto } from './dto/product-with-metrics.dto';
@@ -57,12 +57,17 @@ export class ProductService {
     return [products, count];
   }
 
-  findNovelties() {
+  findNovelties(params: ProductGetListDto) {
     return this.productRepository.find({
       order: {
         id: 'DESC',
       },
       take: 10,
+      relations: [
+        params.withSimilarProducts ? 'similarProducts' : undefined,
+        params.withMeta ? 'meta' : undefined,
+        params.withRoleDiscounts ? 'roleDiscounts' : undefined,
+      ].filter((it) => it),
     });
   }
 
@@ -93,7 +98,7 @@ export class ProductService {
 
     if (params.withMetrics) {
       const grades = await this.productGradeRepository.find({
-        productId: id,
+        product: { id },
       });
 
       result = {
@@ -117,6 +122,7 @@ export class ProductService {
       roleDiscounts?: (RoleDiscount | object)[];
       images?: (Image | number)[];
     } = product;
+
     saveParams.category = await this.categoryRepository.findOne(
       product.category,
     );
@@ -124,9 +130,7 @@ export class ProductService {
     if (product.similarProducts) {
       const similarProducts: Product[] = [];
       for (const productId of product.similarProducts) {
-        similarProducts.push(
-          await this.productRepository.findOne({ id: productId }),
-        );
+        similarProducts.push(await this.productRepository.findOne(productId));
       }
       saveParams.similarProducts = similarProducts;
     }
@@ -223,8 +227,6 @@ export class ProductService {
       },
       relations: ['products'],
     });
-
-    console.log('prepareProducts');
 
     return getProductsWithFullCost(products, allPromotions, client);
   }

@@ -1,4 +1,8 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import {
+  createParamDecorator,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { getRepository } from 'typeorm';
 import { Client } from '../../entity/Client';
 import { AppRequest } from './auth.controller';
@@ -10,7 +14,7 @@ export const CurrentUser = createParamDecorator(
     const request: AppRequest = ctx.switchToHttp().getRequest();
     const decodedUser = decodeToken(getToken(request)) as { id: number };
     if (!decodedUser) {
-      return null;
+      throw new UnauthorizedException();
     }
 
     return getRepository(Client).findOne({

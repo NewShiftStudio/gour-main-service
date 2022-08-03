@@ -5,9 +5,17 @@ import { Repository } from 'typeorm';
 import { Client } from '../../entity/Client';
 import * as bcrypt from 'bcryptjs';
 import { SignInDto } from './dto/sign-in.dto';
-import { decodeToken, encodeJwt, verifyJwt } from './jwt.service';
+import {
+  decodeToken,
+  encodeJwt,
+  encodeRefreshJwt,
+  verifyJwt,
+} from './jwt.service';
 import { Request } from 'express';
 import { ReferralCode } from '../../entity/ReferralCode';
+import { generateSmsCode } from 'src/utils/generateSmsCode';
+
+const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
 @Injectable()
 export class AuthService {
@@ -27,8 +35,9 @@ export class AuthService {
       throw new HttpException('phone_exists_error', 400);
     }
 
-    // TODO: Добавить сервис отправки сообщений
-    return 1234;
+    const code = generateSmsCode();
+    // await this.smsSenderService.sendCode(phone, code);
+    return code;
   }
 
   async signup(dto: SignUpDto) {
@@ -45,7 +54,7 @@ export class AuthService {
       throw new HttpException('User with this phone already exists', 400);
     }
 
-    let referralCode;
+    let referralCode: ReferralCode;
 
     if (dto.referralCode) {
       referralCode = await this.referralCodeRepository.findOne({
@@ -69,19 +78,17 @@ export class AuthService {
 
   async signin(dto: SignInDto): Promise<{
     token: string;
+    refreshToken: string;
     client: Client;
   }> {
     const user = await this.clientRepository.findOne({
       phone: dto.phone,
     });
 
-    if (
-      user &&
-      user.isApproved &&
-      (await bcrypt.compare(dto.password, user.password))
-    ) {
+    if (user && (await bcrypt.compare(dto.password, user.password))) {
       return {
         token: encodeJwt(user),
+        refreshToken: encodeRefreshJwt(user),
         client: user,
       };
     }
@@ -90,9 +97,9 @@ export class AuthService {
       throw new HttpException('User is not found', 401);
     }
 
-    if (!user.isApproved) {
-      throw new HttpException('User is not approved', 401);
-    }
+    // if (!user.isApproved) {
+    //   throw new HttpException('User is not approved', 401);
+    // }
 
     if (!(await bcrypt.compare(dto.password, user.password))) {
       throw new HttpException('Bad password', 401);
@@ -107,24 +114,20 @@ export class AuthService {
       id,
     });
 
-    if (user && user.isApproved) {
+    if (user)
       return {
         token: encodeJwt(user),
         client: user,
       };
-    }
+    else throw new HttpException('User is not found', 401);
 
-    if (!user) {
-      throw new HttpException('User is not found', 401);
-    }
-
-    if (!user.isApproved) {
-      throw new HttpException('User is not approved', 401);
-    }
+    // if (!user.isApproved) {
+    //   throw new HttpException('User is not approved', 401);
+    // }
   }
 
   decodeToken(token: string) {
-    if (!verifyJwt(token)) {
+    if (!verifyJwt(token, ACCESS_SECRET)) {
       throw new HttpException('Bad token', 401);
     }
 

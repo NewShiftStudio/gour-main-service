@@ -1,14 +1,16 @@
-import { Body, HttpException, Injectable, Param } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository } from 'typeorm';
 import { Client } from '../../entity/Client';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
-import { ClientCreateDto } from './dto/ClientCreateDto';
-import { ClientGetListDto } from './dto/ClientGetListDto';
-import { ClientUpdateDto } from './dto/client.update.dto';
+import { ClientCreateDto } from './dto/сlient-create.dto';
+import { ClientGetListDto } from './dto/сlient-get-list.dto';
+import { ClientUpdateDto } from './dto/client-update.dto';
 import { ClientRole } from '../../entity/ClientRole';
 import { DeepPartial } from 'typeorm/common/DeepPartial';
 import { Product } from '../../entity/Product';
+import * as bcrypt from 'bcryptjs';
+import { Image } from '../../entity/Image';
 
 @Injectable()
 export class ClientsService {
@@ -19,6 +21,8 @@ export class ClientsService {
     private clientRoleRepository: Repository<ClientRole>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    @InjectRepository(Image)
+    private imageRepository: Repository<Image>,
   ) {}
 
   findMany(params: ClientGetListDto): Promise<[Client[], number]> {
@@ -45,24 +49,25 @@ export class ClientsService {
   }
 
   async getFavorites(id: number): Promise<Product[]> {
-    return (
-      await this.clientRepository.findOne(id, {
-        relations: ['favorites'],
-      })
-    ).favorites;
+    const { favorites } = await this.clientRepository.findOne(id, {
+      relations: ['favorites'],
+    });
+
+    return favorites;
   }
 
   async addToFavorites(clientId: number, productId: number) {
-    const newProduct = await this.productRepository.findOne(productId);
+    const product = await this.productRepository.findOne(productId);
 
-    if (!newProduct) {
+    if (!product) {
       throw new HttpException('Product was not found', 400);
     }
 
     const favorites = await this.getFavorites(clientId);
+
     return this.clientRepository.save({
       id: clientId,
-      favorites: [...favorites, newProduct],
+      favorites: [...favorites, product],
     });
   }
 
@@ -70,7 +75,7 @@ export class ClientsService {
     const favorites = await this.getFavorites(clientId);
     return this.clientRepository.save({
       id: clientId,
-      favorites: [...favorites.filter((it) => it.id !== productId)],
+      favorites: favorites.filter((it) => it.id !== productId),
     });
   }
 
@@ -78,24 +83,26 @@ export class ClientsService {
     await this.clientRepository.softDelete(id);
   }
 
-  async create(client: ClientCreateDto) {
-    const role = await this.clientRepository.findOne(client.role);
+  async create(dto: ClientCreateDto) {
+    const role = await this.clientRoleRepository.findOne(dto.roleId);
 
     if (!role) {
       throw new HttpException('Client role with this Id was not found', 400);
     }
 
-    // const candidate = await this.clientRepository.findOne({
-    //   apiUserUuid: client.apiUserUuid,
-    // });
+    const foundUser = await this.clientRepository.findOne({
+      phone: dto.phone,
+    });
 
-    // if (candidate) {
-    //   throw new HttpException('Client with this UUID already exists', 400);
-    // }
+    if (foundUser) {
+      throw new HttpException('User with this phone already exists', 400);
+    }
 
     return this.clientRepository.save({
-      ...client,
-      role,
+      roleId: dto.roleId,
+      name: dto.name,
+      phone: dto.phone,
+      password: await this.getPasswordHash(dto.password),
     });
   }
 
@@ -103,22 +110,29 @@ export class ClientsService {
     let role: ClientRole | undefined;
 
     const client = await this.clientRepository.findOne(id);
+
     if (!client) {
       throw new HttpException('Client with this id was not found', 400);
     }
 
+    const avatar = await this.imageRepository.findOne(dto.avatarId);
+
+    // if (!avatar) {
+    //   throw new HttpException('Image with this id was not found', 400);
+    // }
+
     const updatedObj: DeepPartial<Client> = {
-      firstName: dto.name,
-      avatarId: dto.avatarId,
+      ...client,
+      firstName: dto.name || client.firstName,
+      avatar: avatar || client.avatar,
       additionalInfo: {
         ...client.additionalInfo,
         ...(dto.additionalInfo || {}),
       },
-      id,
     };
 
-    if (dto.role) {
-      updatedObj.role = await this.clientRoleRepository.findOne(dto.role);
+    if (dto.roleId) {
+      updatedObj.role = await this.clientRoleRepository.findOne(dto.roleId);
       if (!role) {
         throw new HttpException('Client role with this Id was not found', 400);
       }
@@ -145,5 +159,9 @@ export class ClientsService {
       id,
       phone,
     });
+  }
+
+  private getPasswordHash(password: string) {
+    return bcrypt.hash(password, 5);
   }
 }

@@ -3,7 +3,6 @@ import {
   Column,
   ManyToMany,
   ManyToOne,
-  Index,
   JoinTable,
   OneToOne,
   JoinColumn,
@@ -15,6 +14,8 @@ import { City } from './City';
 import { ReferralCode } from './ReferralCode';
 import { Image } from './Image';
 import { OrderProfile } from './OrderProfile';
+import { Wallet } from './Wallet';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class Client extends AppEntity {
@@ -22,9 +23,6 @@ export class Client extends AppEntity {
     eager: true,
   })
   role: ClientRole;
-
-  @Column()
-  roleId: number;
 
   @Column({
     default: false,
@@ -67,11 +65,6 @@ export class Client extends AppEntity {
   })
   city: City;
 
-  @Column({
-    nullable: true,
-  })
-  cityId: number;
-
   @ManyToOne(() => ReferralCode, {
     nullable: true,
     eager: true,
@@ -79,13 +72,9 @@ export class Client extends AppEntity {
   referralCode: ReferralCode;
 
   @Column({
-    nullable: true,
-  })
-  referralCodeId: number;
-
-  @Column({
     default: '',
   })
+  @Exclude()
   password: string;
 
   @OneToOne(() => Image, {
@@ -95,16 +84,17 @@ export class Client extends AppEntity {
   @JoinColumn()
   avatar: Image;
 
-  @Column({
-    nullable: true,
-  })
-  avatarId: number;
-
   @OneToOne(() => OrderProfile, {
     nullable: true,
   })
   @JoinColumn()
   mainOrderProfile: OrderProfile;
+
+  @OneToOne(() => Wallet, {
+    nullable: true,
+  })
+  @JoinColumn()
+  wallet: Wallet;
 }
 
 export type IClient = Client;

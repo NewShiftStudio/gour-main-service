@@ -21,7 +21,7 @@ import { TranslatableString } from './entity/TranslatableString';
 import { TranslatableText } from './entity/TranslatableText';
 import { Warehouse } from './entity/Warehouse';
 import { CategoryModule } from './features/category/category.module';
-import { ClientRoleModule } from './features/clientRole/clientRole.module';
+import { ClientRoleModule } from './features/client-role/client-role.module';
 import { CityModule } from './features/city/city.module';
 import { ProductModule } from './features/product/product.module';
 import { PromotionModule } from './features/promotion/promotion.module';
@@ -35,10 +35,11 @@ import { ReferralCode } from './entity/ReferralCode';
 import { ImageModule } from './features/image/image.module';
 import * as path from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { TesterService } from './features/tester/tester.service';
-import { MetaService } from './features/meta/meta.service';
 import { MetaModule } from './features/meta/meta.module';
 import { Meta } from './entity/Meta';
+import { WalletModule } from './features/wallet/wallet.module';
+import { Wallet } from './entity/Wallet';
+import { WalletTransaction } from './entity/WalletTransaction';
 
 @Module({
   imports: [
@@ -80,6 +81,8 @@ import { Meta } from './entity/Meta';
         Page,
         ReferralCode,
         Meta,
+        Wallet,
+        WalletTransaction,
       ],
       subscribers: ['dist/subscriber/*.js'],
       migrations: ['dist/migration/*.js'],
@@ -102,6 +105,7 @@ import { Meta } from './entity/Meta';
     ReferralCodeModule,
     ImageModule,
     MetaModule,
+    WalletModule,
     // TestModule,
   ],
 })

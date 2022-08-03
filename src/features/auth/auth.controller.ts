@@ -1,14 +1,14 @@
-import { Body, Controller, Get, Post, Put, Req, Res } from '@nestjs/common';
+import { Controller, UnauthorizedException } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
+
+import { decodeToken, encodeJwt, encodeRefreshJwt } from './jwt.service';
+import { AuthService } from './auth.service';
 import { SendCodeDto } from './dto/send-code.dto';
 import { SignUpDto } from './dto/sign-up.dto';
-import { AuthService } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
-import { Response, Request } from 'express';
-import { CurrentUser } from './current-user.decorator';
-import { Client } from '../../entity/Client';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { ClientsService } from '../client/client.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Client } from 'src/entity/Client';
 
 export interface AppRequest extends Request {
   user?: Client;
@@ -18,42 +18,39 @@ export interface AppRequest extends Request {
 @ApiTags('client-auth')
 @Controller('client-auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly clientsService: ClientsService,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
-  @Post('/sendCode')
-  sendCode(@Body() dto: SendCodeDto) {
+  @MessagePattern('send-code')
+  sendCode(@Payload() dto: SendCodeDto) {
     this.authService.sendCode(dto.phone);
     return {
       result: true,
     };
   }
 
-  @Post('/signup')
-  signup(@Body() dto: object) {
-    return this.authService.signup(dto as SignUpDto);
+  @MessagePattern('signup')
+  signup(@Payload() dto: SignUpDto) {
+    return this.authService.signup(dto);
   }
 
-  @Post('/signin')
-  async signin(
-    @Body() dto: SignInDto,
-    @Res() res: Response,
-    @Req() req: AppRequest,
-  ) {
-    const { token, client } = await this.authService.signin(dto);
-    res.cookie('AccessToken', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    });
+  @MessagePattern('signin')
+  signin(@Payload() dto: SignInDto) {
+    return this.authService.signin(dto);
+  }
 
-    req.user = client;
-    req.token = token;
+  @MessagePattern('refresh')
+  refresh(@Payload() token: string) {
+    const user = decodeToken(token) as { id: number };
 
-    return res.send({
-      token,
-    });
+    if (!user) throw new UnauthorizedException();
+
+    const payload = {
+      id: user?.id,
+    };
+
+    const accessToken = encodeJwt(payload);
+    const refreshToken = encodeRefreshJwt(payload);
+
+    return { accessToken, refreshToken };
   }
 }

@@ -1,10 +1,4 @@
-import {
-  IsEmail,
-  IsNumber,
-  IsOptional,
-  IsPhoneNumber,
-  IsString,
-} from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class OrderProfileCreateDto {

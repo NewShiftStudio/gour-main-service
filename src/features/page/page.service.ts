@@ -3,9 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Page } from '../../entity/Page';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
-import { PageCreateDto } from './dto/page.create.dto';
-import { PageUpdateDto } from './dto/page.update.dto';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
+import { PageCreateDto } from './dto/page-create.dto';
+import { PageUpdateDto } from './dto/page-update.dto';
 
 @Injectable()
 export class PageService {

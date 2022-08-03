@@ -19,6 +19,8 @@ import { RoleDiscount } from './RoleDiscount';
 import { PageMeta } from './PageMeta';
 import { ProductGrade } from './ProductGrade';
 import { ApiProperty } from '@nestjs/swagger';
+import { Promotion } from './Promotion';
+import { Client } from './Client';
 
 @Entity()
 export class Product extends AppEntity {
@@ -54,6 +56,7 @@ export class Product extends AppEntity {
 
   @ApiProperty()
   @ManyToOne(() => Category, {
+    onDelete: 'CASCADE',
     eager: true,
   })
   category: Category;
@@ -96,6 +99,11 @@ export class Product extends AppEntity {
   })
   roleDiscounts: RoleDiscount[];
 
+  @ManyToMany(() => Promotion, (p) => p.products, {
+    onDelete: 'CASCADE',
+  })
+  promotions: Promotion[];
+
   @ApiProperty()
   @Column('json')
   characteristics: Record<string, string | number>;
@@ -124,6 +132,4 @@ export class Product extends AppEntity {
     default: 0,
   })
   amount: number;
-
-  discount = 10;
 }

@@ -1,53 +1,41 @@
-import { City } from '../../entity/City';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-  Res,
-} from '@nestjs/common';
-import { CityCreateDto } from './dto/CityCreateDto';
-import { CityService } from './city.service';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
-import { CityUpdateDto } from './dto/city.update.dto';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
-import { TOTAL_COUNT_HEADER } from '../../constants/httpConstants';
+
+import { CityService } from './city.service';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
+import { CityCreateDto } from './dto/city-create.dto';
+import { CityUpdateDto } from './dto/city-update.dto';
 
 @ApiTags('cities')
-@Controller()
+@Controller('cities')
 export class CityController {
   constructor(private readonly cityService: CityService) {}
 
-  @Get('/cities')
-  async getAll(@Query() params: BaseGetListDto, @Res() res: Response) {
-    const [clients, count] = await this.cityService.findMany(params);
-
-    res.set(TOTAL_COUNT_HEADER, count.toString());
-    return res.send(clients);
+  @MessagePattern('get-cities')
+  getAll(@Payload() params: BaseGetListDto) {
+    return this.cityService.findMany(params);
   }
 
-  @Get('/cities/:id')
-  getOne(@Param('id') id: number) {
-    return this.cityService.getOne(id);
+  @MessagePattern('get-city')
+  async getOne(@Payload() id: number) {
+    const city = await this.cityService.getOne(id);
+
+    return [city];
   }
 
-  @Post('/cities')
-  async post(@Body() city: CityCreateDto) {
-    return this.cityService.create(city);
+  @MessagePattern('create-city')
+  post(@Payload() dto: CityCreateDto) {
+    return this.cityService.create(dto);
   }
 
-  @Put('/cities/:id')
-  put(@Param('id') id: string, @Body() city: CityUpdateDto) {
-    return this.cityService.update(+id, city);
+  @MessagePattern('edit-city')
+  put(@Payload('id') id: number, @Payload('dto') dto: CityUpdateDto) {
+    return this.cityService.update(id, dto);
   }
 
-  @Delete('/cities/:id')
-  remove(@Param('id') id: number) {
+  @MessagePattern('delete-city')
+  remove(@Payload() id: number) {
     return this.cityService.remove(id);
   }
 }

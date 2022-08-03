@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderProfile } from '../../entity/OrderProfile';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { OrderProfileCreateDto } from './dto/order-profile.create.dto';
 import { Client } from '../../entity/Client';
 import { City } from '../../entity/City';

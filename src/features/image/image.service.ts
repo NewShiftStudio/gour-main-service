@@ -17,6 +17,10 @@ export class ImageService {
     readonly imageRepository: Repository<Image>,
   ) {}
 
+  findOne(id: number): Promise<Image> {
+    return this.imageRepository.findOne(id);
+  }
+
   async uploadImage(file: Express.Multer.File): Promise<Image> {
     try {
       const split = file.originalname.split('.');
@@ -27,7 +31,10 @@ export class ImageService {
         await fs.promises.mkdir(filePath, { recursive: true });
       }
 
-      await fs.promises.writeFile(path.join(filePath, fileName), file.buffer);
+      await fs.promises.writeFile(
+        path.join(filePath, fileName),
+        file.buffer.toString(),
+      );
 
       const fileUrl =
         STATIC_SERVER_PATH +

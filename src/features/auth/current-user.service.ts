@@ -7,10 +7,7 @@ import { Repository } from 'typeorm';
 
 import * as bcrypt from 'bcryptjs';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { ClientUpdateDto } from '../client/dto/client.update.dto';
-import { ClientRole } from '../../entity/ClientRole';
 import { DeepPartial } from 'typeorm/common/DeepPartial';
-import { Product } from '../../entity/Product';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Image } from '../../entity/Image';
 import { OrderProfile } from '../../entity/OrderProfile';
@@ -32,11 +29,7 @@ export class CurrentUserService {
     });
   }
 
-  async changePhone(
-    currentUser: Client,
-    hashedCode: string,
-    dto: ChangePhoneDto,
-  ) {
+  async changePhone(userId: number, hashedCode: string, dto: ChangePhoneDto) {
     if (!hashedCode) {
       throw new HttpException('Cookie code was not found', 400);
     }
@@ -51,7 +44,7 @@ export class CurrentUserService {
     }
 
     await this.clientRepository.save({
-      id: currentUser.id,
+      id: userId,
       phone: dto.phone,
     });
   }
@@ -70,6 +63,13 @@ export class CurrentUserService {
     return this.clientRepository.save({
       id: currentUserId,
       password: await bcrypt.hash(dto.newPassword, 5),
+    });
+  }
+
+  async changeCityId(currentUserId: number, cityId: number) {
+    await this.clientRepository.save({
+      id: currentUserId,
+      cityId,
     });
   }
 

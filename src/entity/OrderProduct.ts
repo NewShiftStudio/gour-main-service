@@ -14,9 +14,6 @@ export class OrderProduct extends AppEntity {
   product: Product;
 
   @Column()
-  productId: number;
-
-  @Column()
   weight: number;
 
   @Column()

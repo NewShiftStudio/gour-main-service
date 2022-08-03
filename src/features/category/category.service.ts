@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, Like, Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { Category } from '../../entity/Category';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
-import { BaseGetListDto } from '../../common/dto/BaseGetListDto';
+import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { CategoryCreateDto } from './dto/category.create.dto';
 import { CategoryUpdateDto } from './dto/category.update.dto';
 
