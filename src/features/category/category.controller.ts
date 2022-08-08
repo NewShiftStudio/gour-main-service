@@ -18,10 +18,8 @@ export class CategoryController {
   }
 
   @MessagePattern('get-category')
-  async getOne(@Payload() id: number) {
-    const category = await this.categoryService.getOne(id);
-
-    return [category];
+  getOne(@Payload() id: number) {
+    return this.categoryService.getOne(id);
   }
 
   // TODO update or delete on table "category" violates foreign key constraint on table "product"

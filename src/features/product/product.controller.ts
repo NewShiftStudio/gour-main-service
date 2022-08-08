@@ -38,14 +38,12 @@ export class ProductController {
   }
 
   @MessagePattern('get-product')
-  async getOne(
+  getOne(
     @Payload('id') id: number,
     @Payload('params') params: ProductGetOneDto = {},
     @Payload('client') client: Client,
   ) {
-    const product = await this.productService.getOne(id, params, client);
-
-    return [product];
+    return this.productService.getOne(id, params, client);
   }
 
   @MessagePattern('create-product')

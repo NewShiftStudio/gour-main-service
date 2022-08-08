@@ -18,10 +18,8 @@ export class PageController {
   }
 
   @MessagePattern('get-page')
-  async getOne(@Payload() key: string) {
-    const page = await this.pageService.getOneByKey(key);
-
-    return [page];
+  getOne(@Payload() key: string) {
+    return this.pageService.getOneByKey(key);
   }
 
   @MessagePattern('create-page')

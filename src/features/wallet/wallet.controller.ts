@@ -25,7 +25,6 @@ export class WalletController {
 
   @MessagePattern('get-client-wallet')
   getCurrentWallet(@Payload() id: number) {
-    console.log(id);
     return this.walletService.getByClientId(id);
   }
 

@@ -21,10 +21,8 @@ export class CurrentUserController {
   ) {}
 
   @MessagePattern('get-current-user')
-  async getCurrentUser(@Payload() id: number) {
-    const currentUser = await this.currentUserService.getUser(id);
-
-    return [currentUser];
+  getCurrentUser(@Payload() id: number) {
+    return this.currentUserService.getUser(id);
   }
 
   @MessagePattern('edit-current-user')

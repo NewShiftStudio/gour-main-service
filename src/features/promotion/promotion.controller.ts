@@ -18,10 +18,8 @@ export class PromotionController {
   }
 
   @MessagePattern('get-promotion')
-  async getOne(@Payload() id: number) {
-    const promotion = await this.promotionService.getOne(id);
-
-    return [promotion];
+  getOne(@Payload() id: number) {
+    return this.promotionService.getOne(id);
   }
 
   @MessagePattern('create-promotion')

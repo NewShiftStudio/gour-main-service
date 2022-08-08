@@ -8,7 +8,6 @@ import { AmoCrmService } from './amo-crm.service';
 import { OrderService } from './order.service';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { OrderCreateDto } from './dto/order-create.dto';
-// import { OrderResponseDto } from '../order/dto/order-response.dto';
 
 @ApiTags('orders')
 @Controller('orders')
