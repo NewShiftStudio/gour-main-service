@@ -1,5 +1,9 @@
 export class LeadDto {
   id: number;
   name: string;
-  // status: {}
+  status: {
+    id: number;
+    name: string;
+    color: string;
+  };
 }

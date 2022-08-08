@@ -23,32 +23,40 @@ export class OrderService {
     private orderRepository: Repository<Order>,
     @InjectRepository(OrderProduct)
     private orderProductRepository: Repository<OrderProduct>,
-    @InjectRepository(Client)
-    private clientRepository: Repository<Client>,
     @InjectRepository(OrderProfile)
     private orderProfileRepository: Repository<OrderProfile>,
     private productService: ProductService,
   ) {}
 
-  findUsersOrders(params: BaseGetListDto, client: Client) {
-    return this.orderRepository.findAndCount({
+  async findUsersOrders(params: BaseGetListDto, client: Client) {
+    const [orders, count] = await this.orderRepository.findAndCount({
       ...getPaginationOptions(params.offset, params.length),
-      relations: ['orderProducts', 'orderProfile', 'orderProfile.city'],
+      relations: [
+        'orderProducts',
+        'orderProfile',
+        'orderProfile.city',
+        'client',
+      ],
       where: {
         client,
       },
     });
+
+    const ordersWithTotalSum: OrderWithTotalSumDto[] = [];
+
+    for (const order of orders) {
+      const orderWithTotalSum = await this.prepareOrder(order);
+
+      if (orderWithTotalSum) ordersWithTotalSum.push(orderWithTotalSum);
+    }
+
+    return { orders: ordersWithTotalSum, count };
   }
 
   async findMany(params: BaseGetListDto) {
     const [orders, count] = await this.orderRepository.findAndCount({
       ...getPaginationOptions(params.offset, params.length),
-      relations: [
-        'client',
-        'orderProducts',
-        'orderProfile',
-        'orderProfile.city',
-      ],
+      relations: ['orderProducts', 'orderProfile', 'orderProfile.city'],
     });
 
     const ordersWithTotalSum: OrderWithTotalSumDto[] = [];
@@ -59,19 +67,14 @@ export class OrderService {
       ordersWithTotalSum.push(orderWithTotalSum);
     }
 
-    return [ordersWithTotalSum, count];
+    return { orders: ordersWithTotalSum, count };
   }
 
   async getOne(id: number): Promise<OrderWithTotalSumDto> {
     const order = await this.orderRepository.findOne(
       { id },
       {
-        relations: [
-          'client',
-          'orderProducts',
-          'orderProfile',
-          'orderProfile.city',
-        ],
+        relations: ['orderProducts', 'orderProfile', 'orderProfile.city'],
       },
     );
 
@@ -129,18 +132,21 @@ export class OrderService {
     const fullOrderProducts: OrderProductWithTotalSumDto[] = [];
 
     for (const orderProduct of order.orderProducts) {
+      if (!orderProduct.product) return;
+
       const product = await this.productService.prepareProduct(
         order.client,
         orderProduct.product,
       );
 
-      fullOrderProducts.push({
-        ...orderProduct,
-        product,
-        totalSum: product.isWeightGood
-          ? product.totalCost * orderProduct.weight
-          : product.totalCost * orderProduct.amount,
-      });
+      if (product)
+        fullOrderProducts.push({
+          ...orderProduct,
+          product,
+          totalSum: product.isWeightGood
+            ? product.totalCost * orderProduct.weight
+            : product.totalCost * orderProduct.amount,
+        });
     }
 
     const totalSum = fullOrderProducts.reduce(
@@ -151,6 +157,8 @@ export class OrderService {
     const promotions: OrderPromotion[] = [];
 
     for (const orderProduct of fullOrderProducts) {
+      if (orderProduct.product.promotions) return;
+
       for (const promotion of orderProduct.product.promotions) {
         let value =
           (promotion.discount / 100) * orderProduct.product.price.cheeseCoin;

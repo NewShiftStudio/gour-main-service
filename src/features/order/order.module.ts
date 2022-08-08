@@ -12,7 +12,6 @@ import { MetaModule } from '../meta/meta.module';
 import { Meta } from '../../entity/Meta';
 import { AmoCrmService } from './amo-crm.service';
 import { ProductModule } from '../product/product.module';
-import { TestService } from './test.service';
 
 @Module({
   imports: [
@@ -27,7 +26,7 @@ import { TestService } from './test.service';
     MetaModule,
     ProductModule,
   ],
-  providers: [OrderService, AmoCrmService, MetaService, TestService],
+  providers: [OrderService, AmoCrmService, MetaService],
   controllers: [OrderController],
   exports: [OrderService],
 })

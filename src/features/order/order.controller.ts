@@ -23,36 +23,21 @@ export class OrderController {
     @Payload('client') client: Client,
     @Payload('params') params: BaseGetListDto,
   ) {
-    const leads = await this.amoCrmService.getLeadList();
-
-    if (!leads) return [];
-
-    const leadsById = leads.reduce((acc, it) => {
-      acc[it.id] = it;
-      return acc;
-    });
-
-    const [orders = [], count] = await this.orderService.findUsersOrders(
+    const { orders, count } = await this.orderService.findUsersOrders(
       params,
       client,
     );
 
-    // const response: OrderResponseDto[] = orders.map((order) => ({
-    //   order,
-    //   crmInfo: leadsById[order.leadId],
-    //   promotions: [
-    //     {
-    //       title: 'Скидка за наеденность',
-    //       value: 100,
-    //       currency: 'cheeseCoin',
-    //     },
-    //   ],
-    // }));
+    const leads = await this.amoCrmService.getLeadList();
 
-    const fullOrders = orders.map((order) => ({
-      ...order,
-      lead: leadsById[order.leadId],
-    }));
+    const fullOrders = orders.map((order) => {
+      const lead = leads.find((it) => it.id === order.leadId);
+
+      return {
+        ...order,
+        crmInfo: lead,
+      };
+    });
 
     return [fullOrders, count];
   }
@@ -65,7 +50,7 @@ export class OrderController {
 
     const fullOrder = {
       ...order,
-      lead,
+      crmInfo: lead,
     };
 
     return fullOrder;
@@ -83,9 +68,9 @@ export class OrderController {
     const description = this.orderService.getDescription(order);
 
     const lead = await this.amoCrmService.createLead({
-      name: 'TEST',
+      name: `${order.lastName} ${order.firstName} ${order.createdAt}`,
       description,
-      price: 200,
+      price: order.totalSum,
     });
 
     await this.orderService.update(id, {
@@ -94,7 +79,7 @@ export class OrderController {
 
     const fullOrder = {
       ...order,
-      lead,
+      crmInfo: lead,
     };
 
     return fullOrder;

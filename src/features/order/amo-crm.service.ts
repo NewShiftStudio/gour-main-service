@@ -22,19 +22,32 @@ export class AmoCrmService {
   access_token: string;
 
   constructor(@Inject(MetaService) readonly metaService: MetaService) {
-    // this.metaService.getMeta(META_ACCESS_TOKEN_KEY).then((accessTokenMeta) => {
-    //   const now = new Date();
-    //   const lastAccessTokenUpdate = accessTokenMeta.updatedAt;
-    //   const accessTokenExpiresIn = new Date(
-    //     lastAccessTokenUpdate.setDate(lastAccessTokenUpdate.getDate() + 1),
-    //   );
-    //   const accessTokenIsValid = now < accessTokenExpiresIn;
-    //   if (accessTokenIsValid)
-    //     this.access_token = JSON.parse(accessTokenMeta.value);
-    // });
+    this.metaService
+      .getMeta(META_ACCESS_TOKEN_KEY)
+      .then((accessTokenMeta) => {
+        const accessTokenIsExpired = this.checkTokenExpiration(
+          'access',
+          accessTokenMeta.updatedAt,
+        );
 
-    this.access_token =
-      'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjMyN2UxYTI2MjI3MWFjNzBhZjk5NzJiY2I0YWExODRlNjU1YzliOWZhYWJjZmQ0YzdmMGM4ZTg2NDY5NDRiODgxMDA1NTFiZTRhODhkMGNjIn0.eyJhdWQiOiI2MzhhMmQ4MC1mMGFhLTQxMDItYjU4Yi02NTlhOTQ4YzUxODkiLCJqdGkiOiIzMjdlMWEyNjIyNzFhYzcwYWY5OTcyYmNiNGFhMTg0ZTY1NWM5YjlmYWFiY2ZkNGM3ZjBjOGU4NjQ2OTQ0Yjg4MTAwNTUxYmU0YTg4ZDBjYyIsImlhdCI6MTY1OTk0NDA5NSwibmJmIjoxNjU5OTQ0MDk1LCJleHAiOjE2NjAwMzA0OTUsInN1YiI6IjczNDk4NjMiLCJhY2NvdW50X2lkIjoyOTY1MjEyNCwic2NvcGVzIjpbInB1c2hfbm90aWZpY2F0aW9ucyIsImNybSIsIm5vdGlmaWNhdGlvbnMiXX0.WKlw02QXDW6katqAO65hVZEo1RU6iHCvTu4G4DTZkFn2PNPhhGLvXQIf4Ku63ghbB-OHWh1RjgruEJJ3-IqMIC5bQFV3SqVlRjbowbRcZiNRhw5o4ck5tirJvfea03_lZmZoFQTot-rQoqbMeHYm_kcil1SVmFveXuZ027E8656syKXYy8tEQyaPbx_VZQyLXklLWVwNgojL_n0qgeddb6rhFI7QmXam5fKa--xOFCS5yhLvqp3_Ni8RpFhsmNUY7eOfm0NLClUrj9K7OVLduI6nL7L9MV94zvGAiyjb2CCSifHtTgUwM0_K-1ZColJKbv5xGwKfUxUVl8J4rWQXMw';
+        if (accessTokenIsExpired) this.auth();
+        else this.access_token = JSON.parse(accessTokenMeta.value);
+      })
+      .catch((error) => console.log('getAccessMeta error', error));
+  }
+
+  checkTokenExpiration(type: 'access' | 'refresh', lastUpdate: Date) {
+    const now = new Date();
+
+    const tokenExpiresIn = new Date(
+      type === 'access'
+        ? lastUpdate.setDate(lastUpdate.getDate() + 1)
+        : lastUpdate.setMonth(lastUpdate.getMonth() + 3),
+    );
+
+    const isExpired = now > tokenExpiresIn;
+
+    return isExpired;
   }
 
   //todo Думаю в целом необходимо создать родительский класс типо Order который может в себя включать:
@@ -42,56 +55,34 @@ export class AmoCrmService {
 
   async auth(): Promise<object> {
     try {
-      // const refreshTokenMeta = await this.metaService.getMeta(
-      //   META_REFRESH_TOKEN_KEY,
-      // );
+      const refreshTokenMeta = await this.metaService.getMeta(
+        META_REFRESH_TOKEN_KEY,
+      );
 
-      // const now = new Date();
+      const refreshTokenIsExpired = this.checkTokenExpiration(
+        'refresh',
+        refreshTokenMeta.updatedAt,
+      );
 
-      // const lastRefreshTokenUpdate = refreshTokenMeta.updatedAt;
-
-      // const refreshTokenExpiresIn = new Date(
-      //   lastRefreshTokenUpdate.setMonth(lastRefreshTokenUpdate.getMonth() + 3),
-      // );
-
-      // const refreshTokenIsValid = now < refreshTokenExpiresIn;
-
-      // const data = refreshTokenIsValid
-      //   ? {
-      //       client_id: process.env.AMO_CLIENT_ID,
-      //       client_secret: process.env.AMO_CLIENT_SECRECT,
-      //       grant_type: 'refresh_token',
-      //       refresh_token: JSON.parse(refreshTokenMeta.value),
-      //       redirect_uri: process.env.AMO_REDIRECT_URI,
-      //     }
-      //   : {
-      //       client_id: process.env.AMO_CLIENT_ID,
-      //       client_secret: process.env.AMO_CLIENT_SECRECT,
-      //       grant_type: 'authorization_code',
-      //       code: process.env.AMO_AUTH_CODE,
-      //       redirect_uri: process.env.AMO_REDIRECT_URI,
-      //     };
-
-      // const data = {
-      //   client_id: process.env.AMO_CLIENT_ID,
-      //   client_secret: process.env.AMO_CLIENT_SECRECT,
-      //   grant_type: 'refresh_token',
-      //   refresh_token: JSON.parse(refreshTokenMeta.value),
-      //   redirect_uri: process.env.AMO_REDIRECT_URI,
-      // };
-
-      const data = {
-        client_id: process.env.AMO_CLIENT_ID,
-        client_secret: process.env.AMO_CLIENT_SECRECT,
-        grant_type: 'authorization_code',
-        code: '',
-        redirect_uri: process.env.AMO_REDIRECT_URI,
-      };
+      const data = !refreshTokenIsExpired
+        ? {
+            client_id: process.env.AMO_CLIENT_ID,
+            client_secret: process.env.AMO_CLIENT_SECRECT,
+            grant_type: 'refresh_token',
+            refresh_token: JSON.parse(refreshTokenMeta.value),
+            redirect_uri: process.env.AMO_REDIRECT_URI,
+          }
+        : {
+            client_id: process.env.AMO_CLIENT_ID,
+            client_secret: process.env.AMO_CLIENT_SECRECT,
+            grant_type: 'authorization_code',
+            code: process.env.AMO_AUTH_CODE,
+            redirect_uri: process.env.AMO_REDIRECT_URI,
+          };
 
       const response: AxiosResponse<{
         refresh_token: string;
         access_token: string;
-        expires_in: number;
       }> = await amoCrmApi.post('/oauth2/access_token', data);
 
       this.metaService.setValue(
@@ -105,8 +96,6 @@ export class AmoCrmService {
 
       this.access_token = response.data.access_token;
 
-      console.log(this.access_token);
-
       if (response.status === 200 || response.status === 201) return response;
     } catch (error) {
       console.error('getAuthToken error', error);
@@ -114,8 +103,6 @@ export class AmoCrmService {
   }
 
   async getAllLeads() {
-    if (!this.access_token) await this.auth();
-
     try {
       const { data: leads } = await amoCrmApi.get('api/v4/leads', {
         headers: {
@@ -130,8 +117,6 @@ export class AmoCrmService {
   }
 
   async createLead(createLeadDto: LeadCreateDto) {
-    if (!this.access_token) await this.auth();
-
     try {
       const { data: result } = await amoCrmApi.post(
         'api/v4/leads',
@@ -166,8 +151,6 @@ export class AmoCrmService {
   // Может быть полезен для получения списка существующих статусов
 
   async getAllOrderStatuses(): Promise<[]> {
-    if (!this.access_token) await this.auth();
-
     try {
       const orders = await amoCrmApi.get(
         `/api/v4/leads/pipelines/${pipelineId}`,
@@ -182,8 +165,6 @@ export class AmoCrmService {
   }
 
   async getLeadList(): Promise<LeadDto[]> {
-    if (!this.access_token) await this.auth();
-
     try {
       const statusesResponse = await amoCrmApi.get(
         `/api/v4/leads/pipelines/${pipelineId}/statuses`,
@@ -217,8 +198,6 @@ export class AmoCrmService {
   }
 
   async getLead(id: number): Promise<LeadDto> {
-    if (!this.access_token) await this.auth();
-
     try {
       const { data: lead } = await amoCrmApi.get(`/api/v4/leads/${id}`, {
         headers: { Authorization: `Bearer ${this.access_token}` },
@@ -250,7 +229,6 @@ export class AmoCrmService {
     price: price,
   }): Promise<object> {
     //todo связать на id и их их паплайн ид и наш чтобы это было частью продукта
-    if (!this.access_token) await this.auth();
 
     try {
       const response = await amoCrmApi.patch(`/api/v4/leads/${id}`, [
@@ -273,8 +251,6 @@ export class AmoCrmService {
   }
 
   async getFields() {
-    if (!this.access_token) await this.auth();
-
     try {
       const { data: fields } = await amoCrmApi.get(
         '/api/v4/leads/custom_fields',
