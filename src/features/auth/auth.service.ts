@@ -93,9 +93,7 @@ export class AuthService {
       };
     }
 
-    if (!user) {
-      throw new HttpException('User is not found', 401);
-    }
+    if (!user) throw new HttpException('User is not found', 401);
 
     // if (!user.isApproved) {
     //   throw new HttpException('User is not approved', 401);

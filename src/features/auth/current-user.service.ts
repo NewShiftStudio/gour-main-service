@@ -11,6 +11,7 @@ import { DeepPartial } from 'typeorm/common/DeepPartial';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Image } from '../../entity/Image';
 import { OrderProfile } from '../../entity/OrderProfile';
+import { City } from '../../entity/City';
 
 @Injectable()
 export class CurrentUserService {
@@ -21,6 +22,8 @@ export class CurrentUserService {
     private imageRepository: Repository<Image>,
     @InjectRepository(OrderProfile)
     private orderProfileRepository: Repository<OrderProfile>,
+    @InjectRepository(City)
+    private cityRepository: Repository<City>,
   ) {}
 
   getUser(id: number) {
@@ -67,9 +70,13 @@ export class CurrentUserService {
   }
 
   async changeCityId(currentUserId: number, cityId: number) {
+    const city = await this.cityRepository.findOne(cityId);
+
+    if (!city) throw new HttpException('City with this id was not found ', 400);
+
     await this.clientRepository.save({
       id: currentUserId,
-      cityId,
+      city,
     });
   }
 

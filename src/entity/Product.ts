@@ -20,7 +20,6 @@ import { PageMeta } from './PageMeta';
 import { ProductGrade } from './ProductGrade';
 import { ApiProperty } from '@nestjs/swagger';
 import { Promotion } from './Promotion';
-import { Client } from './Client';
 
 @Entity()
 export class Product extends AppEntity {
@@ -132,4 +131,10 @@ export class Product extends AppEntity {
     default: 0,
   })
   amount: number;
+
+  @ApiProperty()
+  @Column({
+    default: 0,
+  })
+  discount: number;
 }

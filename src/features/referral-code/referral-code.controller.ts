@@ -2,12 +2,10 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 
-import { ReferralCode } from '../../entity/ReferralCode';
 import { ReferralCodeService } from './referral-code.service';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { ReferralCodeCreateDto } from './dto/referral-code-create.dto';
 import { ReferralCodeExportDto } from './dto/referral-code-export.dto';
-import console from 'console';
 import { ReferralCodeEditDto } from './dto/referral-code-edit.dto';
 
 @ApiTags('referral-codes')

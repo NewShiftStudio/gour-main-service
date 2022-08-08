@@ -11,10 +11,11 @@ import { OrderProfile } from '../../entity/OrderProfile';
 import { Image } from '../../entity/Image';
 import { CookieService } from './cookie.service';
 import { HttpModule } from '@nestjs/axios';
+import { City } from '../../entity/City';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Client, ReferralCode, OrderProfile, Image]),
+    TypeOrmModule.forFeature([Client, ReferralCode, OrderProfile, Image, City]),
     forwardRef(() => ClientModule),
     HttpModule,
   ],

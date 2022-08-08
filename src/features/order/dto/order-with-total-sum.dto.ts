@@ -1,9 +1,11 @@
 import { OrderProduct } from '../../../entity/OrderProduct';
-import {
-  ProductPromotion,
-  ProductWithFullCostDto,
-} from '../../product/dto/product-with-full-cost.dto';
+import { ProductWithFullCostDto } from '../../product/dto/product-with-full-cost.dto';
 import { Order } from '../../../entity/Order';
+
+export class OrderPromotion {
+  title: string;
+  value: number;
+}
 
 export class OrderProductWithTotalSumDto extends OrderProduct {
   product: ProductWithFullCostDto;
@@ -13,5 +15,5 @@ export class OrderProductWithTotalSumDto extends OrderProduct {
 export class OrderWithTotalSumDto extends Order {
   orderProducts: OrderProductWithTotalSumDto[];
   totalSum: number;
-  promotions: ProductPromotion[];
+  promotions: OrderPromotion[];
 }

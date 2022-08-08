@@ -22,7 +22,7 @@ export class ProductController {
   ) {}
 
   @MessagePattern('get-products')
-  async getAll(
+  getAll(
     @Payload('params') params: ProductGetListDto,
     @Payload('client') client: Client,
   ) {
@@ -30,8 +30,11 @@ export class ProductController {
   }
 
   @MessagePattern('get-novelties')
-  getNovelties(@Payload() params: ProductGetListDto) {
-    return this.productService.findNovelties(params);
+  getNovelties(
+    @Payload('params') params: ProductGetListDto,
+    @Payload('client') client: Client,
+  ) {
+    return this.productService.findNovelties(params, client);
   }
 
   @MessagePattern('get-product')
@@ -47,7 +50,6 @@ export class ProductController {
 
   @MessagePattern('create-product')
   post(@Payload('dto') dto: ProductCreateDto) {
-    console.log(dto);
     return this.productService.create(dto);
   }
 

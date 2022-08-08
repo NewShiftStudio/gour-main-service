@@ -1,4 +1,3 @@
-import { ProductService } from './product.service';
 import {
   getProductsWithFullCost,
   getPromotionsValueByProductId,
@@ -12,7 +11,7 @@ const testProduct1 = {
 };
 
 describe('Тестирование функции getProductsWithFullCost', () => {
-  test('Проверка правильности подсчета стоимости с реферральной скидкой', () => {
+  test('Проверка правильности подсчета стоимости с реферальной скидкой', () => {
     const result = getProductsWithFullCost([testProduct1], [], {
       referralCode: {
         discount: 10,

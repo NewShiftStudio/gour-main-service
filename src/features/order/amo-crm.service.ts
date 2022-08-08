@@ -1,9 +1,8 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { HttpException, Inject, Injectable } from '@nestjs/common';
-import { log } from 'util';
-import { InjectRepository } from '@nestjs/typeorm';
+
 import { MetaService } from '../meta/meta.service';
-import { LeadCreateDto } from './dto/lead.create.dto';
+import { LeadCreateDto } from './dto/lead-create.dto';
 import { LeadDto } from './dto/lead.dto';
 
 const amoCrmApi: AxiosInstance = axios.create({
@@ -23,11 +22,19 @@ export class AmoCrmService {
   access_token: string;
 
   constructor(@Inject(MetaService) readonly metaService: MetaService) {
-    this.metaService.getValue(META_ACCESS_TOKEN_KEY).then((result) => {
-      if (result) {
-        this.access_token = result as string;
-      }
-    });
+    // this.metaService.getMeta(META_ACCESS_TOKEN_KEY).then((accessTokenMeta) => {
+    //   const now = new Date();
+    //   const lastAccessTokenUpdate = accessTokenMeta.updatedAt;
+    //   const accessTokenExpiresIn = new Date(
+    //     lastAccessTokenUpdate.setDate(lastAccessTokenUpdate.getDate() + 1),
+    //   );
+    //   const accessTokenIsValid = now < accessTokenExpiresIn;
+    //   if (accessTokenIsValid)
+    //     this.access_token = JSON.parse(accessTokenMeta.value);
+    // });
+
+    this.access_token =
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjMyN2UxYTI2MjI3MWFjNzBhZjk5NzJiY2I0YWExODRlNjU1YzliOWZhYWJjZmQ0YzdmMGM4ZTg2NDY5NDRiODgxMDA1NTFiZTRhODhkMGNjIn0.eyJhdWQiOiI2MzhhMmQ4MC1mMGFhLTQxMDItYjU4Yi02NTlhOTQ4YzUxODkiLCJqdGkiOiIzMjdlMWEyNjIyNzFhYzcwYWY5OTcyYmNiNGFhMTg0ZTY1NWM5YjlmYWFiY2ZkNGM3ZjBjOGU4NjQ2OTQ0Yjg4MTAwNTUxYmU0YTg4ZDBjYyIsImlhdCI6MTY1OTk0NDA5NSwibmJmIjoxNjU5OTQ0MDk1LCJleHAiOjE2NjAwMzA0OTUsInN1YiI6IjczNDk4NjMiLCJhY2NvdW50X2lkIjoyOTY1MjEyNCwic2NvcGVzIjpbInB1c2hfbm90aWZpY2F0aW9ucyIsImNybSIsIm5vdGlmaWNhdGlvbnMiXX0.WKlw02QXDW6katqAO65hVZEo1RU6iHCvTu4G4DTZkFn2PNPhhGLvXQIf4Ku63ghbB-OHWh1RjgruEJJ3-IqMIC5bQFV3SqVlRjbowbRcZiNRhw5o4ck5tirJvfea03_lZmZoFQTot-rQoqbMeHYm_kcil1SVmFveXuZ027E8656syKXYy8tEQyaPbx_VZQyLXklLWVwNgojL_n0qgeddb6rhFI7QmXam5fKa--xOFCS5yhLvqp3_Ni8RpFhsmNUY7eOfm0NLClUrj9K7OVLduI6nL7L9MV94zvGAiyjb2CCSifHtTgUwM0_K-1ZColJKbv5xGwKfUxUVl8J4rWQXMw';
   }
 
   //todo Думаю в целом необходимо создать родительский класс типо Order который может в себя включать:
@@ -35,22 +42,57 @@ export class AmoCrmService {
 
   async auth(): Promise<object> {
     try {
+      // const refreshTokenMeta = await this.metaService.getMeta(
+      //   META_REFRESH_TOKEN_KEY,
+      // );
+
+      // const now = new Date();
+
+      // const lastRefreshTokenUpdate = refreshTokenMeta.updatedAt;
+
+      // const refreshTokenExpiresIn = new Date(
+      //   lastRefreshTokenUpdate.setMonth(lastRefreshTokenUpdate.getMonth() + 3),
+      // );
+
+      // const refreshTokenIsValid = now < refreshTokenExpiresIn;
+
+      // const data = refreshTokenIsValid
+      //   ? {
+      //       client_id: process.env.AMO_CLIENT_ID,
+      //       client_secret: process.env.AMO_CLIENT_SECRECT,
+      //       grant_type: 'refresh_token',
+      //       refresh_token: JSON.parse(refreshTokenMeta.value),
+      //       redirect_uri: process.env.AMO_REDIRECT_URI,
+      //     }
+      //   : {
+      //       client_id: process.env.AMO_CLIENT_ID,
+      //       client_secret: process.env.AMO_CLIENT_SECRECT,
+      //       grant_type: 'authorization_code',
+      //       code: process.env.AMO_AUTH_CODE,
+      //       redirect_uri: process.env.AMO_REDIRECT_URI,
+      //     };
+
+      // const data = {
+      //   client_id: process.env.AMO_CLIENT_ID,
+      //   client_secret: process.env.AMO_CLIENT_SECRECT,
+      //   grant_type: 'refresh_token',
+      //   refresh_token: JSON.parse(refreshTokenMeta.value),
+      //   redirect_uri: process.env.AMO_REDIRECT_URI,
+      // };
+
+      const data = {
+        client_id: process.env.AMO_CLIENT_ID,
+        client_secret: process.env.AMO_CLIENT_SECRECT,
+        grant_type: 'authorization_code',
+        code: '',
+        redirect_uri: process.env.AMO_REDIRECT_URI,
+      };
+
       const response: AxiosResponse<{
         refresh_token: string;
         access_token: string;
-      }> = await amoCrmApi.post('/oauth2/access_token', {
-        client_id: process.env.AMO_CLIENT_ID,
-        client_secret: process.env.AMO_CLIENT_SECRECT,
-        grant_type: 'refresh_token',
-        refresh_token: await this.metaService.getValue(META_REFRESH_TOKEN_KEY),
-        redirect_uri: process.env.AMO_REDIRECT_URI,
-      });
-
-      console.log(
-        'auth.response',
-        this.metaService.getValue(META_REFRESH_TOKEN_KEY),
-        response,
-      );
+        expires_in: number;
+      }> = await amoCrmApi.post('/oauth2/access_token', data);
 
       this.metaService.setValue(
         META_REFRESH_TOKEN_KEY,
@@ -60,29 +102,36 @@ export class AmoCrmService {
         META_ACCESS_TOKEN_KEY,
         response.data.access_token,
       );
+
       this.access_token = response.data.access_token;
-      if (response.status === 200 || response.status === 201) {
-        return response;
-      }
+
+      console.log(this.access_token);
+
+      if (response.status === 200 || response.status === 201) return response;
     } catch (error) {
-      console.error(error);
-      console.error('getAuthToken refresh_token error');
+      console.error('getAuthToken error', error);
     }
   }
 
   async getAllLeads() {
-    // if (!this.access_token) {
-    // await this.auth();
-    // }
-    const { data: leads } = await amoCrmApi.get('api/v4/leads', {
-      headers: { Authorization: `Bearer ${this.access_token}` },
-    });
+    if (!this.access_token) await this.auth();
 
-    return leads;
+    try {
+      const { data: leads } = await amoCrmApi.get('api/v4/leads', {
+        headers: {
+          Authorization: `Bearer ${this.access_token}`,
+        },
+      });
+
+      return leads;
+    } catch (error) {
+      console.error('getAllLeadsAMO error', error);
+    }
   }
 
   async createLead(createLeadDto: LeadCreateDto) {
-    await this.auth();
+    if (!this.access_token) await this.auth();
+
     try {
       const { data: result } = await amoCrmApi.post(
         'api/v4/leads',
@@ -109,17 +158,16 @@ export class AmoCrmService {
       );
       return result._embedded.leads[0];
     } catch (e) {
-      console.error(e.response.data);
       console.error(e.response.data['validation-errors'][0].errors);
       throw new HttpException(e, 400);
     }
   }
 
-  /**
-   * Может быть полезен для получения списка существующих статусов
-   */
+  // Может быть полезен для получения списка существующих статусов
+
   async getAllOrderStatuses(): Promise<[]> {
-    await this.auth();
+    if (!this.access_token) await this.auth();
+
     try {
       const orders = await amoCrmApi.get(
         `/api/v4/leads/pipelines/${pipelineId}`,
@@ -127,7 +175,6 @@ export class AmoCrmService {
           headers: { Authorization: `Bearer ${this.access_token}` },
         },
       );
-      console.log('orders', orders.data);
       return orders.data;
     } catch (error) {
       console.error('getAllStatusesAMO error', error);
@@ -135,35 +182,44 @@ export class AmoCrmService {
   }
 
   async getLeadList(): Promise<LeadDto[]> {
-    const statusesResponse = await amoCrmApi.get(
-      `/api/v4/leads/pipelines/${pipelineId}/statuses`,
-      {
+    if (!this.access_token) await this.auth();
+
+    try {
+      const statusesResponse = await amoCrmApi.get(
+        `/api/v4/leads/pipelines/${pipelineId}/statuses`,
+        {
+          headers: { Authorization: `Bearer ${this.access_token}` },
+        },
+      );
+
+      const statuses = statusesResponse.data._embedded.statuses;
+
+      const statusesById = statuses.reduce((acc, item) => {
+        acc[item.id] = item;
+        return acc;
+      }, {});
+
+      const leadsResponse = await amoCrmApi.get(`/api/v4/leads`, {
         headers: { Authorization: `Bearer ${this.access_token}` },
-      },
-    );
+      });
 
-    const statuses = statusesResponse.data._embedded.statuses;
+      const leads = leadsResponse.data._embedded.leads;
 
-    const statusesById = statuses.reduce((acc, item) => {
-      acc[item.id] = item;
-      return acc;
-    }, {});
+      const leadList = leads.map((it) => ({
+        ...it,
+        status: statusesById[it.status_id],
+      }));
 
-    const leadsResponse = await amoCrmApi.get(`/api/v4/leads`, {
-      headers: { Authorization: `Bearer ${this.access_token}` },
-    });
-    const leads = leadsResponse.data._embedded.leads;
-
-    return leads.map((it) => ({
-      ...it,
-      status: statusesById[it.status_id],
-    }));
+      return leadList;
+    } catch (error) {
+      console.error('getAllStatusesAMO error', error);
+    }
   }
 
   async getLead(id: number): Promise<LeadDto> {
-    try {
-      await this.auth();
+    if (!this.access_token) await this.auth();
 
+    try {
       const { data: lead } = await amoCrmApi.get(`/api/v4/leads/${id}`, {
         headers: { Authorization: `Bearer ${this.access_token}` },
       });
@@ -174,10 +230,13 @@ export class AmoCrmService {
           headers: { Authorization: `Bearer ${this.access_token}` },
         },
       );
-      return {
+
+      const fullLead = {
         ...lead,
         status,
       };
+
+      return fullLead;
     } catch (error) {
       console.error('getOneStatusAMO error', error);
     }
@@ -191,6 +250,8 @@ export class AmoCrmService {
     price: price,
   }): Promise<object> {
     //todo связать на id и их их паплайн ид и наш чтобы это было частью продукта
+    if (!this.access_token) await this.auth();
+
     try {
       const response = await amoCrmApi.patch(`/api/v4/leads/${id}`, [
         {
@@ -212,14 +273,19 @@ export class AmoCrmService {
   }
 
   async getFields() {
-    await this.auth();
-    const { data: fields } = await amoCrmApi.get(
-      '/api/v4/leads/custom_fields',
-      {
-        headers: { Authorization: `Bearer ${this.access_token}` },
-      },
-    );
+    if (!this.access_token) await this.auth();
 
-    return fields;
+    try {
+      const { data: fields } = await amoCrmApi.get(
+        '/api/v4/leads/custom_fields',
+        {
+          headers: { Authorization: `Bearer ${this.access_token}` },
+        },
+      );
+
+      return fields;
+    } catch (error) {
+      console.error('getAllFieldsAMO error', error);
+    }
   }
 }

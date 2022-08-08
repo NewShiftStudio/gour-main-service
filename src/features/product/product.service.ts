@@ -50,15 +50,15 @@ export class ProductService {
       ].filter((it) => it),
     });
 
-    if (params.withDiscount) {
+    if (params.withDiscount)
       products = await this.prepareProducts(client, products);
-    }
 
     return [products, count];
   }
 
-  findNovelties(params: ProductGetListDto) {
-    return this.productRepository.find({
+  async findNovelties(params: ProductGetListDto, client: Client) {
+    // eslint-disable-next-line prefer-const
+    let products = await this.productRepository.find({
       order: {
         id: 'DESC',
       },
@@ -69,6 +69,12 @@ export class ProductService {
         params.withRoleDiscounts ? 'roleDiscounts' : undefined,
       ].filter((it) => it),
     });
+
+    if (params.withDiscount) {
+      products = await this.prepareProducts(client, products);
+    }
+
+    return products;
   }
 
   async getOne(
@@ -76,7 +82,7 @@ export class ProductService {
     params: ProductGetOneDto,
     client: Client,
   ): Promise<ProductWithMetricsDto> {
-    let result: ProductWithMetricsDto = await this.productRepository.findOne(
+    let product: ProductWithMetricsDto = await this.productRepository.findOne(
       id,
       {
         relations: [
@@ -88,28 +94,26 @@ export class ProductService {
       },
     );
 
-    if (!result) {
+    if (!product)
       throw new HttpException('Product with this id was not found', 404);
-    }
 
-    if (params.withDiscount) {
-      result = (await this.prepareProducts(client, [result]))[0];
-    }
+    if (params.withDiscount)
+      product = await this.prepareProduct(client, product);
 
     if (params.withMetrics) {
       const grades = await this.productGradeRepository.find({
         product: { id },
       });
 
-      result = {
-        ...result,
+      product = {
+        ...product,
         gradesCount: grades.length,
         commentsCount: grades.filter((it) => it.comment && it.isApproved)
           .length,
       };
     }
 
-    return result;
+    return product;
   }
 
   async create(product: ProductCreateDto) {
@@ -220,6 +224,7 @@ export class ProductService {
     products: P[],
   ): Promise<ProductWithFullCost<P>[]> {
     const now = new Date();
+
     const allPromotions = await this.promotionRepository.find({
       where: {
         start: LessThan(now),
@@ -228,7 +233,13 @@ export class ProductService {
       relations: ['products'],
     });
 
-    return getProductsWithFullCost(products, allPromotions, client);
+    const productsWithFullCost = getProductsWithFullCost(
+      products,
+      allPromotions,
+      client,
+    );
+
+    return productsWithFullCost;
   }
 
   async prepareProduct<P extends Product = Product>(

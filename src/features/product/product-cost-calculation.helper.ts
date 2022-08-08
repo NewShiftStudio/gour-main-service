@@ -1,13 +1,11 @@
-import {
-  ProductPromotion,
-  ProductWithFullCostDto,
-} from './dto/product-with-full-cost.dto';
+import { OrderPromotion } from '../order/dto/order-with-total-sum.dto';
 
 interface MinimumProduct {
   id: number;
   price: {
     cheeseCoin: number;
   };
+  discount: number;
 }
 
 interface MinimumPromotion {
@@ -22,7 +20,7 @@ interface MinimumClient {
 }
 
 export type ProductWithFullCost<P> = P & {
-  promotions: ProductPromotion[];
+  promotions: OrderPromotion[];
   totalCost: number;
 };
 
@@ -38,7 +36,7 @@ export function getProductsWithFullCost<P extends MinimumProduct>(
 
   const productsWithFullCost: ProductWithFullCost<P>[] = [];
 
-  const basePromotions: ProductPromotion[] = [];
+  const basePromotions: OrderPromotion[] = [];
 
   if (client.referralCode) {
     basePromotions.push({
@@ -49,16 +47,22 @@ export function getProductsWithFullCost<P extends MinimumProduct>(
 
   for (const product of products) {
     const promotions = [...basePromotions];
+
     if (promotionsByProductId[product.id]) {
+      const promotionValue = promotionsByProductId[product.id];
+
       promotions.push({
         title: 'Скидка за акцию',
-        value: promotionsByProductId[product.id],
+        value: promotionValue,
       });
+
+      product.discount = promotionValue;
     }
 
     const totalDiscount = promotions.reduce((acc, it) => acc + it.value, 0);
 
     const totalCost = product.price.cheeseCoin * (1 - totalDiscount / 100);
+
     productsWithFullCost.push({
       ...product,
       promotions,
