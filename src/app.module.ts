@@ -35,9 +35,13 @@ import { ReferralCode } from './entity/ReferralCode';
 import { ImageModule } from './features/image/image.module';
 import * as path from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { MetaModule } from './features/meta/meta.module';
+import { Meta } from './entity/Meta';
 import { WalletModule } from './features/wallet/wallet.module';
 import { Wallet } from './entity/Wallet';
 import { WalletTransaction } from './entity/WalletTransaction';
+
+if (!process.env.PORT) throw new Error('Added PORT to .env file !!');
 
 @Module({
   imports: [
@@ -78,6 +82,7 @@ import { WalletTransaction } from './entity/WalletTransaction';
         Warehouse,
         Page,
         ReferralCode,
+        Meta,
         Wallet,
         WalletTransaction,
       ],
@@ -101,6 +106,7 @@ import { WalletTransaction } from './entity/WalletTransaction';
     OrderProfileModule,
     ReferralCodeModule,
     ImageModule,
+    MetaModule,
     WalletModule,
     // TestModule,
   ],

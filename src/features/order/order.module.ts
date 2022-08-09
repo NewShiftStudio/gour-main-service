@@ -7,6 +7,11 @@ import { Product } from '../../entity/Product';
 import { Client } from '../../entity/Client';
 import { OrderProfile } from '../../entity/OrderProfile';
 import { OrderProduct } from '../../entity/OrderProduct';
+import { MetaService } from '../meta/meta.service';
+import { MetaModule } from '../meta/meta.module';
+import { Meta } from '../../entity/Meta';
+import { AmoCrmService } from './amo-crm.service';
+import { ProductModule } from '../product/product.module';
 
 @Module({
   imports: [
@@ -16,9 +21,12 @@ import { OrderProduct } from '../../entity/OrderProduct';
       Product,
       OrderProfile,
       OrderProduct,
+      Meta,
     ]),
+    MetaModule,
+    ProductModule,
   ],
-  providers: [OrderService],
+  providers: [OrderService, AmoCrmService, MetaService],
   controllers: [OrderController],
   exports: [OrderService],
 })

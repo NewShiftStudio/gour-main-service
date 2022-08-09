@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, LessThan, MoreThan, Repository } from 'typeorm';
 import { Product } from '../../entity/Product';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { ProductCreateDto } from './dto/product-create.dto';
@@ -13,6 +13,12 @@ import { ClientRole } from '../../entity/ClientRole';
 import { ProductGrade } from '../../entity/ProductGrade';
 import { ProductWithMetricsDto } from './dto/product-with-metrics.dto';
 import { Image } from '../../entity/Image';
+import { Client } from '../../entity/Client';
+import { Promotion } from '../../entity/Promotion';
+import {
+  getProductsWithFullCost,
+  ProductWithFullCost,
+} from './product-cost-calculation.helper';
 
 @Injectable()
 export class ProductService {
@@ -29,22 +35,30 @@ export class ProductService {
     private clientRoleRepository: Repository<ClientRole>,
     @InjectRepository(Image)
     private imageRepository: Repository<Image>,
+    @InjectRepository(Promotion)
+    private promotionRepository: Repository<Promotion>,
   ) {}
 
-  async findMany(params: ProductGetListDto) {
-    return this.productRepository.findAndCount({
+  async findMany(params: ProductGetListDto, client: Client) {
+    // eslint-disable-next-line prefer-const
+    let [products, count] = await this.productRepository.findAndCount({
       ...getPaginationOptions(params.offset, params.length),
       relations: [
         params.withSimilarProducts ? 'similarProducts' : undefined,
         params.withMeta ? 'meta' : undefined,
         params.withRoleDiscounts ? 'roleDiscounts' : undefined,
-        params.withPromotions ? 'promotions' : undefined,
       ].filter((it) => it),
     });
+
+    if (params.withDiscount)
+      products = await this.prepareProducts(client, products);
+
+    return [products, count];
   }
 
-  findNovelties(params: ProductGetListDto) {
-    return this.productRepository.find({
+  async findNovelties(params: ProductGetListDto, client: Client) {
+    // eslint-disable-next-line prefer-const
+    let products = await this.productRepository.find({
       order: {
         id: 'DESC',
       },
@@ -53,16 +67,22 @@ export class ProductService {
         params.withSimilarProducts ? 'similarProducts' : undefined,
         params.withMeta ? 'meta' : undefined,
         params.withRoleDiscounts ? 'roleDiscounts' : undefined,
-        params.withPromotions ? 'promotions' : undefined,
       ].filter((it) => it),
     });
+
+    if (params.withDiscount) {
+      products = await this.prepareProducts(client, products);
+    }
+
+    return products;
   }
 
   async getOne(
     id: number,
     params: ProductGetOneDto,
+    client: Client,
   ): Promise<ProductWithMetricsDto> {
-    let result: ProductWithMetricsDto = await this.productRepository.findOne(
+    let product: ProductWithMetricsDto = await this.productRepository.findOne(
       id,
       {
         relations: [
@@ -70,29 +90,30 @@ export class ProductService {
           params.withMeta ? 'meta' : undefined,
           params.withRoleDiscounts ? 'roleDiscounts' : undefined,
           params.withGrades ? 'productGrades' : undefined,
-          params.withPromotions ? 'promotions' : undefined,
         ].filter((it) => it),
       },
     );
 
-    if (!result) {
+    if (!product)
       throw new HttpException('Product with this id was not found', 404);
-    }
+
+    if (params.withDiscount)
+      product = await this.prepareProduct(client, product);
 
     if (params.withMetrics) {
       const grades = await this.productGradeRepository.find({
         product: { id },
       });
 
-      result = {
-        ...result,
+      product = {
+        ...product,
         gradesCount: grades.length,
         commentsCount: grades.filter((it) => it.comment && it.isApproved)
           .length,
       };
     }
 
-    return result;
+    return product;
   }
 
   async create(product: ProductCreateDto) {
@@ -196,5 +217,35 @@ export class ProductService {
       return this.productRepository.delete(id);
     }
     return this.productRepository.softDelete(id);
+  }
+
+  async prepareProducts<P extends Product = Product>(
+    client: Client,
+    products: P[],
+  ): Promise<ProductWithFullCost<P>[]> {
+    const now = new Date();
+
+    const allPromotions = await this.promotionRepository.find({
+      where: {
+        start: LessThan(now),
+        end: MoreThan(now),
+      },
+      relations: ['products'],
+    });
+
+    const productsWithFullCost = getProductsWithFullCost(
+      products,
+      allPromotions,
+      client,
+    );
+
+    return productsWithFullCost;
+  }
+
+  async prepareProduct<P extends Product = Product>(
+    client: Client,
+    product: P,
+  ): Promise<ProductWithFullCost<P>> {
+    return (await this.prepareProducts(client, [product]))[0];
   }
 }

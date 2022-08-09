@@ -22,15 +22,12 @@ export class ClientController {
   }
 
   @MessagePattern('get-client')
-  async getOne(@Payload() id: number) {
-    const client = await this.clientService.findOne(id);
-
-    return [client];
+  getOne(@Payload() id: number) {
+    return this.clientService.findOne(id);
   }
 
   @MessagePattern('create-client')
   post(@Payload() dto: ClientCreateDto) {
-    console.log(dto);
     return this.clientService.create(dto);
   }
 

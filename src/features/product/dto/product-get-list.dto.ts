@@ -21,5 +21,5 @@ export class ProductGetListDto extends BaseGetListDto {
   @IsBooleanString()
   @IsOptional()
   @ApiPropertyOptional()
-  withPromotions?: boolean;
+  withDiscount?: boolean;
 }

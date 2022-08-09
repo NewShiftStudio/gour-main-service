@@ -2,6 +2,7 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 
+import { Client } from '../../entity/Client';
 import { ProductGetListDto } from './dto/product-get-list.dto';
 import { ProductCreateDto } from './dto/product-create.dto';
 import { ProductService } from './product.service';
@@ -13,7 +14,7 @@ import { ProductGradeGetListDto } from './dto/product-grade-get-list.dto';
 import { ProductGradeUpdateDto } from './dto/product-grade-update.dto';
 
 @ApiTags('products')
-@Controller()
+@Controller('products')
 export class ProductController {
   constructor(
     private readonly productService: ProductService,
@@ -21,28 +22,32 @@ export class ProductController {
   ) {}
 
   @MessagePattern('get-products')
-  getAll(@Payload() params: ProductGetListDto) {
-    return this.productService.findMany(params);
+  getAll(
+    @Payload('params') params: ProductGetListDto,
+    @Payload('client') client: Client,
+  ) {
+    return this.productService.findMany(params, client);
   }
 
   @MessagePattern('get-novelties')
-  getNovelties(@Payload() params: ProductGetListDto) {
-    return this.productService.findNovelties(params);
+  getNovelties(
+    @Payload('params') params: ProductGetListDto,
+    @Payload('client') client: Client,
+  ) {
+    return this.productService.findNovelties(params, client);
   }
 
   @MessagePattern('get-product')
-  async getOne(
+  getOne(
     @Payload('id') id: number,
     @Payload('params') params: ProductGetOneDto = {},
+    @Payload('client') client: Client,
   ) {
-    const product = await this.productService.getOne(id, params);
-
-    return [product];
+    return this.productService.getOne(id, params, client);
   }
 
   @MessagePattern('create-product')
   post(@Payload('dto') dto: ProductCreateDto) {
-    console.log(dto);
     return this.productService.create(dto);
   }
 

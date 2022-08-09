@@ -18,10 +18,8 @@ export class CityController {
   }
 
   @MessagePattern('get-city')
-  async getOne(@Payload() id: number) {
-    const city = await this.cityService.getOne(id);
-
-    return [city];
+  getOne(@Payload() id: number) {
+    return this.cityService.getOne(id);
   }
 
   @MessagePattern('create-city')

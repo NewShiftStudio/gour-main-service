@@ -95,6 +95,11 @@ export class Client extends AppEntity {
   })
   @JoinColumn()
   wallet: Wallet;
+
+  @Column({
+    default: 3,
+  })
+  lives: number;
 }
 
 export type IClient = Client;

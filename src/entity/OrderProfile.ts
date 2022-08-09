@@ -8,7 +8,9 @@ export class OrderProfile extends AppEntity {
   @Column()
   title: string;
 
-  @ManyToOne(() => City)
+  @ManyToOne(() => City, {
+    eager: true,
+  })
   city: City;
 
   @Column()

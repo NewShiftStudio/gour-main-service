@@ -18,10 +18,8 @@ export class ClientRoleController {
   }
 
   @MessagePattern('get-client-role')
-  async getOne(@Payload() id: number) {
-    const clientRole = await this.clientRoleService.getOne(id);
-
-    return [clientRole];
+  getOne(@Payload() id: number) {
+    return this.clientRoleService.getOne(id);
   }
 
   // TODO bad request exception on @Payload() dto: ClientRoleCreateDto
