@@ -9,7 +9,7 @@ async function bootstrap() {
     {
       transport: Transport.TCP,
       options: {
-        port: 5112,
+        port: +process.env.PORT,
       },
     },
   );

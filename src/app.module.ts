@@ -41,6 +41,8 @@ import { WalletModule } from './features/wallet/wallet.module';
 import { Wallet } from './entity/Wallet';
 import { WalletTransaction } from './entity/WalletTransaction';
 
+if (!process.env.PORT) throw new Error('Added PORT to .env file !!');
+
 @Module({
   imports: [
     ServeStaticModule.forRoot({
