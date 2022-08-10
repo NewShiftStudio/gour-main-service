@@ -142,9 +142,8 @@ export class AmoCrmService {
         },
       );
       return result._embedded.leads[0];
-    } catch (e) {
-      console.error(e.response.data['validation-errors'][0].errors);
-      throw new HttpException(e, 400);
+    } catch (error) {
+      console.error('createLeadAMO error', error);
     }
   }
 
