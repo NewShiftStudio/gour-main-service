@@ -1,4 +1,4 @@
-import { Controller, HttpException } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -30,15 +30,13 @@ export class OrderController {
     const leads = await this.amoCrmService.getLeadList();
 
     const fullOrders = orders.map((order) => {
-      const lead = leads && leads.find((it) => it.id === order.leadId);
+      const lead = leads?.find((it) => it.id === order.leadId);
 
       return {
         ...order,
         crmInfo: lead,
       };
     });
-
-    console.log(fullOrders);
 
     return [fullOrders, count];
   }
@@ -73,8 +71,6 @@ export class OrderController {
       description,
       price: order.totalSum,
     });
-
-    if (!lead) throw new HttpException('Failed to create a lead', 400);
 
     await this.orderService.update(id, {
       leadId: lead.id,
