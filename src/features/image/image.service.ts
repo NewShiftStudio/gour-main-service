@@ -33,7 +33,7 @@ export class ImageService {
 
       await fs.promises.writeFile(
         path.join(filePath, fileName),
-        (file.buffer as any).data,
+        file.buffer.toLocaleString(),
       );
 
       const fileUrl =
