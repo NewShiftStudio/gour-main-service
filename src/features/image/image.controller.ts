@@ -11,6 +11,7 @@ export class ImageController {
 
   @MessagePattern('upload-image')
   uploadFile(@Payload() image: Express.Multer.File) {
+    console.log('image: ', image);
     if (!image) {
       throw new HttpException('field image must be provided', 400);
     }

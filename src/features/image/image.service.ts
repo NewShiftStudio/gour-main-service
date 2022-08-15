@@ -31,8 +31,6 @@ export class ImageService {
         await fs.promises.mkdir(filePath, { recursive: true });
       }
 
-      console.log('buffer', file.buffer);
-
       await fs.promises.writeFile(path.join(filePath, fileName), file.buffer);
 
       const fileUrl =
