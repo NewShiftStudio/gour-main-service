@@ -141,10 +141,13 @@ export class AmoCrmService {
           headers: { Authorization: `Bearer ${this.access_token}` },
         },
       );
-      return result._embedded.leads[0];
-    } catch (e) {
-      console.error(e.response.data['validation-errors'][0].errors);
-      throw new HttpException(e, 400);
+
+      const lead = result._embedded.leads[0];
+
+      if (lead) return lead;
+      throw new HttpException('Failed to create a lead', 400);
+    } catch (error) {
+      console.error('createLeadAMO error', error);
     }
   }
 

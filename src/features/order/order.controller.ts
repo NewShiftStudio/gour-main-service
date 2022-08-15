@@ -30,7 +30,7 @@ export class OrderController {
     const leads = await this.amoCrmService.getLeadList();
 
     const fullOrders = orders.map((order) => {
-      const lead = leads.find((it) => it.id === order.leadId);
+      const lead = leads?.find((it) => it.id === order.leadId);
 
       return {
         ...order,

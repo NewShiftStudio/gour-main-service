@@ -15,6 +15,7 @@ import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { OrderCreateDto } from './dto/order-create.dto';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { ProductService } from '../product/product.service';
+import { Product } from '../../entity/Product';
 
 @Injectable()
 export class OrderService {
@@ -23,6 +24,8 @@ export class OrderService {
     private orderRepository: Repository<Order>,
     @InjectRepository(OrderProduct)
     private orderProductRepository: Repository<OrderProduct>,
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
     @InjectRepository(OrderProfile)
     private orderProfileRepository: Repository<OrderProfile>,
     private productService: ProductService,
@@ -74,12 +77,17 @@ export class OrderService {
     const order = await this.orderRepository.findOne(
       { id },
       {
-        relations: ['orderProducts', 'orderProfile', 'orderProfile.city'],
+        relations: [
+          'orderProducts',
+          'orderProfile',
+          'orderProfile.city',
+          'client',
+        ],
       },
     );
 
     if (!order)
-      throw new HttpException('Order with this id was not found', 404);
+      throw new HttpException('Order with this id was not found', 400);
 
     const orderWithTotalSum = await this.prepareOrder(order);
 
@@ -97,9 +105,18 @@ export class OrderService {
     const orderProducts: OrderProduct[] = [];
 
     for (const orderProductDto of order.orderProducts) {
-      const orderProduct = await this.orderProductRepository.save(
-        orderProductDto,
-      );
+      const { productId, weight, amount } = orderProductDto;
+
+      const product = await this.productRepository.findOne(productId);
+
+      if (!product)
+        throw new HttpException('Product with this id was not found', 400);
+
+      const orderProduct = await this.orderProductRepository.save({
+        product,
+        weight,
+        amount,
+      });
 
       orderProducts.push(orderProduct);
     }
@@ -157,7 +174,7 @@ export class OrderService {
     const promotions: OrderPromotion[] = [];
 
     for (const orderProduct of fullOrderProducts) {
-      if (orderProduct.product.promotions) return;
+      if (!orderProduct.product.promotions) return;
 
       for (const promotion of orderProduct.product.promotions) {
         let value =
