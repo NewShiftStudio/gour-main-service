@@ -45,10 +45,6 @@ if (!process.env.PORT) throw new Error('Added PORT to .env file !!');
 
 @Module({
   imports: [
-    ServeStaticModule.forRoot({
-      rootPath: path.resolve(process.cwd(), 'static'),
-      serveRoot: '/static',
-    }),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `.env`,
