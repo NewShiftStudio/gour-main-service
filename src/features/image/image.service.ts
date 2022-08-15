@@ -31,7 +31,10 @@ export class ImageService {
         await fs.promises.mkdir(filePath, { recursive: true });
       }
 
-      await fs.promises.writeFile(path.join(filePath, fileName), file.buffer);
+      await fs.promises.writeFile(
+        path.join(filePath, fileName),
+        (file.buffer as any).data,
+      );
 
       const fileUrl =
         STATIC_SERVER_PATH +
