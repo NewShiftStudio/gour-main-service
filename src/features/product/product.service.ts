@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, LessThan, MoreThan, Repository } from 'typeorm';
+import { DeepPartial, In, LessThan, MoreThan, Repository } from 'typeorm';
 import { Product } from '../../entity/Product';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { ProductCreateDto } from './dto/product-create.dto';
@@ -19,6 +19,7 @@ import {
   getProductsWithFullCost,
   ProductWithFullCost,
 } from './product-cost-calculation.helper';
+import { ProductGetSimilarDto } from './dto/product-get-similar.dto';
 
 @Injectable()
 export class ProductService {
@@ -75,6 +76,43 @@ export class ProductService {
     }
 
     return products;
+  }
+
+  async getSimilar(params: ProductGetSimilarDto, client: Client) {
+    const productIds = params.productIds.split(',');
+
+    // eslint-disable-next-line prefer-const
+    const products = await this.productRepository.find({
+      where: {
+        id: In(productIds),
+      },
+      relations: ['similarProducts'],
+    });
+
+    const similarProducts: Product[] = [];
+
+    for (const product of products) {
+      if (!product.similarProducts) return;
+
+      for (const similar of product.similarProducts) {
+        const isAlreadyHaveInBasket = products.find(
+          (it) => it.id === similar.id,
+        );
+        const isAlreadyHaveInSelection = similarProducts.find(
+          (it) => it.id === similar.id,
+        );
+
+        if (!isAlreadyHaveInBasket && !isAlreadyHaveInSelection)
+          similarProducts.push(similar);
+      }
+    }
+
+    const fullSimilarProducts = await this.prepareProducts(
+      client,
+      similarProducts,
+    );
+
+    return fullSimilarProducts;
   }
 
   async getOne(
