@@ -15,7 +15,6 @@ import { ReferralCode } from './ReferralCode';
 import { Image } from './Image';
 import { OrderProfile } from './OrderProfile';
 import { Wallet } from './Wallet';
-import { Exclude } from 'class-transformer';
 
 @Entity()
 export class Client extends AppEntity {
@@ -74,7 +73,6 @@ export class Client extends AppEntity {
   @Column({
     default: '',
   })
-  @Exclude()
   password: string;
 
   @OneToOne(() => Image, {
@@ -97,7 +95,7 @@ export class Client extends AppEntity {
   wallet: Wallet;
 
   @Column({
-    default: 3,
+    default: 1,
   })
   lives: number;
 }

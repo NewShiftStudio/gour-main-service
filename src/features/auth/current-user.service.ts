@@ -12,6 +12,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Image } from '../../entity/Image';
 import { OrderProfile } from '../../entity/OrderProfile';
 import { City } from '../../entity/City';
+import { ReferralCode } from 'src/entity/ReferralCode';
 
 @Injectable()
 export class CurrentUserService {
@@ -24,6 +25,8 @@ export class CurrentUserService {
     private orderProfileRepository: Repository<OrderProfile>,
     @InjectRepository(City)
     private cityRepository: Repository<City>,
+    @InjectRepository(ReferralCode)
+    private referralCodeRepository: Repository<ReferralCode>,
   ) {}
 
   getUser(id: number) {
@@ -89,13 +92,13 @@ export class CurrentUserService {
     };
 
     if ('avatarId' in dto) {
-      if (dto.avatarId === null) {
-        updatedObj.avatar = null;
-      } else if (dto.avatarId) {
+      if (dto.avatarId === null) updatedObj.avatar = null;
+      else {
         const avatar = await this.imageRepository.findOne(dto.avatarId);
-        if (!avatar) {
+
+        if (!avatar)
           throw new HttpException('Avatar with this id was not found', 400);
-        }
+
         updatedObj.avatar = avatar;
       }
     }
@@ -111,6 +114,14 @@ export class CurrentUserService {
         );
       }
       updatedObj.mainOrderProfile = orderProfile;
+    }
+
+    if (dto.referralCode) {
+      const referralCode = await this.referralCodeRepository.findOne({
+        where: { code: dto.referralCode },
+      });
+
+      if (referralCode) updatedObj.referralCode = referralCode;
     }
 
     return this.clientRepository.save(updatedObj);

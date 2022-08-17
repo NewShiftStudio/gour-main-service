@@ -14,6 +14,8 @@ import {
 import { Request } from 'express';
 import { ReferralCode } from '../../entity/ReferralCode';
 import { generateSmsCode } from 'src/utils/generateSmsCode';
+import { ClientRole } from 'src/entity/ClientRole';
+import { City } from 'src/entity/City';
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
@@ -22,6 +24,10 @@ export class AuthService {
   constructor(
     @InjectRepository(Client)
     private clientRepository: Repository<Client>,
+    @InjectRepository(ClientRole)
+    private clientRoleRepository: Repository<ClientRole>,
+    @InjectRepository(City)
+    private cityRepository: Repository<City>,
     @InjectRepository(ReferralCode)
     private referralCodeRepository: Repository<ReferralCode>,
   ) {}
@@ -66,13 +72,25 @@ export class AuthService {
       }
     }
 
+    const role = await this.clientRoleRepository.findOne(dto.roleId);
+
+    if (!role)
+      throw new HttpException('Client role with this id is not found', 400);
+
+    const city = await this.cityRepository.findOne(dto.cityId);
+
+    if (!city) throw new HttpException('City with this id is not found', 400);
+
+    const password = await this.getPasswordHash(dto.password);
+
     return this.clientRepository.save({
-      roleId: dto.roleId,
-      name: dto.name,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
       phone: dto.phone,
-      cityId: dto.cityId,
-      referralCode: referralCode,
-      password: await this.getPasswordHash(dto.password),
+      role,
+      city,
+      referralCode,
+      password,
     });
   }
 
