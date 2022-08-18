@@ -34,7 +34,7 @@ export class ImageService {
       console.log('buffer: ', file.buffer);
       await fs.promises.writeFile(
         path.join(filePath, fileName),
-        Buffer.from(file.buffer, 'binary'),
+        Buffer.from(file.buffer),
       );
 
       const fileUrl =
