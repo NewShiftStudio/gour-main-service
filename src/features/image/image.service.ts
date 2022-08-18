@@ -33,7 +33,7 @@ export class ImageService {
 
       await fs.promises.writeFile(
         path.join(filePath, fileName),
-        Buffer.from(file.buffer, 'base64'),
+        file.buffer.toString(),
       );
 
       const fileUrl =
