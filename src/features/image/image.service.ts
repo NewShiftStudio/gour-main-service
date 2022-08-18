@@ -32,7 +32,10 @@ export class ImageService {
       }
       console.log('typeof buffer: ', typeof file.buffer);
       console.log('buffer: ', file.buffer);
-      await fs.promises.writeFile(path.join(filePath, fileName), file.buffer);
+      await fs.promises.writeFile(
+        path.join(filePath, fileName),
+        Buffer.from(file.buffer),
+      );
 
       const fileUrl =
         STATIC_SERVER_PATH +
