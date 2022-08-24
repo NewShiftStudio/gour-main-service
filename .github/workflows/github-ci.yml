@@ -39,7 +39,7 @@ jobs:
           NODE_VERSION: 16.14.2
         run: export NVM_DIR="$HOME/.nvm" && . "$NVM_DIR/nvm.sh" --no-use && nvm install $NODE_VERSION
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: npm install --ignore-scripts --legacy-peer-deps 
       - name: Lint source code with ESLint
         run: npm run lint
 #  prettier:
