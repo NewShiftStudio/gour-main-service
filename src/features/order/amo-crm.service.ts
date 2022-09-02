@@ -22,18 +22,17 @@ export class AmoCrmService {
   access_token: string;
 
   constructor(@Inject(MetaService) readonly metaService: MetaService) {
-    this.metaService
-      .getMeta(META_ACCESS_TOKEN_KEY)
-      .then((accessTokenMeta) => {
-        const accessTokenIsExpired = this.checkTokenExpiration(
-          'access',
-          accessTokenMeta.updatedAt,
-        );
-
-        if (accessTokenIsExpired) this.auth();
-        else this.access_token = JSON.parse(accessTokenMeta.value);
-      })
-      .catch((error) => console.log('getAccessMeta error', error));
+    // this.metaService
+    //   .getMeta(META_ACCESS_TOKEN_KEY)
+    //   .then((accessTokenMeta) => {
+    //     const accessTokenIsExpired = this.checkTokenExpiration(
+    //       'access',
+    //       accessTokenMeta.updatedAt,
+    //     );
+    //     if (accessTokenIsExpired) this.auth();
+    //     else this.access_token = JSON.parse(accessTokenMeta.value);
+    //   })
+    //   .catch((error) => console.log('getAccessMeta error', error));
   }
 
   checkTokenExpiration(type: 'access' | 'refresh', lastUpdate: Date) {
