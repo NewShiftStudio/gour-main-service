@@ -5,6 +5,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { WalletService } from './wallet.service';
 import { WalletChangeValueDto } from './dto/wallet-change-value.dto';
 import { WalletConfirmPaymentDto } from './dto/wallet-confirm-payment.dto';
+import { GetAmountByCurrencyDto } from './dto/get-amount-by-currency.dto';
 
 @ApiTags('wallet')
 @Controller('wallet')
@@ -21,6 +22,12 @@ export class WalletController {
   changeValue(@Payload() dto: WalletChangeValueDto) {
     console.log(dto);
     // Only for admins
+  }
+
+  @MessagePattern('get-amount-by-currency')
+  getAmountByCurrency(@Payload() dto: GetAmountByCurrencyDto) {
+    console.log(dto);
+    return this.walletService.getAmountByCurrency(dto.count, dto.currency);
   }
 
   @MessagePattern('get-client-wallet')
