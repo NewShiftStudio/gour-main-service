@@ -21,6 +21,18 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+      - name: Copy files to the server
+        run: |
+          rsync -a --progress --human-readable --delete \
+          # исключить все, что есть в .gitignore
+          --exclude-from '.gitignore' \
+          # не загружаем .gitignore
+          --exclude .gitignore \
+          # не загружаем .git
+          --exclude .git \
+          # Не удаляем директорию с нашим фронтендом
+          --exclude public \
+          . deploy@92.53.97.252:/var/www/gour/gour-main-service/
       - name: Restart the application
         run: |
           ssh deploy@92.53.97.252 "pushd /var/www/gour/gour-main-service && npm install --legacy-peer-deps && npm run build && pm2 restart ecosystem.config.js"
