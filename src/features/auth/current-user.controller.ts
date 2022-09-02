@@ -36,7 +36,7 @@ export class CurrentUserController {
   @MessagePattern('send-phone-code')
   async sendCode(@Payload() dto: SendCodeDto) {
     const code = await this.authService.sendCode(dto.phone);
-    const hashedCode = encodePhoneCode(dto.phone, code);
+    const hashedCode = encodePhoneCode(dto.phone, +code);
 
     return hashedCode;
   }

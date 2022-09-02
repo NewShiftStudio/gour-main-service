@@ -4,15 +4,23 @@ import { IsNumber, IsPhoneNumber, IsString } from 'class-validator';
 export class SignUpDto {
   @ApiProperty()
   @IsString()
-  name: string;
+  firstName: string;
+
+  @ApiProperty()
+  @IsString()
+  lastName: string;
 
   @ApiProperty()
   @IsPhoneNumber()
   phone: string;
 
   @ApiProperty()
-  @IsNumber()
-  code: number;
+  @IsString()
+  code: string;
+
+  @ApiProperty()
+  @IsString()
+  codeHash: string;
 
   @ApiProperty()
   @IsString()

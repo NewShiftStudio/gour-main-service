@@ -132,7 +132,7 @@ export class ClientsService {
     };
 
     if (dto.roleId) {
-      updatedObj.role = await this.clientRoleRepository.findOne(dto.roleId);
+      updatedObj.role = dto.roleId;
       if (!role) {
         throw new HttpException('Client role with this Id was not found', 400);
       }

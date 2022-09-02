@@ -76,7 +76,7 @@ export class CurrentUserService {
 
     await this.clientRepository.save({
       id: currentUserId,
-      city,
+      city: city.id,
     });
   }
 

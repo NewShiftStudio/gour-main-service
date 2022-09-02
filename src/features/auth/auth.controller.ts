@@ -1,4 +1,4 @@
-import { Controller, UnauthorizedException } from '@nestjs/common';
+import { Controller, UnauthorizedException, UseFilters } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
@@ -9,6 +9,8 @@ import { SendCodeDto } from './dto/send-code.dto';
 import { SignUpDto } from './dto/sign-up.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import { Client } from 'src/entity/Client';
+import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
+import { CheckCodeDto } from './dto/check-code.dto';
 
 export interface AppRequest extends Request {
   user?: Client;
@@ -22,10 +24,12 @@ export class AuthController {
 
   @MessagePattern('send-code')
   sendCode(@Payload() dto: SendCodeDto) {
-    this.authService.sendCode(dto.phone);
-    return {
-      result: true,
-    };
+    return this.authService.sendCode(dto.phone);
+  }
+
+  @MessagePattern('check-code')
+  checkCode(@Payload() dto: CheckCodeDto) {
+    return this.authService.checkCode(dto.code, dto.codeHash);
   }
 
   @MessagePattern('signup')

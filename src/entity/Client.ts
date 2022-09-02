@@ -19,10 +19,10 @@ import { Exclude } from 'class-transformer';
 
 @Entity()
 export class Client extends AppEntity {
-  @ManyToOne(() => ClientRole, {
+  @ManyToOne(() => ClientRole, (role) => role.id, {
     eager: true,
   })
-  role: ClientRole;
+  role: number;
 
   @Column({
     default: false,
@@ -59,11 +59,11 @@ export class Client extends AppEntity {
   })
   email: string;
 
-  @ManyToOne(() => City, {
+  @ManyToOne(() => City, (city) => city.id, {
     eager: true,
     nullable: true,
   })
-  city: City;
+  city: number;
 
   @ManyToOne(() => ReferralCode, {
     nullable: true,

@@ -12,9 +12,22 @@ import { Image } from '../../entity/Image';
 import { CookieService } from './cookie.service';
 import { HttpModule } from '@nestjs/axios';
 import { City } from '../../entity/City';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { APP_FILTER } from '@nestjs/core';
+import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 
 @Module({
   imports: [
+    ClientsModule.register([
+      {
+        name: 'MESSAGES_SERVICE',
+        transport: Transport.TCP,
+        options: {
+          host: process.env.MESSAGES_SERVICE_HOST,
+          port: +process.env.MESSAGES_SERVICE_PORT,
+        },
+      },
+    ]),
     TypeOrmModule.forFeature([Client, ReferralCode, OrderProfile, Image, City]),
     forwardRef(() => ClientModule),
     HttpModule,
