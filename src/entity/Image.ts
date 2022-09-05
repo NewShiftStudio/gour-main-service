@@ -1,5 +1,6 @@
-import { Entity, Column } from 'typeorm';
+import { Entity, Column, ManyToMany } from 'typeorm';
 import { AppEntity } from './AppEntity';
+import { Product } from './Product'
 
 @Entity()
 export class Image extends AppEntity {
@@ -14,4 +15,7 @@ export class Image extends AppEntity {
     length: 500,
   })
   full: string;
+
+  @ManyToMany(() => Product, (args) => args.images)
+  products: Product[];
 }
