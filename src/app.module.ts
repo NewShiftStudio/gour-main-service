@@ -33,15 +33,21 @@ import { OrderProfileModule } from './features/order-profile/order-profile.modul
 import { ReferralCodeModule } from './features/referral-code/referral-code.module';
 import { ReferralCode } from './entity/ReferralCode';
 import { ImageModule } from './features/image/image.module';
-import * as path from 'path';
-import { ServeStaticModule } from '@nestjs/serve-static';
 import { MetaModule } from './features/meta/meta.module';
 import { Meta } from './entity/Meta';
 import { WalletModule } from './features/wallet/wallet.module';
 import { Wallet } from './entity/Wallet';
 import { WalletTransaction } from './entity/WalletTransaction';
+import { APP_FILTER } from '@nestjs/core';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
-if (!process.env.PORT) throw new Error('Added PORT to .env file !!');
+const requiredEnvs = ['PORT', 'MESSAGES_SERVICE_PORT', 'MESSAGES_SERVICE_HOST'];
+
+requiredEnvs.forEach((envKey) => {
+  if (!process.env[envKey]) {
+    throw new Error(`Added ${envKey} to .env file !!`);
+  }
+});
 
 @Module({
   imports: [
@@ -105,6 +111,12 @@ if (!process.env.PORT) throw new Error('Added PORT to .env file !!');
     MetaModule,
     WalletModule,
     // TestModule,
+  ],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
   ],
 })
 export class AppModule {}

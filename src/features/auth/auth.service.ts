@@ -1,4 +1,10 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  HttpException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { SignUpDto } from './dto/sign-up.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -6,14 +12,18 @@ import { Client } from '../../entity/Client';
 import * as bcrypt from 'bcryptjs';
 import { SignInDto } from './dto/sign-in.dto';
 import {
+  decodePhoneCode,
   decodeToken,
   encodeJwt,
+  encodePhoneCode,
   encodeRefreshJwt,
   verifyJwt,
 } from './jwt.service';
 import { Request } from 'express';
 import { ReferralCode } from '../../entity/ReferralCode';
 import { generateSmsCode } from 'src/utils/generateSmsCode';
+import { ClientProxy } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 import { ClientRole } from 'src/entity/ClientRole';
 import { City } from 'src/entity/City';
 
@@ -30,26 +40,49 @@ export class AuthService {
     private cityRepository: Repository<City>,
     @InjectRepository(ReferralCode)
     private referralCodeRepository: Repository<ReferralCode>,
+    @Inject('MESSAGES_SERVICE') private client: ClientProxy,
   ) {}
 
-  async sendCode(phone: string): Promise<number> {
+  async onModuleInit() {
+    await this.client.connect();
+  }
+
+  async sendCode(phone: string): Promise<string> {
     const foundPhone = await this.clientRepository.findOne({
       phone,
     });
 
     if (foundPhone) {
-      throw new HttpException('phone_exists_error', 400);
+      throw new BadRequestException('Такой пользователь уже существует :[');
     }
 
     const code = generateSmsCode();
-    // await this.smsSenderService.sendCode(phone, code);
-    return code;
+
+    try {
+      const res = await this.sendSms(phone, code);
+      console.log('res: ', res);
+    } catch (error) {
+      throw new BadRequestException('Ошибка при отправке кода');
+    }
+
+    return encodePhoneCode(phone, code);
+  }
+
+  checkCode(code: string, hash: string): boolean {
+    const result = decodePhoneCode(hash);
+    return code === result?.code;
+  }
+
+  async sendSms(phone: string, code: number) {
+    return firstValueFrom(
+      this.client.send('send-sms', { phone, msg: code.toString() }),
+    );
   }
 
   async signup(dto: SignUpDto) {
-    const sentCode = 1234;
-    if (sentCode !== dto.code) {
-      throw new HttpException('Bad code', 400);
+    const isValidCode = this.checkCode(dto.code, dto.codeHash);
+    if (!isValidCode) {
+      throw new ForbiddenException('Неверный код');
     }
 
     const foundUser = await this.clientRepository.findOne({
@@ -57,7 +90,7 @@ export class AuthService {
     });
 
     if (foundUser) {
-      throw new HttpException('User with this phone already exists', 400);
+      throw new HttpException('Пользователь с таким телефоном существует', 400);
     }
 
     let referralCode: ReferralCode;
@@ -72,25 +105,14 @@ export class AuthService {
       }
     }
 
-    const role = await this.clientRoleRepository.findOne(dto.roleId);
-
-    if (!role)
-      throw new HttpException('Client role with this id is not found', 400);
-
-    const city = await this.cityRepository.findOne(dto.cityId);
-
-    if (!city) throw new HttpException('City with this id is not found', 400);
-
-    const password = await this.getPasswordHash(dto.password);
-
     return this.clientRepository.save({
+      role: dto.roleId,
       firstName: dto.firstName,
       lastName: dto.lastName,
       phone: dto.phone,
-      role,
-      city,
-      referralCode,
-      password,
+      city: dto.cityId,
+      referralCode: referralCode,
+      password: await this.getPasswordHash(dto.password),
     });
   }
 

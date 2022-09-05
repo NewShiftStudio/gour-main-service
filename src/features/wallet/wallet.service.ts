@@ -8,6 +8,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wallet } from '../../entity/Wallet';
 
+export enum Currency {
+  RUB = 'RUB',
+  USD = 'USD',
+  EUR = 'EUR',
+}
+
 @Injectable()
 export class WalletService {
   constructor(
@@ -18,6 +24,17 @@ export class WalletService {
   checkSignature() {
     // TODO: implement this logic
     return true;
+  }
+
+  getAmountByCurrency(count: number, currency: Currency) {
+    switch (currency) {
+      case Currency.RUB:
+        return count * 1; // одна сырная монета = 1 рубль
+      case Currency.USD:
+        throw new Error('Implements currency USD');
+      case Currency.EUR:
+        throw new Error('Implements currency EUR');
+    }
   }
 
   async changeSum(uuid: string, value: number): Promise<Wallet> {

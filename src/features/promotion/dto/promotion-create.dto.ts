@@ -25,10 +25,12 @@ export class PromotionCreateDto {
 
   @IsNumber()
   @ApiProperty()
+  @IsOptional()
   cardImageId: number;
 
   @IsNumber()
   @ApiProperty()
+  @IsOptional()
   pageImageId: number;
 
   @IsNumber()
