@@ -13,8 +13,6 @@ import { CookieService } from './cookie.service';
 import { HttpModule } from '@nestjs/axios';
 import { City } from '../../entity/City';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { APP_FILTER } from '@nestjs/core';
-import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 
 @Module({
   imports: [

@@ -24,8 +24,6 @@ import { ReferralCode } from '../../entity/ReferralCode';
 import { generateSmsCode } from 'src/utils/generateSmsCode';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
-import { ClientRole } from 'src/entity/ClientRole';
-import { City } from 'src/entity/City';
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
@@ -34,10 +32,6 @@ export class AuthService {
   constructor(
     @InjectRepository(Client)
     private clientRepository: Repository<Client>,
-    @InjectRepository(ClientRole)
-    private clientRoleRepository: Repository<ClientRole>,
-    @InjectRepository(City)
-    private cityRepository: Repository<City>,
     @InjectRepository(ReferralCode)
     private referralCodeRepository: Repository<ReferralCode>,
     @Inject('MESSAGES_SERVICE') private client: ClientProxy,
