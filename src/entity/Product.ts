@@ -48,8 +48,8 @@ export class Product extends AppEntity {
   @ApiProperty()
   @ManyToMany(() => Image, (args) => args.id, {
     eager: true,
-    cascade: true
-  }
+    cascade: true,
+  })
   @JoinTable()
   images: Image[];
 
