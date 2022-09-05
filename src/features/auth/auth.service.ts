@@ -53,7 +53,7 @@ export class AuthService {
     const code = generateSmsCode();
 
     try {
-      const res = await this.sendSms(phone, code); //TODO: обрабатывать ошибку sms.ru
+      const res = await this.sendSms(phone, code);
       console.log('res: ', res);
     } catch (error) {
       throw new BadRequestException('Ошибка при отправке кода');
@@ -63,8 +63,8 @@ export class AuthService {
   }
 
   checkCode(code: string, hash: string): boolean {
-    const { code: validCode } = decodePhoneCode(hash);
-    return code === validCode;
+    const result = decodePhoneCode(hash);
+    return code === result?.code;
   }
 
   async sendSms(phone: string, code: number) {
