@@ -160,7 +160,7 @@ export class ProductService {
       if (!image) {
         throw new HttpException(`Image with id=${imageId} was not found`, 400);
       }
-      saveParams.images.push(image.id);
+      saveParams.images.push(image);
     }
 
     return this.productRepository.save(saveParams as DeepPartial<Product>);
