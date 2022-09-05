@@ -30,24 +30,24 @@ export class PromotionService {
     return this.promotionRepository.findOne({ id });
   }
 
-  async create(promotionDto: PromotionCreateDto) {
-    const cardImage = await this.imageRepository.findOne(
-      promotionDto.cardImageId,
-    );
-    if (!cardImage) {
-      throw new HttpException('cardImage was not found', 400);
-    }
-    const pageImage = await this.imageRepository.findOne(
-      promotionDto.pageImageId,
-    );
+  async create(promotionDto: any | PromotionCreateDto) {
+    // const cardImage = await this.imageRepository.findOne(
+    //   promotionDto.cardImageId,
+    // );
+    // if (!cardImage) {
+    //   throw new HttpException('cardImage was not found', 400);
+    // }
+    // const pageImage = await this.imageRepository.findOne(
+    //   promotionDto.pageImageId,
+    // );
 
-    if (!pageImage) {
-      throw new HttpException('pageImage was not found', 400);
-    }
+    // if (!pageImage) {
+    //   throw new HttpException('pageImage was not found', 400);
+    // }
     return this.promotionRepository.save({
       ...promotionDto,
-      cardImage,
-      pageImage,
+      // cardImage,
+      // pageImage,
       products: await this.productRepository.findByIds(promotionDto.products),
     });
   }
