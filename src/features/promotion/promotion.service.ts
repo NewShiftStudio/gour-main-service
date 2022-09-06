@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Promotion } from '../../entity/Promotion';
@@ -31,23 +31,24 @@ export class PromotionService {
   }
 
   async create(promotionDto: any | PromotionCreateDto) {
-    // const cardImage = await this.imageRepository.findOne(
-    //   promotionDto.cardImageId,
-    // );
-    // if (!cardImage) {
-    //   throw new HttpException('cardImage was not found', 400);
-    // }
-    // const pageImage = await this.imageRepository.findOne(
-    //   promotionDto.pageImageId,
-    // );
+    const cardImage = await this.imageRepository.findOne(
+      promotionDto.cardImageId,
+    );
+    if (!cardImage) {
+      throw new BadRequestException('Фото 1:2 не найдено');
+    }
+    const pageImage = await this.imageRepository.findOne(
+      promotionDto.pageImageId,
+    );
 
-    // if (!pageImage) {
-    //   throw new HttpException('pageImage was not found', 400);
-    // }
+    if (!pageImage) {
+      throw new BadRequestException('Фото 1:1 не найдено');
+    }
+
     return this.promotionRepository.save({
       ...promotionDto,
-      // cardImage,
-      // pageImage,
+      cardImage,
+      pageImage,
       products: await this.productRepository.findByIds(promotionDto.products),
     });
   }
@@ -56,7 +57,7 @@ export class PromotionService {
     const promotion = await this.promotionRepository.findOne(id);
 
     if (!promotion) {
-      throw new HttpException('Promotion with this id was not found', 400);
+      throw new BadRequestException('Акция с таким id не найдена');
     }
 
     let cardImage: Image | undefined;
@@ -66,7 +67,7 @@ export class PromotionService {
     if (dto.cardImageId) {
       cardImage = await this.imageRepository.findOne(dto.cardImageId);
       if (!cardImage) {
-        throw new HttpException('cardImage was not found', 400);
+        throw new BadRequestException('Фото 1:2 не найдено');
       }
     }
 
@@ -74,7 +75,7 @@ export class PromotionService {
       pageImage = await this.imageRepository.findOne(dto.pageImageId);
 
       if (!pageImage) {
-        throw new HttpException('pageImage was not found', 400);
+        throw new BadRequestException('Фото 1:1 не найдено');
       }
     }
 
