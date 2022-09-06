@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ClientModule } from './features/client/client.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { ConfigModule } from '@nestjs/config';
+
+import { ClientModule } from './features/client/client.module';
 import { Client } from './entity/Client';
 import { ClientRole } from './entity/ClientRole';
-import { ConfigModule } from '@nestjs/config';
 import { Product } from './entity/Product';
 import { Category } from './entity/Category';
 import { City } from './entity/City';
@@ -38,8 +40,8 @@ import { Meta } from './entity/Meta';
 import { WalletModule } from './features/wallet/wallet.module';
 import { Wallet } from './entity/Wallet';
 import { WalletTransaction } from './entity/WalletTransaction';
-import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { SentryInterceptor } from './common/interceptors/sentry.interceptor';
 
 const requiredEnvs = ['PORT', 'MESSAGES_SERVICE_PORT', 'MESSAGES_SERVICE_HOST'];
 
@@ -116,6 +118,10 @@ requiredEnvs.forEach((envKey) => {
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: SentryInterceptor,
     },
   ],
 })
