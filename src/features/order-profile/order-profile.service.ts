@@ -1,13 +1,14 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { DeepPartial } from 'typeorm/browser';
+
 import { OrderProfile } from '../../entity/OrderProfile';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { OrderProfileCreateDto } from './dto/order-profile.create.dto';
 import { Client } from '../../entity/Client';
 import { City } from '../../entity/City';
-import { DeepPartial } from 'typeorm/browser';
 import { OrderProfileUpdateDto } from './dto/order-profile.update.dto';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class OrderProfileService {
   constructor(
     @InjectRepository(OrderProfile)
     private orderProfileRepository: Repository<OrderProfile>,
+
     @InjectRepository(City)
     private cityRepository: Repository<City>,
   ) {}
@@ -35,9 +37,8 @@ export class OrderProfileService {
 
   async create(orderProfileDto: OrderProfileCreateDto, client: Client) {
     const city = await this.cityRepository.findOne(orderProfileDto.cityId);
-    if (!city) {
-      throw new HttpException('City with this id was not found', 400);
-    }
+
+    if (!city) throw new NotFoundException('Город не найден');
 
     return this.orderProfileRepository.save({
       title:
@@ -54,7 +55,7 @@ export class OrderProfileService {
   }
 
   async update(id: number, dto: OrderProfileUpdateDto) {
-    const entity: DeepPartial<OrderProfile> = {
+    const updatedObj: DeepPartial<OrderProfile> = {
       title: dto.title,
       street: dto.street,
       house: dto.house,
@@ -67,14 +68,13 @@ export class OrderProfileService {
 
     if (dto.cityId) {
       const city = await this.cityRepository.findOne(dto.cityId);
-      if (!city) {
-        throw new HttpException('City with this id was not found', 400);
-      }
 
-      entity.city = city;
+      if (!city) throw new NotFoundException('Город не найден');
+
+      updatedObj.city = city;
     }
 
-    return this.orderProfileRepository.save(entity);
+    return this.orderProfileRepository.save(updatedObj);
   }
 
   remove(id: number) {

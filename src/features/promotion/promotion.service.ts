@@ -1,6 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
 import { Promotion } from '../../entity/Promotion';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { PromotionCreateDto } from './dto/promotion-create.dto';
@@ -14,8 +15,10 @@ export class PromotionService {
   constructor(
     @InjectRepository(Promotion)
     private promotionRepository: Repository<Promotion>,
+
     @InjectRepository(Image)
     private imageRepository: Repository<Image>,
+
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
   ) {}
@@ -34,15 +37,17 @@ export class PromotionService {
     const cardImage = await this.imageRepository.findOne(
       promotionDto.cardImageId,
     );
+
     if (!cardImage) {
-      throw new BadRequestException('Фото 1:2 не найдено');
+      throw new NotFoundException('Фото 1:2 не найдено');
     }
+
     const pageImage = await this.imageRepository.findOne(
       promotionDto.pageImageId,
     );
 
     if (!pageImage) {
-      throw new BadRequestException('Фото 1:1 не найдено');
+      throw new NotFoundException('Фото 1:1 не найдено');
     }
 
     return this.promotionRepository.save({
@@ -56,9 +61,7 @@ export class PromotionService {
   async update(id: number, dto: PromotionUpdateDto) {
     const promotion = await this.promotionRepository.findOne(id);
 
-    if (!promotion) {
-      throw new BadRequestException('Акция с таким id не найдена');
-    }
+    if (!promotion) throw new NotFoundException('Акция не найдена');
 
     let cardImage: Image | undefined;
     let pageImage: Image | undefined;
@@ -66,22 +69,18 @@ export class PromotionService {
 
     if (dto.cardImageId) {
       cardImage = await this.imageRepository.findOne(dto.cardImageId);
-      if (!cardImage) {
-        throw new BadRequestException('Фото 1:2 не найдено');
-      }
+
+      if (!cardImage) throw new NotFoundException('Фото 1:2 не найдено');
     }
 
     if (dto.pageImageId) {
       pageImage = await this.imageRepository.findOne(dto.pageImageId);
 
-      if (!pageImage) {
-        throw new BadRequestException('Фото 1:1 не найдено');
-      }
+      if (!pageImage) throw new NotFoundException('Фото 1:1 не найдено');
     }
 
-    if (dto.products) {
+    if (dto.products)
       products = await this.productRepository.findByIds(dto.products);
-    }
 
     return this.promotionRepository.save({
       ...promotion,

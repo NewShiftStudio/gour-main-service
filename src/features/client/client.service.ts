@@ -1,26 +1,38 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository } from 'typeorm';
+import { DeepPartial } from 'typeorm/common/DeepPartial';
+import * as bcrypt from 'bcryptjs';
+
 import { Client } from '../../entity/Client';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { ClientCreateDto } from './dto/сlient-create.dto';
 import { ClientGetListDto } from './dto/сlient-get-list.dto';
 import { ClientUpdateDto } from './dto/client-update.dto';
 import { ClientRole } from '../../entity/ClientRole';
-import { DeepPartial } from 'typeorm/common/DeepPartial';
 import { Product } from '../../entity/Product';
-import * as bcrypt from 'bcryptjs';
 import { Image } from '../../entity/Image';
+import { City } from '../../entity/City';
 
 @Injectable()
 export class ClientsService {
   constructor(
     @InjectRepository(Client)
     private clientRepository: Repository<Client>,
+
     @InjectRepository(ClientRole)
     private clientRoleRepository: Repository<ClientRole>,
+
+    @InjectRepository(City)
+    private cityRepository: Repository<City>,
+
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+
     @InjectRepository(Image)
     private imageRepository: Repository<Image>,
   ) {}
@@ -59,9 +71,7 @@ export class ClientsService {
   async addToFavorites(clientId: number, productId: number) {
     const product = await this.productRepository.findOne(productId);
 
-    if (!product) {
-      throw new HttpException('Product was not found', 400);
-    }
+    if (!product) throw new NotFoundException('Товар не найден');
 
     const favorites = await this.getFavorites(clientId);
 
@@ -73,6 +83,7 @@ export class ClientsService {
 
   async removeFromFavorites(clientId: number, productId: number) {
     const favorites = await this.getFavorites(clientId);
+
     return this.clientRepository.save({
       id: clientId,
       favorites: favorites.filter((it) => it.id !== productId),
@@ -84,42 +95,43 @@ export class ClientsService {
   }
 
   async create(dto: ClientCreateDto) {
-    const role = await this.clientRoleRepository.findOne(dto.roleId);
-
-    if (!role) {
-      throw new HttpException('Client role with this Id was not found', 400);
-    }
-
-    const foundUser = await this.clientRepository.findOne({
+    const user = await this.clientRepository.findOne({
       phone: dto.phone,
     });
 
-    if (foundUser) {
-      throw new HttpException('User with this phone already exists', 400);
-    }
+    if (user)
+      throw new BadRequestException(
+        'Пользователь с таким телефоном уже существует',
+      );
+
+    const role = await this.clientRoleRepository.findOne(dto.roleId);
+
+    if (!role) throw new NotFoundException('Роль не найдена');
+
+    const city = await this.cityRepository.findOne(dto.cityId);
+
+    if (!city) throw new NotFoundException('Город не найден');
+
+    const password = await this.getPasswordHash(dto.password);
 
     return this.clientRepository.save({
       roleId: dto.roleId,
-      name: dto.name,
+      city: dto.cityId,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
       phone: dto.phone,
-      password: await this.getPasswordHash(dto.password),
+      password,
     });
   }
 
   async update(id: number, dto: ClientUpdateDto) {
-    let role: ClientRole | undefined;
-
     const client = await this.clientRepository.findOne(id);
 
-    if (!client) {
-      throw new HttpException('Client with this id was not found', 400);
-    }
+    if (!client) throw new NotFoundException('Пользователь не найден');
 
     const avatar = await this.imageRepository.findOne(dto.avatarId);
 
-    // if (!avatar) {
-    //   throw new HttpException('Image with this id was not found', 400);
-    // }
+    if (!avatar) throw new NotFoundException('Аватар не найден');
 
     const updatedObj: DeepPartial<Client> = {
       ...client,
@@ -132,10 +144,11 @@ export class ClientsService {
     };
 
     if (dto.roleId) {
+      const role = await this.clientRoleRepository.findOne(dto.roleId);
+
+      if (!role) throw new NotFoundException('Роль не найдена');
+
       updatedObj.role = dto.roleId;
-      if (!role) {
-        throw new HttpException('Client role with this Id was not found', 400);
-      }
     }
 
     if (dto.countries) {
@@ -144,6 +157,7 @@ export class ClientsService {
 
     if (dto.favoriteIds) {
       const favorites = [];
+
       for (const favoriteId of dto.favoriteIds) {
         favorites.push(await this.productRepository.findOne(favoriteId));
       }

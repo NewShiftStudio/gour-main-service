@@ -1,6 +1,11 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, In, LessThan, MoreThan, Repository } from 'typeorm';
+
+import {
+  getProductsWithFullCost,
+  ProductWithFullCost,
+} from './product-cost-calculation.helper';
 import { Product } from '../../entity/Product';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { ProductCreateDto } from './dto/product-create.dto';
@@ -15,10 +20,6 @@ import { ProductWithMetricsDto } from './dto/product-with-metrics.dto';
 import { Image } from '../../entity/Image';
 import { Client } from '../../entity/Client';
 import { Promotion } from '../../entity/Promotion';
-import {
-  getProductsWithFullCost,
-  ProductWithFullCost,
-} from './product-cost-calculation.helper';
 import { ProductGetSimilarDto } from './dto/product-get-similar.dto';
 
 @Injectable()
@@ -26,16 +27,22 @@ export class ProductService {
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+
     @InjectRepository(ProductGrade)
     private productGradeRepository: Repository<ProductGrade>,
+
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
+
     @InjectRepository(RoleDiscount)
     private roleDiscountRepository: Repository<RoleDiscount>,
+
     @InjectRepository(ClientRole)
     private clientRoleRepository: Repository<ClientRole>,
+
     @InjectRepository(Image)
     private imageRepository: Repository<Image>,
+
     @InjectRepository(Promotion)
     private promotionRepository: Repository<Promotion>,
   ) {}
@@ -133,8 +140,7 @@ export class ProductService {
       },
     );
 
-    if (!product)
-      throw new HttpException('Product with this id was not found', 404);
+    if (!product) throw new NotFoundException('Товар не найден');
 
     if (params.withDiscount)
       product = await this.prepareProduct(client, product);
@@ -172,32 +178,39 @@ export class ProductService {
 
     if (product.similarProducts) {
       const similarProducts: Product[] = [];
+
       for (const productId of product.similarProducts) {
         similarProducts.push(await this.productRepository.findOne(productId));
       }
+
       saveParams.similarProducts = similarProducts;
     }
 
     if (product.roleDiscounts) {
       const roleDiscounts: RoleDiscount[] = [];
+
       for (const roleDiscount of product.roleDiscounts) {
         const role = await this.clientRoleRepository.findOne(roleDiscount.role);
+
         roleDiscounts.push(
-          await this.roleDiscountRepository.create({
+          this.roleDiscountRepository.create({
             role,
             value: roleDiscount.value,
           }),
         );
       }
+
       saveParams.roleDiscounts = roleDiscounts;
     }
 
     saveParams.images = [];
+
     for (const imageId of product.images) {
       const image = await this.imageRepository.findOne(imageId);
-      if (!image) {
-        throw new HttpException(`Image with id=${imageId} was not found`, 400);
-      }
+
+      if (!image)
+        throw new NotFoundException(`Изображение с id=${imageId} не найдено`);
+
       saveParams.images.push(image);
     }
 
@@ -206,15 +219,14 @@ export class ProductService {
 
   async update(id: number, product: ProductUpdateDto) {
     const images = [];
+
     if (product.images) {
       for (const imageId of product.images) {
         const image = await this.imageRepository.findOne(imageId);
-        if (!image) {
-          throw new HttpException(
-            `Image with id=${imageId} was not found`,
-            400,
-          );
-        }
+
+        if (!image)
+          throw new NotFoundException(`Изображение с id=${imageId} не найдено`);
+
         images.push(image);
       }
     }
@@ -230,17 +242,18 @@ export class ProductService {
       id,
     };
 
-    if (product.category) {
+    if (product.category)
       saveParams.category = await this.categoryRepository.findOne(
         product.category,
       );
-    }
 
     if (product.similarProducts) {
       const similarProducts: Product[] = [];
+
       for (const productId of product.similarProducts) {
         similarProducts.push(await this.productRepository.findOne(productId));
       }
+
       saveParams.similarProducts = similarProducts;
     }
 
@@ -250,11 +263,14 @@ export class ProductService {
   async remove(id: number, hard = false) {
     if (hard) {
       const product = await this.productRepository.findOne(id);
+
       await this.roleDiscountRepository.delete({
         product,
       });
+
       return this.productRepository.delete(id);
     }
+
     return this.productRepository.softDelete(id);
   }
 
@@ -285,6 +301,8 @@ export class ProductService {
     client: Client,
     product: P,
   ): Promise<ProductWithFullCost<P>> {
-    return (await this.prepareProducts(client, [product]))[0];
+    const preparedProducts = await this.prepareProducts(client, [product]);
+
+    return preparedProducts[0];
   }
 }

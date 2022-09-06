@@ -1,7 +1,8 @@
-import { HttpException, Injectable } from '@nestjs/common';
-import { Meta } from '../../entity/Meta';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
+import { Meta } from '../../entity/Meta';
 
 @Injectable()
 export class MetaService {
@@ -21,8 +22,10 @@ export class MetaService {
       key,
     });
 
-    if (meta) return JSON.parse(meta.value);
-    throw new HttpException(`Meta with key = ${key} was not found`, 400);
+    const value = JSON.parse(meta.value);
+
+    if (value) return value;
+    throw new NotFoundException(`Значение meta с key = ${key} не найдено`);
   }
 
   async getMeta(key: string): Promise<Meta> {
@@ -30,7 +33,7 @@ export class MetaService {
       key,
     });
 
-    if (meta) return meta;
-    throw new HttpException(`Meta with key = ${key} was not found`, 400);
+    if (meta) return JSON.parse(meta.value);
+    throw new NotFoundException(`Meta с key = ${key} не найдена`);
   }
 }

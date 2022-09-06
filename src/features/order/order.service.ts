@@ -1,5 +1,5 @@
 import { Repository } from 'typeorm';
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import {
@@ -22,12 +22,16 @@ export class OrderService {
   constructor(
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
+
     @InjectRepository(OrderProduct)
     private orderProductRepository: Repository<OrderProduct>,
+
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+
     @InjectRepository(OrderProfile)
     private orderProfileRepository: Repository<OrderProfile>,
+
     private productService: ProductService,
   ) {}
 
@@ -86,8 +90,7 @@ export class OrderService {
       },
     );
 
-    if (!order)
-      throw new HttpException('Order with this id was not found', 400);
+    if (!order) throw new NotFoundException('Заказ не найден');
 
     const orderWithTotalSum = await this.prepareOrder(order);
 
@@ -99,8 +102,7 @@ export class OrderService {
       order.orderProfileId,
     );
 
-    if (!orderProfile)
-      throw new HttpException('Order profile with this id was not found', 400);
+    if (!orderProfile) throw new NotFoundException('Профиль заказа не найден');
 
     const orderProducts: OrderProduct[] = [];
 
@@ -109,8 +111,7 @@ export class OrderService {
 
       const product = await this.productRepository.findOne(productId);
 
-      if (!product)
-        throw new HttpException('Product with this id was not found', 400);
+      if (!product) throw new NotFoundException('Товар не найден');
 
       const orderProduct = await this.orderProductRepository.save({
         product,
@@ -209,9 +210,9 @@ export class OrderService {
 
   getDescription(order: OrderWithTotalSumDto): string {
     if (!order.orderProducts?.length)
-      throw new Error('order.orderProducts is required');
+      throw new Error('Необходимы товары из заказа');
 
-    if (!order.orderProfile) throw new Error('order.orderProfile is required');
+    if (!order.orderProfile) throw new Error('Необходим профиль заказа');
 
     let description = `
       Заказ от ${order.firstName} ${order.lastName}

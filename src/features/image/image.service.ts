@@ -1,10 +1,15 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as uuid from 'uuid';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Image } from '../../entity/Image';
 import { Repository } from 'typeorm';
+
+import { Image } from '../../entity/Image';
 
 const STATIC_FOLDER_PATH = path.resolve(process.cwd(), '..', 'static');
 const IMAGES_FOLDER_NAME = 'images';
@@ -22,16 +27,20 @@ export class ImageService {
   }
 
   async uploadImage(file: Express.Multer.File): Promise<Image> {
+    if (!file)
+      throw new BadRequestException('Необходимо предоставить изображение');
+
     try {
       const split = file.originalname.split('.');
       const fileName = uuid.v4() + '.' + split[split.length - 1];
       const filePath = path.join(STATIC_FOLDER_PATH, IMAGES_FOLDER_NAME);
       const exists = await this.checkExists(filePath);
-      if (!exists) {
-        await fs.promises.mkdir(filePath, { recursive: true });
-      }
+
+      if (!exists) await fs.promises.mkdir(filePath, { recursive: true });
+
       console.log('typeof buffer: ', typeof file.buffer);
       console.log('buffer: ', file.buffer);
+
       await fs.promises.writeFile(
         path.join(filePath, fileName),
         Buffer.from(file.buffer),
@@ -48,9 +57,8 @@ export class ImageService {
       });
     } catch (error) {
       console.error(error);
-      throw new HttpException(
+      throw new InternalServerErrorException(
         'Произошла ошибка при записи файла',
-        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
