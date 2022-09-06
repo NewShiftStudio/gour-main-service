@@ -8,7 +8,7 @@ import {
   JoinTable,
   JoinColumn,
 } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { TranslatableString } from './TranslatableString';
 import { TranslatableText } from './TranslatableText';
 import { Category } from './Category';
@@ -22,7 +22,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Promotion } from './Promotion';
 
 @Entity()
-export class Product extends AppEntity {
+export class Product extends Base {
   @ApiProperty()
   @OneToOne(() => TranslatableString, {
     cascade: true,

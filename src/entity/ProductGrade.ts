@@ -1,10 +1,10 @@
 import { Entity, Column, ManyToOne } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { Product } from './Product';
 import { Client } from './Client';
 
 @Entity()
-export class ProductGrade extends AppEntity {
+export class ProductGrade extends Base {
   @ManyToOne(() => Client, {
     onDelete: 'CASCADE',
   })

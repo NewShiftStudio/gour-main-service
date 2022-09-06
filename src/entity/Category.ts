@@ -1,10 +1,10 @@
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { TranslatableString } from './TranslatableString';
 import { TranslatableText } from './TranslatableText';
 
 @Entity()
-export class Category extends AppEntity {
+export class Category extends Base {
   @OneToOne(() => TranslatableString, {
     cascade: true,
     eager: true,

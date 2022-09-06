@@ -7,7 +7,7 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { ClientRole } from './ClientRole';
 import { Product } from './Product';
 import { City } from './City';
@@ -17,7 +17,7 @@ import { OrderProfile } from './OrderProfile';
 import { Wallet } from './Wallet';
 
 @Entity()
-export class Client extends AppEntity {
+export class Client extends Base {
   @ManyToOne(() => ClientRole, (role) => role.id, {
     eager: true,
   })

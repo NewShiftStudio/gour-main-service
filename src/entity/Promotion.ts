@@ -6,7 +6,7 @@ import {
   JoinColumn,
   JoinTable,
 } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { Product } from './Product';
 import { Image } from './Image';
 import { TranslatableString } from './TranslatableString';
@@ -14,7 +14,7 @@ import { TranslatableText } from './TranslatableText';
 import { PageMeta } from './PageMeta';
 
 @Entity()
-export class Promotion extends AppEntity {
+export class Promotion extends Base {
   @OneToOne(() => TranslatableString, {
     cascade: true,
     eager: true,
