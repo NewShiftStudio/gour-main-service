@@ -1,10 +1,11 @@
 name: Deploy
-'on':
+on:
   push:
     branches:
-      - release/**
+      - 'release/**'
       - ‘dev’
       - ‘main’
+  workflow_dispatch:
 jobs:
   deploy_dev:
     runs-on: ubuntu-latest
