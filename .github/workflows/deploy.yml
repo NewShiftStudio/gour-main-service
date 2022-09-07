@@ -3,16 +3,16 @@ name: Deploy
 on:
   push:
     branches:
-      - 'release/**'
+      #- 'release/**'
       - ‘dev’
-      - ‘main’
+      #- ‘main’
 
   workflow_dispatch:
 
 jobs:
   deploy_dev:
     runs-on: ubuntu-latest
-   # environment: dev
+    environment: dev
     steps:
       - uses: actions/checkout@v3
       - name: Setup SSH
@@ -33,7 +33,7 @@ jobs:
           ecosystem.config.js"
   deploy_prod:
     runs-on: ubuntu-latest
-   # environment: prod
+    environment: prod
     steps:
       - uses: actions/checkout@v3
       - name: Setup SSH
