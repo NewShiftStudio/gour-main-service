@@ -1,14 +1,12 @@
 name: Deploy
-
-on:
+'on':
   push:
-    branches: 
-      - 'release/**'
+    branches:
+      - release/**
       - ‘dev’
       - ‘main’
-
 jobs:
-  deploy:
+  deploy_dev:
     runs-on: ubuntu-latest
     environment: dev
     steps:
@@ -21,11 +19,16 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          SSH_PRIVATE_KEY: '${{ secrets.SSH_PRIVATE_KEY }}'
+          SSH_KNOWN_HOSTS: '${{ secrets.SSH_KNOWN_HOSTS }}'
       - name: Restart the application
-        run: |
-          ssh -p 22 zolkinka@92.53.97.252 "pushd /var/www/gour/gour-main-service && git fetch origin && git reset --hard origin/dev && git pull && npm ci --legacy-peer-deps && npm run build && pm2 restart ecosystem.config.js"
+        run: >
+          ssh -p 22 zolkinka@92.53.97.252 "pushd /var/www/gour/gour-main-service
+          && git fetch origin && git reset --hard origin/dev && git pull && npm
+          ci --legacy-peer-deps && npm run build && pm2 restart
+          ecosystem.config.js"
+  deploy_prod:
+    runs-on: ubuntu-latest
     environment: prod
     steps:
       - uses: actions/checkout@v3
@@ -37,8 +40,11 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY_PROD }}
-          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS_PROD }}
+          SSH_PRIVATE_KEY: '${{ secrets.SSH_PRIVATE_KEY_PROD }}'
+          SSH_KNOWN_HOSTS: '${{ secrets.SSH_KNOWN_HOSTS_PROD }}'
       - name: Restart the application
-        run: |
-          ssh -p 22 root@65.108.90.129 "pushd /var/www/gour/gour-main-service && git fetch origin && git reset --hard origin/main && git pull && npm ci --legacy-peer-deps && npm run build && pm2 restart ecosystem.config.js"
+        run: >
+          ssh -p 22 root@65.108.90.129 "pushd /var/www/gour/gour-main-service &&
+          git fetch origin && git reset --hard origin/main && git pull && npm ci
+          --legacy-peer-deps && npm run build && pm2 restart
+          ecosystem.config.js"
