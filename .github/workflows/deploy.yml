@@ -2,7 +2,9 @@ name: Deploy
 
 on:
   push:
-    branches: [dev]
+    branches: 
+      - 'release/**'
+      - ‘dev’
 
   workflow_dispatch:
 
