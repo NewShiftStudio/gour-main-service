@@ -9,4 +9,4 @@ Added database connection credentials
 
 # git
 
-Current branch - master
+Current branch - main
