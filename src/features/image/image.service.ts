@@ -38,9 +38,6 @@ export class ImageService {
 
       if (!exists) await fs.promises.mkdir(filePath, { recursive: true });
 
-      console.log('typeof buffer: ', typeof file.buffer);
-      console.log('buffer: ', file.buffer);
-
       await fs.promises.writeFile(
         path.join(filePath, fileName),
         Buffer.from(file.buffer),

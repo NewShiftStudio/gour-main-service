@@ -161,7 +161,7 @@ export class ProductService {
     return product;
   }
 
-  async create(product: ProductCreateDto) {
+  async create(dto: ProductCreateDto) {
     const saveParams: Omit<
       ProductCreateDto,
       'category' | 'similarProducts' | 'roleDiscounts' | 'images'
@@ -170,26 +170,26 @@ export class ProductService {
       similarProducts?: (Product | number)[];
       roleDiscounts?: (RoleDiscount | object)[];
       images?: (Image | number)[];
-    } = product;
+    } = dto;
 
-    saveParams.category = await this.categoryRepository.findOne(
-      product.category,
-    );
+    saveParams.category = await this.categoryRepository.findOne(dto.category);
 
-    if (product.similarProducts) {
+    if (dto.similarProducts) {
       const similarProducts: Product[] = [];
 
-      for (const productId of product.similarProducts) {
-        similarProducts.push(await this.productRepository.findOne(productId));
+      for (const productId of dto.similarProducts) {
+        const similarProduct = await this.productRepository.findOne(productId);
+
+        similarProducts.push(similarProduct);
       }
 
       saveParams.similarProducts = similarProducts;
     }
 
-    if (product.roleDiscounts) {
+    if (dto.roleDiscounts) {
       const roleDiscounts: RoleDiscount[] = [];
 
-      for (const roleDiscount of product.roleDiscounts) {
+      for (const roleDiscount of dto.roleDiscounts) {
         const role = await this.clientRoleRepository.findOne(roleDiscount.role);
 
         roleDiscounts.push(
@@ -203,22 +203,24 @@ export class ProductService {
       saveParams.roleDiscounts = roleDiscounts;
     }
 
-    saveParams.images = [];
+    const images: Image[] = [];
 
-    for (const imageId of product.images) {
+    for (const imageId of dto.images) {
       const image = await this.imageRepository.findOne(imageId);
 
       if (!image)
         throw new NotFoundException(`Изображение с id=${imageId} не найдено`);
 
-      saveParams.images.push(image);
+      images.push(image);
     }
+
+    saveParams.images = images;
 
     return this.productRepository.save(saveParams as DeepPartial<Product>);
   }
 
   async update(id: number, product: ProductUpdateDto) {
-    const images = [];
+    const images: Image[] = [];
 
     if (product.images) {
       for (const imageId of product.images) {
