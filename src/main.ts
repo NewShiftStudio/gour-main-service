@@ -20,8 +20,6 @@ requiredEnvs.forEach((envKey) => {
   }
 });
 
-console.log('test');
-
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
