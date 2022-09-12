@@ -23,10 +23,7 @@ export class Category extends AppEntity {
   title: TranslatableString;
 
   @ApiProperty()
-  @ManyToMany(() => Category, (subCategory) => subCategory.parentCategories, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
+  @ManyToMany(() => Category, (subCategory) => subCategory.parentCategories)
   @JoinTable()
   subCategories?: Category[];
 
@@ -36,7 +33,6 @@ export class Category extends AppEntity {
     (parentCategory) => parentCategory.subCategories,
     {
       cascade: true,
-      onDelete: 'CASCADE',
     },
   )
   parentCategories?: Category[];
