@@ -20,6 +20,7 @@ import { PageMeta } from './PageMeta';
 import { ProductGrade } from './ProductGrade';
 import { ApiProperty } from '@nestjs/swagger';
 import { Promotion } from './Promotion';
+import { ProductCategory } from './ProductCategory';
 
 @Entity()
 export class Product extends AppEntity {
@@ -97,6 +98,13 @@ export class Product extends AppEntity {
     cascade: true,
   })
   roleDiscounts: RoleDiscount[];
+
+  @ApiProperty()
+  @OneToMany(() => ProductCategory, (pc) => pc.product, {
+    eager: true,
+    cascade: true,
+  })
+  categories: ProductCategory[];
 
   @ManyToMany(() => Promotion, (p) => p.products, {
     onDelete: 'CASCADE',

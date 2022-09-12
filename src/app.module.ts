@@ -42,6 +42,8 @@ import { Wallet } from './entity/Wallet';
 import { WalletTransaction } from './entity/WalletTransaction';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { SentryInterceptor } from './common/interceptors/sentry.interceptor';
+import { ProductCategory } from './entity/ProductCategory';
+import { Discount } from './entity/Discount';
 
 const requiredEnvs = ['PORT', 'MESSAGES_SERVICE_PORT', 'MESSAGES_SERVICE_HOST'];
 
@@ -71,12 +73,14 @@ requiredEnvs.forEach((envKey) => {
         Product,
         Category,
         City,
+        Discount,
         Image,
         Order,
         OrderProduct,
         OrderProfile,
         PageMeta,
         Price,
+        ProductCategory,
         ProductGrade,
         ProductModification,
         Promotion,
