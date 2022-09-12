@@ -22,14 +22,24 @@ export class Category extends AppEntity {
   @JoinColumn()
   title: TranslatableString;
 
+  @ApiProperty()
   @ManyToMany(() => Category, (subCategory) => subCategory.parentCategories, {
-    eager: true,
+    cascade: true,
+    onDelete: 'CASCADE',
   })
   @JoinTable()
-  subCategories: Category[];
+  subCategories?: Category[];
 
-  @ManyToMany(() => Category, (parentCategory) => parentCategory.subCategories)
-  parentCategories: Category[];
+  @ApiProperty()
+  @ManyToMany(
+    () => Category,
+    (parentCategory) => parentCategory.subCategories,
+    {
+      cascade: true,
+      onDelete: 'CASCADE',
+    },
+  )
+  parentCategories?: Category[];
 
   @ApiProperty()
   @OneToMany(() => ProductCategory, (pc) => pc.product, {

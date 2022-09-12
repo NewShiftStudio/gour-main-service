@@ -19,6 +19,7 @@ import {
   getProductsWithFullCost,
   ProductWithFullCost,
 } from './product-cost-calculation.helper';
+import { ProductCategory } from 'src/entity/ProductCategory';
 
 @Injectable()
 export class ProductService {
@@ -37,6 +38,8 @@ export class ProductService {
     private imageRepository: Repository<Image>,
     @InjectRepository(Promotion)
     private promotionRepository: Repository<Promotion>,
+    @InjectRepository(ProductCategory)
+    private productCategoryRepository: Repository<ProductCategory>,
   ) {}
 
   async findMany(params: ProductGetListDto, client: Client) {
@@ -120,17 +123,23 @@ export class ProductService {
   async create(product: ProductCreateDto) {
     const saveParams: Omit<
       ProductCreateDto,
-      'category' | 'similarProducts' | 'roleDiscounts' | 'images'
+      'category' | 'similarProducts' | 'roleDiscounts' | 'images' | 'categories'
     > & {
-      category?: Category | number;
+      // category?: Category | number;
+      categories?: (ProductCategory | number)[];
       similarProducts?: (Product | number)[];
       roleDiscounts?: (RoleDiscount | object)[];
       images?: (Image | number)[];
     } = product;
 
-    saveParams.category = await this.categoryRepository.findOne(
-      product.category,
-    );
+    if (product.productCategories) {
+      saveParams.categories = [];
+      for (const productCategoryId of product.productCategories) {
+        saveParams.categories.push(
+          await this.productCategoryRepository.findOne(productCategoryId),
+        );
+      }
+    }
 
     if (product.similarProducts) {
       const similarProducts: Product[] = [];
@@ -187,7 +196,7 @@ export class ProductService {
       moyskladId: product.moyskladId,
       images,
       price: product.price,
-      characteristics: product.characteristics,
+      characteristics: {},
       meta: product.meta,
       id,
     };

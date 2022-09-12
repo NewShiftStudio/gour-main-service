@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, Repository } from 'typeorm';
+import { DeepPartial, FindManyOptions, IsNull, Repository } from 'typeorm';
 import { Category } from '../../entity/Category';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
@@ -19,18 +19,50 @@ export class CategoryService {
       ...getPaginationOptions(params.offset, params.length),
     };
 
-    return this.categoryRepository.findAndCount(options);
+    return this.categoryRepository.findAndCount({
+      ...options,
+      relations: [
+        'subCategories',
+        'subCategories.subCategories',
+        'parentCategories',
+      ],
+      where: { parentCategories: IsNull() }, // FIXME: не доставать категории с верхнеуровневыми деревьями
+    });
   }
 
   getOne(id: number) {
-    return this.categoryRepository.findOne({ id });
+    try {
+      return this.categoryRepository.findOne({ id });
+    } catch {
+      throw new NotFoundException('Категория не найдена');
+    }
   }
 
-  create(category: CategoryCreateDto) {
+  async create(dto: CategoryCreateDto) {
+    const category: DeepPartial<Category> = { title: dto.title };
+
+    if (dto.subCategoriesIds) {
+      category.subCategories = [];
+      for (const subCategoryId of dto.subCategoriesIds) {
+        const subCategory = await this.getOne(subCategoryId);
+        category.subCategories.push(subCategory);
+      }
+    }
+
     return this.categoryRepository.save(category);
   }
 
-  update(id: number, category: CategoryUpdateDto) {
+  async update(id: number, dto: CategoryUpdateDto) {
+    const category: DeepPartial<Category> = { title: dto.title };
+
+    if (dto.subCategoriesIds) {
+      category.subCategories = [];
+      for (const subCategoryId of dto.subCategoriesIds) {
+        const subCategory = await this.getOne(subCategoryId);
+        category.subCategories.push(subCategory);
+      }
+    }
+
     return this.categoryRepository.save({
       ...category,
       id,
