@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, IsNull, Not, Repository } from 'typeorm';
 
@@ -78,11 +78,18 @@ export class ReferralCodeService {
   }
 
   async setDiscount(discount: number) {
-    return this.referralCodeRepository.update(
+    await this.referralCodeRepository.update(
       {},
       {
         discount,
       },
     );
+
+    const updatedDiscount = await this.getDiscount();
+
+    if (discount !== updatedDiscount)
+      throw new BadRequestException('Не удалось изменить размер скидки');
+
+    return discount;
   }
 }

@@ -61,6 +61,7 @@ export class Client extends Base {
   @ManyToOne(() => City, (city) => city.id, {
     eager: true,
     nullable: true,
+    onDelete: 'SET NULL',
   })
   city: number;
 
