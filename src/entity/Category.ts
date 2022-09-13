@@ -1,15 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  Entity,
-  JoinColumn,
-  JoinTable,
-  ManyToMany,
-  OneToMany,
-  OneToOne,
-} from 'typeorm';
+import { Entity, JoinColumn, JoinTable, ManyToMany, OneToOne } from 'typeorm';
 
 import { AppEntity } from './AppEntity';
-import { ProductCategory } from './ProductCategory';
+import { Product } from './Product';
 import { TranslatableString } from './TranslatableString';
 
 @Entity()
@@ -38,9 +31,6 @@ export class Category extends AppEntity {
   parentCategories?: Category[];
 
   @ApiProperty()
-  @OneToMany(() => ProductCategory, (pc) => pc.product, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
-  product?: ProductCategory[];
+  @ManyToMany(() => Product, (product) => product.categories, { cascade: true })
+  products: Product[];
 }

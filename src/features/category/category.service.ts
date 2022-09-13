@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, FindManyOptions, IsNull, Repository } from 'typeorm';
+import { DeepPartial, FindManyOptions, Repository } from 'typeorm';
 import { Category } from '../../entity/Category';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
@@ -26,13 +26,13 @@ export class CategoryService {
         'subCategories.subCategories',
         'parentCategories',
       ],
-      where: { parentCategories: IsNull() }, // FIXME: не доставать категории с верхнеуровневыми деревьями
+      // where: { parentCategories: In(null) }, // FIXME: не доставать категории с верхнеуровневыми деревьями
     });
   }
 
-  getOne(id: number) {
+  async getOne(id: number) {
     try {
-      return this.categoryRepository.findOne({ id });
+      return await this.categoryRepository.findOneOrFail({ id });
     } catch {
       throw new NotFoundException('Категория не найдена');
     }
@@ -53,6 +53,10 @@ export class CategoryService {
   }
 
   async update(id: number, dto: CategoryUpdateDto) {
+    const isNotExist = !(await this.getOne(id));
+
+    if (isNotExist) throw new NotFoundException('Категория не найдена');
+
     const category: DeepPartial<Category> = { title: dto.title };
 
     if (dto.subCategoriesIds) {

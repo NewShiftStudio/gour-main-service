@@ -19,7 +19,6 @@ import {
   getProductsWithFullCost,
   ProductWithFullCost,
 } from './product-cost-calculation.helper';
-import { ProductCategory } from 'src/entity/ProductCategory';
 
 @Injectable()
 export class ProductService {
@@ -38,8 +37,6 @@ export class ProductService {
     private imageRepository: Repository<Image>,
     @InjectRepository(Promotion)
     private promotionRepository: Repository<Promotion>,
-    @InjectRepository(ProductCategory)
-    private productCategoryRepository: Repository<ProductCategory>,
   ) {}
 
   async findMany(params: ProductGetListDto, client: Client) {
@@ -50,6 +47,7 @@ export class ProductService {
         params.withSimilarProducts ? 'similarProducts' : undefined,
         params.withMeta ? 'meta' : undefined,
         params.withRoleDiscounts ? 'roleDiscounts' : undefined,
+        params.withCategories ? 'categories' : undefined,
         'images',
       ].filter((it) => it),
     });
@@ -68,9 +66,10 @@ export class ProductService {
       },
       take: 10,
       relations: [
-        params.withSimilarProducts ? 'similarProducts' : undefined,
-        params.withMeta ? 'meta' : undefined,
-        params.withRoleDiscounts ? 'roleDiscounts' : undefined,
+        params.withSimilarProducts && 'similarProducts',
+        params.withCategories && 'categories',
+        params.withMeta && 'meta',
+        params.withRoleDiscounts && 'roleDiscounts',
       ].filter((it) => it),
     });
 
@@ -90,10 +89,11 @@ export class ProductService {
       id,
       {
         relations: [
-          params.withSimilarProducts ? 'similarProducts' : undefined,
-          params.withMeta ? 'meta' : undefined,
-          params.withRoleDiscounts ? 'roleDiscounts' : undefined,
-          params.withGrades ? 'productGrades' : undefined,
+          params.withSimilarProducts && 'similarProducts',
+          params.withMeta && 'meta',
+          params.withRoleDiscounts && 'roleDiscounts',
+          params.withGrades && 'productGrades',
+          params.withCategories && 'categories',
         ].filter((it) => it),
       },
     );
@@ -125,18 +125,17 @@ export class ProductService {
       ProductCreateDto,
       'category' | 'similarProducts' | 'roleDiscounts' | 'images' | 'categories'
     > & {
-      // category?: Category | number;
-      categories?: (ProductCategory | number)[];
+      categories?: Category[];
       similarProducts?: (Product | number)[];
       roleDiscounts?: (RoleDiscount | object)[];
       images?: (Image | number)[];
     } = product;
 
-    if (product.productCategories) {
+    if (product.categoryIds) {
       saveParams.categories = [];
-      for (const productCategoryId of product.productCategories) {
+      for (const categoryId of product.categoryIds) {
         saveParams.categories.push(
-          await this.productCategoryRepository.findOne(productCategoryId),
+          await this.categoryRepository.findOne(categoryId),
         );
       }
     }
@@ -196,15 +195,17 @@ export class ProductService {
       moyskladId: product.moyskladId,
       images,
       price: product.price,
-      characteristics: {},
       meta: product.meta,
       id,
     };
 
-    if (product.category) {
-      saveParams.category = await this.categoryRepository.findOne(
-        product.category,
-      );
+    if (product.categoryIds) {
+      saveParams.categories = [];
+      for (const categoryId of product.categoryIds) {
+        saveParams.categories.push(
+          await this.productRepository.findOne(categoryId),
+        );
+      }
     }
 
     if (product.similarProducts) {
@@ -215,7 +216,7 @@ export class ProductService {
       saveParams.similarProducts = similarProducts;
     }
 
-    return this.productRepository.save(saveParams as DeepPartial<Product>);
+    return this.productRepository.save(saveParams);
   }
 
   async remove(id: number, hard = false) {

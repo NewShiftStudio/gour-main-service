@@ -42,8 +42,11 @@ export class ProductCreateDto {
 
   @IsArray()
   @IsOptional()
-  @ApiPropertyOptional()
-  productCategories?: number[];
+  @ApiModelPropertyOptional({
+    type: Number,
+    isArray: true,
+  })
+  categoryIds?: number[];
 
   @IsArray()
   @ApiPropertyOptional()
