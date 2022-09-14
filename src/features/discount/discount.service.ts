@@ -16,7 +16,7 @@ export class DiscountService {
   ) {}
 
   findByClient(client: Client) {
-    // FIXME: мб тогда вынести в модуль с категориями?
+    // TODO: мб вынести в модуль с категориями?
     return this.categoryRepository
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.title', 'title')
@@ -25,14 +25,6 @@ export class DiscountService {
       .leftJoinAndSelect('discounts.client', 'client')
       .where('discounts.client.id = :id', { id: client.id })
       .getMany();
-
-    // return this.discountRepository.find({
-    //   where: { client },
-    //   relations: ['productCategory', 'productCategory.parentCategories'],
-    //   order: {
-    //     productCategory: 'ASC',
-    //   },
-    // });
   }
 
   findOneByFK(client: Client, category: Category) {

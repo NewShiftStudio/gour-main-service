@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, FindManyOptions, IsNull, Repository } from 'typeorm';
+
 import { Category } from '../../entity/Category';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
@@ -19,44 +20,20 @@ export class CategoryService {
       ...getPaginationOptions(params.offset, params.length),
     };
 
-    const result = await this.categoryRepository.findAndCount({
-      ...options, // FIXME: сломана пагинация из-за фильтра массива
-      relations: [
-        'parentCategories',
-        'subCategories',
-        'subCategories.subCategories',
-      ],
-      where: {
-        // parentCategories: IsNull(),
-        // parentCategories: {
-        // id: IsNull(),
-        // },
-      }, // FIXME: все джойнится, но не могу добавить условие
-      //
-    });
+    return this.categoryRepository
+      .createQueryBuilder('top_categories')
+      .leftJoinAndSelect('top_categories.parentCategories', 'top_parent')
+      .leftJoinAndSelect('top_categories.subCategories', 'mid_categories')
+      .leftJoinAndSelect('mid_categories.subCategories', 'bot_categories')
 
-    // return (
-    //   this.categoryRepository
-    //     .createQueryBuilder('category')
-    //     .leftJoinAndSelect('category.parentCategories', 'parentCategories')
-    //     .leftJoinAndSelect('category.subCategories', 'subCategories')
-    //     .leftJoinAndSelect('category.title', 'title')
-    //     // .leftJoinAndSelect('category.subCategories.title', 'title')
-    //     // .leftJoinAndSelect(
-    //     //   'category.subCategories.subCategories',
-    //     //   'subCategories',
-    //     // )
-    //     .where('parentCategories.id IS NULL', { id: null })
-    //     .skip(options.skip)
-    //     .take(options.take)
-    //     .getManyAndCount()
-    // ); // FIXME: достаются категории, но не могу достать дочерние элементы 3 уровня (title и subCategories)
+      .leftJoinAndSelect('top_categories.title', 'top_title')
+      .leftJoinAndSelect('mid_categories.title', 'mid_title')
+      .leftJoinAndSelect('bot_categories.title', 'bot_title')
 
-    return [
-      // result[0],
-      result[0].filter((category) => !category.parentCategories?.length), // FIXME: с этим условием некорректно работает пагинация, только вручную писать ее
-      result[1],
-    ];
+      .where('top_parent.id IS NULL')
+      .skip(options.skip)
+      .take(options.take)
+      .getManyAndCount();
   }
 
   async getOne(id: number) {
