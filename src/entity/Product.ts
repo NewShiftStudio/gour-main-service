@@ -3,7 +3,6 @@ import {
   Column,
   ManyToMany,
   OneToOne,
-  ManyToOne,
   OneToMany,
   JoinTable,
   JoinColumn,
@@ -11,7 +10,6 @@ import {
 import { AppEntity } from './AppEntity';
 import { TranslatableString } from './TranslatableString';
 import { TranslatableText } from './TranslatableText';
-import { Category } from './Category';
 import { ProductModification } from './ProductModification';
 import { Image } from './Image';
 import { Price } from './Price';
@@ -20,6 +18,7 @@ import { PageMeta } from './PageMeta';
 import { ProductGrade } from './ProductGrade';
 import { ApiProperty } from '@nestjs/swagger';
 import { Promotion } from './Promotion';
+import { Category } from './Category';
 
 @Entity()
 export class Product extends AppEntity {
@@ -52,13 +51,6 @@ export class Product extends AppEntity {
   })
   @JoinTable()
   images: Image[];
-
-  @ApiProperty()
-  @ManyToOne(() => Category, {
-    onDelete: 'CASCADE',
-    eager: true,
-  })
-  category: Category;
 
   @ApiProperty()
   @OneToMany(() => ProductGrade, (pg) => pg.product)
@@ -98,14 +90,24 @@ export class Product extends AppEntity {
   })
   roleDiscounts: RoleDiscount[];
 
+  @ManyToMany(() => Category, (category) => category.products)
+  @JoinTable({
+    name: 'product_category',
+    joinColumn: {
+      name: 'productId',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'categoryId',
+      referencedColumnName: 'id',
+    },
+  })
+  categories: Category[];
+
   @ManyToMany(() => Promotion, (p) => p.products, {
     onDelete: 'CASCADE',
   })
   promotions: Promotion[];
-
-  @ApiProperty()
-  @Column('json')
-  characteristics: Record<string, string | number>;
 
   @ApiProperty()
   @OneToOne(() => PageMeta, {

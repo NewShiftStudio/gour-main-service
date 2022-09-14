@@ -31,4 +31,9 @@ export class ProductGetOneDto {
   @IsOptional()
   @ApiPropertyOptional()
   withDiscount?: boolean;
+
+  @IsBooleanString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  withCategories?: boolean;
 }

@@ -1,10 +1,4 @@
-import {
-  IsArray,
-  IsNumber,
-  IsObject,
-  IsOptional,
-  ValidateNested,
-} from 'class-validator';
+import { IsArray, IsNumber, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { TranslatableStringDto } from '../../../common/dto/translatable-string.dto';
 import { TranslatableTextDto } from '../../../common/dto/translatable-text.dto';
@@ -41,18 +35,18 @@ export class ProductCreateDto {
   })
   images: number[];
 
-  @IsNumber()
-  @ApiProperty()
-  category: number;
-
   @ValidateNested()
   @Type(() => PriceDto)
   @ApiProperty()
   price: PriceDto;
 
-  @IsObject()
-  @ApiProperty()
-  characteristics: Record<string, string | number>;
+  @IsArray()
+  @IsOptional()
+  @ApiModelPropertyOptional({
+    type: Number,
+    isArray: true,
+  })
+  categoryIds?: number[];
 
   @IsArray()
   @ApiPropertyOptional()
