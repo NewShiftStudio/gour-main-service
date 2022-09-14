@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 import { AppEntity } from './AppEntity';
 import { Client } from './Client';
-import { ProductCategory } from './ProductCategory';
+import { Category } from './Category';
 
 @Entity()
 export class Discount extends AppEntity {
@@ -20,8 +20,8 @@ export class Discount extends AppEntity {
   client: Client;
 
   @ApiProperty()
-  @ManyToOne(() => ProductCategory, {
+  @ManyToOne(() => Category, {
     onDelete: 'CASCADE',
   })
-  productCategory: ProductCategory;
+  productCategory: Category;
 }

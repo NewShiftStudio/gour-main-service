@@ -1,7 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Entity, JoinColumn, JoinTable, ManyToMany, OneToOne } from 'typeorm';
+import {
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 
 import { AppEntity } from './AppEntity';
+import { Discount } from './Discount';
 import { Product } from './Product';
 import { TranslatableString } from './TranslatableString';
 
@@ -33,4 +41,9 @@ export class Category extends AppEntity {
   @ApiProperty()
   @ManyToMany(() => Product, (product) => product.categories, { cascade: true })
   products: Product[];
+
+  @OneToMany(() => Discount, (discount) => discount.productCategory, {
+    onDelete: 'CASCADE',
+  })
+  discounts?: Discount[];
 }

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, FindManyOptions, Repository } from 'typeorm';
+import { DeepPartial, FindManyOptions, IsNull, Repository } from 'typeorm';
 import { Category } from '../../entity/Category';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
@@ -14,20 +14,49 @@ export class CategoryService {
     private categoryRepository: Repository<Category>,
   ) {}
 
-  findMany(params: BaseGetListDto) {
+  async findMany(params: BaseGetListDto) {
     const options: FindManyOptions<Category> = {
       ...getPaginationOptions(params.offset, params.length),
     };
 
-    return this.categoryRepository.findAndCount({
-      ...options,
+    const result = await this.categoryRepository.findAndCount({
+      ...options, // FIXME: сломана пагинация из-за фильтра массива
       relations: [
+        'parentCategories',
         'subCategories',
         'subCategories.subCategories',
-        'parentCategories',
       ],
-      // where: { parentCategories: In(null) }, // FIXME: не доставать категории с верхнеуровневыми деревьями
+      where: {
+        // parentCategories: IsNull(),
+        // parentCategories: {
+        // id: IsNull(),
+        // },
+      }, // FIXME: все джойнится, но не могу добавить условие
+      //
     });
+
+    // return (
+    //   this.categoryRepository
+    //     .createQueryBuilder('category')
+    //     .leftJoinAndSelect('category.parentCategories', 'parentCategories')
+    //     .leftJoinAndSelect('category.subCategories', 'subCategories')
+    //     .leftJoinAndSelect('category.title', 'title')
+    //     // .leftJoinAndSelect('category.subCategories.title', 'title')
+    //     // .leftJoinAndSelect(
+    //     //   'category.subCategories.subCategories',
+    //     //   'subCategories',
+    //     // )
+    //     .where('parentCategories.id IS NULL', { id: null })
+    //     .skip(options.skip)
+    //     .take(options.take)
+    //     .getManyAndCount()
+    // ); // FIXME: достаются категории, но не могу достать дочерние элементы 3 уровня (title и subCategories)
+
+    return [
+      // result[0],
+      result[0].filter((category) => !category.parentCategories?.length), // FIXME: с этим условием некорректно работает пагинация, только вручную писать ее
+      result[1],
+    ];
   }
 
   async getOne(id: number) {

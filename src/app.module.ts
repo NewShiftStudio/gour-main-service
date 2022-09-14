@@ -44,6 +44,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { SentryInterceptor } from './common/interceptors/sentry.interceptor';
 import { ProductCategory } from './entity/ProductCategory';
 import { Discount } from './entity/Discount';
+import { DiscountModule } from './features/discount/discount.module';
 
 const requiredEnvs = ['PORT', 'MESSAGES_SERVICE_PORT', 'MESSAGES_SERVICE_HOST'];
 
@@ -106,6 +107,7 @@ requiredEnvs.forEach((envKey) => {
     CategoryModule,
     CityModule,
     ClientRoleModule,
+    DiscountModule,
     ProductModule,
     PromotionModule,
     PageModule,

@@ -86,11 +86,14 @@ export class OrderController {
 
   @MessagePattern('edit-order')
   put(@Payload('id') id: number, @Payload('dto') dto: Partial<Order>) {
+    // FIXME: если будут меняться товары, то изменить скидки
+    // Насколько это актуально?
     return this.orderService.update(id, dto);
   }
 
   @MessagePattern('delete-order')
   remove(@Payload() id: number) {
+    // FIXME: если будут меняться товары, то удалить скидки
     return this.orderService.remove(id);
   }
 }
