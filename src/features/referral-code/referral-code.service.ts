@@ -29,9 +29,8 @@ export class ReferralCodeService {
   async getReferrals(params: ReferralCodeGetListDto): Promise<Client[]> {
     const options: FindManyOptions<Client> = {
       ...getPaginationOptions(params.offset, params.length),
-      relations: ['referralCode'],
       where: {
-        referralCodeId: Not(IsNull()),
+        referralCode: Not(IsNull()),
       },
     };
 
