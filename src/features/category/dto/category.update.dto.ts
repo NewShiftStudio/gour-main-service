@@ -15,4 +15,10 @@ export class CategoryUpdateDto {
   @IsOptional()
   @IsArray()
   subCategoriesIds?: number[];
+
+  @ValidateNested()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsArray()
+  parentCategoriesIds?: number[];
 }

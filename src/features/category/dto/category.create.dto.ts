@@ -14,4 +14,10 @@ export class CategoryCreateDto {
   @IsOptional()
   @IsArray()
   subCategoriesIds?: number[];
+
+  @ValidateNested()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsArray()
+  parentCategoriesIds?: number[];
 }

@@ -55,13 +55,19 @@ export class CategoryService {
       }
     }
 
+    if (dto.parentCategoriesIds) {
+      category.parentCategories = [];
+      for (const parentCategoryId of dto.parentCategoriesIds) {
+        const parentCategory = await this.getOne(parentCategoryId);
+        category.parentCategories.push(parentCategory);
+      }
+    }
+
     return this.categoryRepository.save(category);
   }
 
   async update(id: number, dto: CategoryUpdateDto) {
-    const isNotExist = !(await this.getOne(id));
-
-    if (isNotExist) throw new NotFoundException('Категория не найдена');
+    const _isExist = await this.getOne(id);
 
     const category: DeepPartial<Category> = { title: dto.title };
 
@@ -70,6 +76,14 @@ export class CategoryService {
       for (const subCategoryId of dto.subCategoriesIds) {
         const subCategory = await this.getOne(subCategoryId);
         category.subCategories.push(subCategory);
+      }
+    }
+
+    if (dto.parentCategoriesIds) {
+      category.parentCategories = [];
+      for (const parentCategoryId of dto.parentCategoriesIds) {
+        const parentCategory = await this.getOne(parentCategoryId);
+        category.parentCategories.push(parentCategory);
       }
     }
 
