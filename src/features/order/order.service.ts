@@ -1,5 +1,5 @@
 import { Repository } from 'typeorm';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import {
@@ -16,6 +16,7 @@ import { OrderCreateDto } from './dto/order-create.dto';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { ProductService } from '../product/product.service';
 import { Product } from '../../entity/Product';
+import { DiscountService } from '../discount/discount.service';
 
 @Injectable()
 export class OrderService {
@@ -33,6 +34,7 @@ export class OrderService {
     private orderProfileRepository: Repository<OrderProfile>,
 
     private productService: ProductService,
+    private discountService: DiscountService,
   ) {}
 
   async findUsersOrders(params: BaseGetListDto, client: Client) {
@@ -109,9 +111,21 @@ export class OrderService {
     for (const orderProductDto of order.orderProducts) {
       const { productId, weight, amount } = orderProductDto;
 
-      const product = await this.productRepository.findOne(productId);
+      const product = await this.productRepository.findOne(productId, {
+        relations: ['categories'],
+      });
 
       if (!product) throw new NotFoundException('Товар не найден');
+
+      const discountPromises = product.categories.map((category) =>
+        this.discountService.add(
+          client,
+          category,
+          product.price.cheeseCoin * amount,
+        ),
+      );
+
+      await Promise.all(discountPromises);
 
       const orderProduct = await this.orderProductRepository.save({
         product,

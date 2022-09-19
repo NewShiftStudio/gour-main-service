@@ -15,6 +15,6 @@ export class Base {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ default: null })
   deletedAt?: Date;
 }

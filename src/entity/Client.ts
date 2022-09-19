@@ -6,7 +6,9 @@ import {
   JoinTable,
   OneToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
+
 import { Base } from './Base';
 import { ClientRole } from './ClientRole';
 import { Product } from './Product';
@@ -15,6 +17,7 @@ import { ReferralCode } from './ReferralCode';
 import { Image } from './Image';
 import { OrderProfile } from './OrderProfile';
 import { Wallet } from './Wallet';
+import { Discount } from './Discount';
 
 @Entity()
 export class Client extends Base {
@@ -57,6 +60,11 @@ export class Client extends Base {
     default: '',
   })
   email: string;
+
+  @OneToMany(() => Discount, (discount) => discount.client, {
+    cascade: true,
+  })
+  discounts: Discount[];
 
   @ManyToOne(() => City, (city) => city.id, {
     eager: true,
