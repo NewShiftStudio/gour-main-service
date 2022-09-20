@@ -175,9 +175,9 @@ export class ProductService {
       images?: (Image | number)[];
     } = dto;
 
-    if (product.categoryIds) {
+    if (dto.categoryIds) {
       saveParams.categories = [];
-      for (const categoryId of product.categoryIds) {
+      for (const categoryId of dto.categoryIds) {
         saveParams.categories.push(
           await this.categoryRepository.findOne(categoryId),
         );
