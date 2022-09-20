@@ -27,6 +27,7 @@ async function bootstrap() {
       transport: Transport.TCP,
       options: {
         port: +process.env.PORT,
+        host: process.env.HOST,
       },
     },
   );
