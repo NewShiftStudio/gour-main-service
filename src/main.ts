@@ -7,7 +7,7 @@ import { AppModule } from './app.module';
 import { getRequiredEnvsByNodeEnv } from './common/utils/getRequiredEnvsByNodeEnv';
 import { NodeEnv } from './common/types/App';
 
-const envs = ['NODE_ENV'];
+const envs = ['NODE_ENV', 'STATIC_FOLDER_PATH'];
 
 const requiredEnvs = getRequiredEnvsByNodeEnv(
   { common: envs, development: ['SENTRY_DSN'], production: ['SENTRY_DSN'] },
