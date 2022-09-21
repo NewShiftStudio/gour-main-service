@@ -14,7 +14,7 @@ const generateCategory = (
   ...((subCategories && { subCategories }) || {}),
 });
 
-export class SeedProductCategories1662982868824 implements MigrationInterface {
+export class SeedProductCategories2662982868824 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     const insertToCategoryTable = (
       rows: ReturnType<typeof generateCategory>[],
