@@ -11,6 +11,7 @@ import { SignInDto } from './dto/sign-in.dto';
 import { Client } from 'src/entity/Client';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 import { CheckCodeDto } from './dto/check-code.dto';
+import { RecoverPasswordDto } from './dto/recover-password.dto';
 
 export interface AppRequest extends Request {
   user?: Client;
@@ -35,6 +36,11 @@ export class AuthController {
   @MessagePattern('signup')
   signup(@Payload() dto: SignUpDto) {
     return this.authService.signup(dto);
+  }
+
+  @MessagePattern('recover-password')
+  recoverPassword(@Payload() dto: RecoverPasswordDto) {
+    return this.authService.recoverPassword(dto);
   }
 
   @MessagePattern('signin')

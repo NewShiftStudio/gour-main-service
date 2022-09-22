@@ -4,6 +4,8 @@ import {
   HttpException,
   Inject,
   Injectable,
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { SignUpDto } from './dto/sign-up.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -24,6 +26,7 @@ import { ReferralCode } from '../../entity/ReferralCode';
 import { generateSmsCode } from 'src/utils/generateSmsCode';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
+import { RecoverPasswordDto } from './dto/recover-password.dto';
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
@@ -47,7 +50,7 @@ export class AuthService {
     });
 
     if (foundPhone) {
-      throw new BadRequestException('Такой пользователь уже существует :[');
+      throw new BadRequestException('Такой пользователь уже существует');
     }
 
     const code = generateSmsCode();
@@ -75,17 +78,15 @@ export class AuthService {
 
   async signup(dto: SignUpDto) {
     const isValidCode = this.checkCode(dto.code, dto.codeHash);
-    if (!isValidCode) {
-      throw new ForbiddenException('Неверный код');
-    }
+
+    if (!isValidCode) throw new ForbiddenException('Неверный код');
 
     const foundUser = await this.clientRepository.findOne({
       phone: dto.phone,
     });
 
-    if (foundUser) {
+    if (foundUser)
       throw new HttpException('Пользователь с таким телефоном существует', 400);
-    }
 
     let referralCode: ReferralCode;
 
@@ -102,6 +103,23 @@ export class AuthService {
       phone: dto.phone,
       city: dto.cityId,
       referralCode: referralCode,
+      password: await this.getPasswordHash(dto.password),
+    });
+  }
+
+  async recoverPassword(dto: RecoverPasswordDto) {
+    const isValidCode = this.checkCode(dto.code, dto.codeHash);
+
+    if (!isValidCode) throw new BadRequestException('Неверный код');
+
+    const foundUser = await this.clientRepository.findOne({
+      phone: dto.phone,
+    });
+
+    if (!foundUser) throw new NotFoundException('Пользователь не найден');
+
+    return this.clientRepository.save({
+      phone: dto.phone,
       password: await this.getPasswordHash(dto.password),
     });
   }
@@ -123,14 +141,14 @@ export class AuthService {
       };
     }
 
-    if (!user) throw new HttpException('User is not found', 401);
+    if (!user) throw new NotFoundException('Пользователь не найден');
 
     // if (!user.isApproved) {
     //   throw new HttpException('User is not approved', 401);
     // }
 
     if (!(await bcrypt.compare(dto.password, user.password))) {
-      throw new HttpException('Bad password', 401);
+      throw new UnauthorizedException('Неверный пароль');
     }
   }
 
@@ -142,12 +160,12 @@ export class AuthService {
       id,
     });
 
-    if (user)
-      return {
-        token: encodeJwt(user),
-        client: user,
-      };
-    else throw new HttpException('User is not found', 401);
+    if (!user) throw new NotFoundException('Пользователь не найден');
+
+    return {
+      token: encodeJwt(user),
+      client: user,
+    };
 
     // if (!user.isApproved) {
     //   throw new HttpException('User is not approved', 401);
@@ -156,7 +174,7 @@ export class AuthService {
 
   decodeToken(token: string) {
     if (!verifyJwt(token, ACCESS_SECRET)) {
-      throw new HttpException('Bad token', 401);
+      throw new UnauthorizedException('Некорректный токен');
     }
 
     return decodeToken(token);

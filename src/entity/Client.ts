@@ -91,11 +91,10 @@ export class Client extends AppEntity {
   @JoinColumn()
   avatar: Image;
 
-  @OneToOne(() => OrderProfile, {
-    nullable: true,
+  @Column({
+    default: null,
   })
-  @JoinColumn()
-  mainOrderProfile: OrderProfile;
+  mainOrderProfileId: number;
 
   @OneToOne(() => Wallet, {
     nullable: true,

@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { decodePhoneCode } from './jwt.service';
 import { ChangePhoneDto } from './dto/change-phone.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -46,7 +46,7 @@ export class CurrentUserService {
       throw new HttpException('Wrong code, please, try again', 400);
     }
 
-    await this.clientRepository.save({
+    return this.clientRepository.save({
       id: userId,
       phone: dto.phone,
     });
@@ -74,9 +74,28 @@ export class CurrentUserService {
 
     if (!city) throw new HttpException('City with this id was not found ', 400);
 
-    await this.clientRepository.save({
+    return this.clientRepository.save({
       id: currentUserId,
       city: city.id,
+    });
+  }
+
+  async changeMainProfileId(
+    currentUserId: number,
+    orderProfileId: number | null,
+  ) {
+    if (orderProfileId !== null) {
+      const orderProfile = await this.orderProfileRepository.findOne(
+        orderProfileId,
+      );
+
+      if (!orderProfile)
+        throw new NotFoundException('Адрес доставки не найден');
+    }
+
+    return this.clientRepository.save({
+      id: currentUserId,
+      mainOrderProfileId: orderProfileId,
     });
   }
 
@@ -110,7 +129,7 @@ export class CurrentUserService {
           400,
         );
       }
-      updatedObj.mainOrderProfile = orderProfile;
+      updatedObj.mainOrderProfileId = orderProfile.id;
     }
 
     return this.clientRepository.save(updatedObj);
