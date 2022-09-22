@@ -94,6 +94,7 @@ export class ProductService {
           params.withRoleDiscounts && 'roleDiscounts',
           params.withGrades && 'productGrades',
           params.withCategories && 'categories',
+          params.withCategories && 'categories.parentCategories',
         ].filter((it) => it),
       },
     );
@@ -203,7 +204,7 @@ export class ProductService {
       saveParams.categories = [];
       for (const categoryId of product.categoryIds) {
         saveParams.categories.push(
-          await this.productRepository.findOne(categoryId),
+          await this.categoryRepository.findOne(categoryId),
         );
       }
     }
