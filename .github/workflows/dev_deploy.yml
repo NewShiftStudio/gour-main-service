@@ -26,4 +26,4 @@ jobs:
       #rsync -avz --progress --exclude-from '.gitignore' --exclude '.git' -e "ssh -p 22" ./ zolkinka@92.53.97.252:/var/www/gour/gour-main-service/
       - name: Restart the application
         run: |
-          ssh -p 22 zolkinka@92.53.97.252 "pushd /var/www/gour/gour-main-service && git fetch origin && git reset --hard origin/dev && git pull && docker compose up --detach --build -d main"
+          ssh -p 22 zolkinka@92.53.97.252 "pushd /var/www/gour/services/gour-main-service && git fetch origin && git reset --hard origin/dev && git pull && docker compose up --detach --build -d main"
