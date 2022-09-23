@@ -86,11 +86,13 @@ export class OrderController {
 
   @MessagePattern('edit-order')
   put(@Payload('id') id: number, @Payload('dto') dto: Partial<Order>) {
+    // TODO: если будут меняться товары, то изменить скидки
     return this.orderService.update(id, dto);
   }
 
   @MessagePattern('delete-order')
   remove(@Payload() id: number) {
+    // TODO: если будут меняться товары, то удалить скидки
     return this.orderService.remove(id);
   }
 }

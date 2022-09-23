@@ -6,7 +6,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Image } from '../../entity/Image';
 import { Repository } from 'typeorm';
 
-const STATIC_FOLDER_PATH = path.resolve(process.cwd(), '..', 'static');
+const STATIC_FOLDER_PATH = path.resolve(
+  process.env.STATIC_FOLDER_PATH,
+  'static',
+);
 const IMAGES_FOLDER_NAME = 'images';
 const STATIC_SERVER_PATH = process.env.STATIC_SERVER_PATH;
 
@@ -30,8 +33,6 @@ export class ImageService {
       if (!exists) {
         await fs.promises.mkdir(filePath, { recursive: true });
       }
-      console.log('typeof buffer: ', typeof file.buffer);
-      console.log('buffer: ', file.buffer);
       await fs.promises.writeFile(
         path.join(filePath, fileName),
         Buffer.from(file.buffer),

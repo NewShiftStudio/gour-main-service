@@ -1,6 +1,5 @@
 import {
   IsArray,
-  IsNumber,
   IsObject,
   IsOptional,
   IsString,
@@ -41,21 +40,19 @@ export class ProductUpdateDto {
   })
   images: number[];
 
-  @IsNumber()
+  @IsArray()
   @IsOptional()
-  @ApiPropertyOptional()
-  category?: number;
+  @ApiModelPropertyOptional({
+    type: Number,
+    isArray: true,
+  })
+  categoryIds?: number[];
 
   @ValidateNested()
   @Type(() => PriceDto)
   @IsOptional()
   @ApiPropertyOptional()
   price?: PriceDto;
-
-  @IsObject()
-  @IsOptional()
-  @ApiPropertyOptional()
-  characteristics?: Record<string, string | number>;
 
   @IsArray()
   @IsOptional()

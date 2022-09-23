@@ -47,6 +47,7 @@ export class ProductService {
         params.withSimilarProducts ? 'similarProducts' : undefined,
         params.withMeta ? 'meta' : undefined,
         params.withRoleDiscounts ? 'roleDiscounts' : undefined,
+        params.withCategories ? 'categories' : undefined,
         'images',
       ].filter((it) => it),
     });
@@ -65,9 +66,10 @@ export class ProductService {
       },
       take: 10,
       relations: [
-        params.withSimilarProducts ? 'similarProducts' : undefined,
-        params.withMeta ? 'meta' : undefined,
-        params.withRoleDiscounts ? 'roleDiscounts' : undefined,
+        params.withSimilarProducts && 'similarProducts',
+        params.withCategories && 'categories',
+        params.withMeta && 'meta',
+        params.withRoleDiscounts && 'roleDiscounts',
       ].filter((it) => it),
     });
 
@@ -87,10 +89,12 @@ export class ProductService {
       id,
       {
         relations: [
-          params.withSimilarProducts ? 'similarProducts' : undefined,
-          params.withMeta ? 'meta' : undefined,
-          params.withRoleDiscounts ? 'roleDiscounts' : undefined,
-          params.withGrades ? 'productGrades' : undefined,
+          params.withSimilarProducts && 'similarProducts',
+          params.withMeta && 'meta',
+          params.withRoleDiscounts && 'roleDiscounts',
+          params.withGrades && 'productGrades',
+          params.withCategories && 'categories',
+          params.withCategories && 'categories.parentCategories',
         ].filter((it) => it),
       },
     );
@@ -120,17 +124,22 @@ export class ProductService {
   async create(product: ProductCreateDto) {
     const saveParams: Omit<
       ProductCreateDto,
-      'category' | 'similarProducts' | 'roleDiscounts' | 'images'
+      'category' | 'similarProducts' | 'roleDiscounts' | 'images' | 'categories'
     > & {
-      category?: Category | number;
+      categories?: Category[];
       similarProducts?: (Product | number)[];
       roleDiscounts?: (RoleDiscount | object)[];
       images?: (Image | number)[];
     } = product;
 
-    saveParams.category = await this.categoryRepository.findOne(
-      product.category,
-    );
+    if (product.categoryIds) {
+      saveParams.categories = [];
+      for (const categoryId of product.categoryIds) {
+        saveParams.categories.push(
+          await this.categoryRepository.findOne(categoryId),
+        );
+      }
+    }
 
     if (product.similarProducts) {
       const similarProducts: Product[] = [];
@@ -187,15 +196,17 @@ export class ProductService {
       moyskladId: product.moyskladId,
       images,
       price: product.price,
-      characteristics: product.characteristics,
       meta: product.meta,
       id,
     };
 
-    if (product.category) {
-      saveParams.category = await this.categoryRepository.findOne(
-        product.category,
-      );
+    if (product.categoryIds) {
+      saveParams.categories = [];
+      for (const categoryId of product.categoryIds) {
+        saveParams.categories.push(
+          await this.categoryRepository.findOne(categoryId),
+        );
+      }
     }
 
     if (product.similarProducts) {
@@ -206,7 +217,7 @@ export class ProductService {
       saveParams.similarProducts = similarProducts;
     }
 
-    return this.productRepository.save(saveParams as DeepPartial<Product>);
+    return this.productRepository.save(saveParams);
   }
 
   async remove(id: number, hard = false) {

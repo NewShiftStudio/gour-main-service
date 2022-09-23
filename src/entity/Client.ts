@@ -6,6 +6,7 @@ import {
   JoinTable,
   OneToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { AppEntity } from './AppEntity';
 import { ClientRole } from './ClientRole';
@@ -16,6 +17,7 @@ import { Image } from './Image';
 import { OrderProfile } from './OrderProfile';
 import { Wallet } from './Wallet';
 import { Exclude } from 'class-transformer';
+import { Discount } from './Discount';
 
 @Entity()
 export class Client extends AppEntity {
@@ -58,6 +60,11 @@ export class Client extends AppEntity {
     default: '',
   })
   email: string;
+
+  @OneToMany(() => Discount, (discount) => discount.client, {
+    cascade: true,
+  })
+  discounts: Discount[];
 
   @ManyToOne(() => City, (city) => city.id, {
     eager: true,

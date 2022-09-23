@@ -47,7 +47,7 @@ export class ProductController {
   }
 
   @MessagePattern('create-product')
-  post(@Payload('dto') dto: ProductCreateDto) {
+  post(@Payload() dto: ProductCreateDto) {
     return this.productService.create(dto);
   }
 

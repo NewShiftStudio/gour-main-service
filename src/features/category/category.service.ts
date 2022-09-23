@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, Repository } from 'typeorm';
+import { DeepPartial, FindManyOptions, IsNull, Repository } from 'typeorm';
+
 import { Category } from '../../entity/Category';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
@@ -14,23 +15,78 @@ export class CategoryService {
     private categoryRepository: Repository<Category>,
   ) {}
 
-  findMany(params: BaseGetListDto) {
+  async findMany(params: BaseGetListDto) {
     const options: FindManyOptions<Category> = {
       ...getPaginationOptions(params.offset, params.length),
     };
 
-    return this.categoryRepository.findAndCount(options);
+    return this.categoryRepository
+      .createQueryBuilder('top_categories')
+      .leftJoinAndSelect('top_categories.parentCategories', 'top_parent')
+      .leftJoinAndSelect('top_categories.subCategories', 'mid_categories')
+      .leftJoinAndSelect('mid_categories.subCategories', 'bot_categories')
+
+      .leftJoinAndSelect('top_categories.title', 'top_title')
+      .leftJoinAndSelect('mid_categories.title', 'mid_title')
+      .leftJoinAndSelect('bot_categories.title', 'bot_title')
+
+      .where('top_parent.id IS NULL')
+      .skip(options.skip)
+      .take(options.take)
+      .getManyAndCount();
   }
 
-  getOne(id: number) {
-    return this.categoryRepository.findOne({ id });
+  async getOne(id: number) {
+    try {
+      return await this.categoryRepository.findOneOrFail({ id });
+    } catch {
+      throw new NotFoundException('Категория не найдена');
+    }
   }
 
-  create(category: CategoryCreateDto) {
+  async create(dto: CategoryCreateDto) {
+    const category: DeepPartial<Category> = { title: dto.title };
+
+    if (dto.subCategoriesIds) {
+      category.subCategories = [];
+      for (const subCategoryId of dto.subCategoriesIds) {
+        const subCategory = await this.getOne(subCategoryId);
+        category.subCategories.push(subCategory);
+      }
+    }
+
+    if (dto.parentCategoriesIds) {
+      category.parentCategories = [];
+      for (const parentCategoryId of dto.parentCategoriesIds) {
+        const parentCategory = await this.getOne(parentCategoryId);
+        category.parentCategories.push(parentCategory);
+      }
+    }
+
     return this.categoryRepository.save(category);
   }
 
-  update(id: number, category: CategoryUpdateDto) {
+  async update(id: number, dto: CategoryUpdateDto) {
+    const _isExist = await this.getOne(id);
+
+    const category: DeepPartial<Category> = { title: dto.title };
+
+    if (dto.subCategoriesIds) {
+      category.subCategories = [];
+      for (const subCategoryId of dto.subCategoriesIds) {
+        const subCategory = await this.getOne(subCategoryId);
+        category.subCategories.push(subCategory);
+      }
+    }
+
+    if (dto.parentCategoriesIds) {
+      category.parentCategories = [];
+      for (const parentCategoryId of dto.parentCategoriesIds) {
+        const parentCategory = await this.getOne(parentCategoryId);
+        category.parentCategories.push(parentCategory);
+      }
+    }
+
     return this.categoryRepository.save({
       ...category,
       id,
