@@ -8,13 +8,13 @@ import {
   OneToOne,
 } from 'typeorm';
 
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { Discount } from './Discount';
 import { Product } from './Product';
 import { TranslatableString } from './TranslatableString';
 
 @Entity()
-export class Category extends AppEntity {
+export class Category extends Base {
   @ApiProperty()
   @OneToOne(() => TranslatableString, {
     cascade: true,

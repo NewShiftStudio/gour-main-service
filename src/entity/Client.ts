@@ -8,7 +8,8 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import { AppEntity } from './AppEntity';
+
+import { Base } from './Base';
 import { ClientRole } from './ClientRole';
 import { Product } from './Product';
 import { City } from './City';
@@ -16,11 +17,10 @@ import { ReferralCode } from './ReferralCode';
 import { Image } from './Image';
 import { OrderProfile } from './OrderProfile';
 import { Wallet } from './Wallet';
-import { Exclude } from 'class-transformer';
 import { Discount } from './Discount';
 
 @Entity()
-export class Client extends AppEntity {
+export class Client extends Base {
   @ManyToOne(() => ClientRole, (role) => role.id, {
     eager: true,
   })
@@ -69,6 +69,7 @@ export class Client extends AppEntity {
   @ManyToOne(() => City, (city) => city.id, {
     eager: true,
     nullable: true,
+    onDelete: 'SET NULL',
   })
   city: number;
 
@@ -81,7 +82,6 @@ export class Client extends AppEntity {
   @Column({
     default: '',
   })
-  @Exclude()
   password: string;
 
   @OneToOne(() => Image, {
@@ -104,7 +104,7 @@ export class Client extends AppEntity {
   wallet: Wallet;
 
   @Column({
-    default: 3,
+    default: 1,
   })
   lives: number;
 }

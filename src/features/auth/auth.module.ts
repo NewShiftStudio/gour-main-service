@@ -1,7 +1,10 @@
 import { forwardRef, Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { HttpModule } from '@nestjs/axios';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { Client } from '../../entity/Client';
 import { ClientModule } from '../client/client.module';
 import { ReferralCode } from '../../entity/ReferralCode';
@@ -10,11 +13,8 @@ import { CurrentUserService } from './current-user.service';
 import { OrderProfile } from '../../entity/OrderProfile';
 import { Image } from '../../entity/Image';
 import { CookieService } from './cookie.service';
-import { HttpModule } from '@nestjs/axios';
 import { City } from '../../entity/City';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { APP_FILTER } from '@nestjs/core';
-import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
+import { ClientRole } from '../../entity/ClientRole';
 
 @Module({
   imports: [
@@ -28,7 +28,14 @@ import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
         },
       },
     ]),
-    TypeOrmModule.forFeature([Client, ReferralCode, OrderProfile, Image, City]),
+    TypeOrmModule.forFeature([
+      Client,
+      ReferralCode,
+      OrderProfile,
+      Image,
+      City,
+      ClientRole,
+    ]),
     forwardRef(() => ClientModule),
     HttpModule,
   ],

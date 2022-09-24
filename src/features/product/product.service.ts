@@ -1,6 +1,11 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, LessThan, MoreThan, Repository } from 'typeorm';
+import { DeepPartial, In, LessThan, MoreThan, Repository } from 'typeorm';
+
+import {
+  getProductsWithFullCost,
+  ProductWithFullCost,
+} from './product-cost-calculation.helper';
 import { Product } from '../../entity/Product';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { ProductCreateDto } from './dto/product-create.dto';
@@ -15,26 +20,29 @@ import { ProductWithMetricsDto } from './dto/product-with-metrics.dto';
 import { Image } from '../../entity/Image';
 import { Client } from '../../entity/Client';
 import { Promotion } from '../../entity/Promotion';
-import {
-  getProductsWithFullCost,
-  ProductWithFullCost,
-} from './product-cost-calculation.helper';
+import { ProductGetSimilarDto } from './dto/product-get-similar.dto';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+
     @InjectRepository(ProductGrade)
     private productGradeRepository: Repository<ProductGrade>,
+
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
+
     @InjectRepository(RoleDiscount)
     private roleDiscountRepository: Repository<RoleDiscount>,
+
     @InjectRepository(ClientRole)
     private clientRoleRepository: Repository<ClientRole>,
+
     @InjectRepository(Image)
     private imageRepository: Repository<Image>,
+
     @InjectRepository(Promotion)
     private promotionRepository: Repository<Promotion>,
   ) {}
@@ -80,6 +88,43 @@ export class ProductService {
     return products;
   }
 
+  async getSimilar(params: ProductGetSimilarDto, client: Client) {
+    const productIds = params.productIds.split(',');
+
+    // eslint-disable-next-line prefer-const
+    const products = await this.productRepository.find({
+      where: {
+        id: In(productIds),
+      },
+      relations: ['similarProducts'],
+    });
+
+    const similarProducts: Product[] = [];
+
+    for (const product of products) {
+      if (!product.similarProducts) return;
+
+      for (const similar of product.similarProducts) {
+        const isAlreadyHaveInBasket = products.find(
+          (it) => it.id === similar.id,
+        );
+        const isAlreadyHaveInSelection = similarProducts.find(
+          (it) => it.id === similar.id,
+        );
+
+        if (!isAlreadyHaveInBasket && !isAlreadyHaveInSelection)
+          similarProducts.push(similar);
+      }
+    }
+
+    const fullSimilarProducts = await this.prepareProducts(
+      client,
+      similarProducts,
+    );
+
+    return fullSimilarProducts;
+  }
+
   async getOne(
     id: number,
     params: ProductGetOneDto,
@@ -99,8 +144,7 @@ export class ProductService {
       },
     );
 
-    if (!product)
-      throw new HttpException('Product with this id was not found', 404);
+    if (!product) throw new NotFoundException('Товар не найден');
 
     if (params.withDiscount)
       product = await this.prepareProduct(client, product);
@@ -121,7 +165,7 @@ export class ProductService {
     return product;
   }
 
-  async create(product: ProductCreateDto) {
+  async create(dto: ProductCreateDto) {
     const saveParams: Omit<
       ProductCreateDto,
       'category' | 'similarProducts' | 'roleDiscounts' | 'images' | 'categories'
@@ -130,62 +174,72 @@ export class ProductService {
       similarProducts?: (Product | number)[];
       roleDiscounts?: (RoleDiscount | object)[];
       images?: (Image | number)[];
-    } = product;
+    } = dto;
 
-    if (product.categoryIds) {
+    if (dto.categoryIds) {
       saveParams.categories = [];
-      for (const categoryId of product.categoryIds) {
+      for (const categoryId of dto.categoryIds) {
         saveParams.categories.push(
           await this.categoryRepository.findOne(categoryId),
         );
       }
     }
 
-    if (product.similarProducts) {
+    if (dto.similarProducts) {
       const similarProducts: Product[] = [];
-      for (const productId of product.similarProducts) {
-        similarProducts.push(await this.productRepository.findOne(productId));
+
+      for (const productId of dto.similarProducts) {
+        const similarProduct = await this.productRepository.findOne(productId);
+
+        similarProducts.push(similarProduct);
       }
+
       saveParams.similarProducts = similarProducts;
     }
 
-    if (product.roleDiscounts) {
+    if (dto.roleDiscounts) {
       const roleDiscounts: RoleDiscount[] = [];
-      for (const roleDiscount of product.roleDiscounts) {
+
+      for (const roleDiscount of dto.roleDiscounts) {
         const role = await this.clientRoleRepository.findOne(roleDiscount.role);
+
         roleDiscounts.push(
-          await this.roleDiscountRepository.create({
+          this.roleDiscountRepository.create({
             role,
             value: roleDiscount.value,
           }),
         );
       }
+
       saveParams.roleDiscounts = roleDiscounts;
     }
 
-    saveParams.images = [];
-    for (const imageId of product.images) {
+    const images: Image[] = [];
+
+    for (const imageId of dto.images) {
       const image = await this.imageRepository.findOne(imageId);
-      if (!image) {
-        throw new HttpException(`Image with id=${imageId} was not found`, 400);
-      }
-      saveParams.images.push(image);
+
+      if (!image)
+        throw new NotFoundException(`Изображение с id=${imageId} не найдено`);
+
+      images.push(image);
     }
+
+    saveParams.images = images;
 
     return this.productRepository.save(saveParams as DeepPartial<Product>);
   }
 
   async update(id: number, product: ProductUpdateDto) {
-    const images = [];
+    const images: Image[] = [];
+
     if (product.images) {
       for (const imageId of product.images) {
         const image = await this.imageRepository.findOne(imageId);
-        if (!image) {
-          throw new HttpException(
-            `Image with id=${imageId} was not found`,
-            400,
-          );
-        }
+
+        if (!image)
+          throw new NotFoundException(`Изображение с id=${imageId} не найдено`);
+
         images.push(image);
       }
     }
@@ -211,9 +265,11 @@ export class ProductService {
 
     if (product.similarProducts) {
       const similarProducts: Product[] = [];
+
       for (const productId of product.similarProducts) {
         similarProducts.push(await this.productRepository.findOne(productId));
       }
+
       saveParams.similarProducts = similarProducts;
     }
 
@@ -223,11 +279,14 @@ export class ProductService {
   async remove(id: number, hard = false) {
     if (hard) {
       const product = await this.productRepository.findOne(id);
+
       await this.roleDiscountRepository.delete({
         product,
       });
+
       return this.productRepository.delete(id);
     }
+
     return this.productRepository.softDelete(id);
   }
 
@@ -258,6 +317,8 @@ export class ProductService {
     client: Client,
     product: P,
   ): Promise<ProductWithFullCost<P>> {
-    return (await this.prepareProducts(client, [product]))[0];
+    const preparedProducts = await this.prepareProducts(client, [product]);
+
+    return preparedProducts[0];
   }
 }

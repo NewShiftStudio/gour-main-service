@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
+
 import { Page } from '../../entity/Page';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';

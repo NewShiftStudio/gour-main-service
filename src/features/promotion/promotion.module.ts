@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { PromotionService } from './promotion.service';
 import { PromotionController } from './promotion.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { Promotion } from '../../entity/Promotion';
 import { Image } from '../../entity/Image';
 import { Product } from '../../entity/Product';

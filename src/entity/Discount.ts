@@ -1,12 +1,12 @@
 import { Entity, Column, ManyToOne } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { Client } from './Client';
 import { Category } from './Category';
 
 @Entity()
-export class Discount extends AppEntity {
+export class Discount extends Base {
   @ApiProperty()
   @Column({
     default: 0,

@@ -118,7 +118,6 @@ requiredEnvs.forEach((envKey) => {
     ImageModule,
     MetaModule,
     WalletModule,
-    // TestModule,
   ],
   providers: [
     {

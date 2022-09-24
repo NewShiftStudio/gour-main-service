@@ -1,8 +1,8 @@
 import { Entity, Column, Index } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 
 @Entity()
-export class ClientRole extends AppEntity {
+export class ClientRole extends Base {
   @Column()
   title: string;
 

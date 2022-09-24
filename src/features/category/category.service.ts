@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, FindManyOptions, IsNull, Repository } from 'typeorm';
+import { DeepPartial, FindManyOptions, Repository } from 'typeorm';
 
 import { Category } from '../../entity/Category';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';

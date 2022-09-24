@@ -1,8 +1,8 @@
 import { Entity, Column } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 
 @Entity()
-export class TranslatableText extends AppEntity {
+export class TranslatableText extends Base {
   @Column({
     type: 'text',
   })

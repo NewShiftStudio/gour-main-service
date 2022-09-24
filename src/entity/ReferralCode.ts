@@ -1,8 +1,8 @@
 import { Entity, Column, Index } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 
 @Entity()
-export class ReferralCode extends AppEntity {
+export class ReferralCode extends Base {
   @Index({
     unique: true,
   })

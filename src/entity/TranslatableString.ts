@@ -1,9 +1,9 @@
 import { Entity, Column } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
-export class TranslatableString extends AppEntity {
+export class TranslatableString extends Base {
   @ApiProperty()
   @Column()
   en: string;

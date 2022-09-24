@@ -1,10 +1,10 @@
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { PageMeta } from './PageMeta';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
-export class Page extends AppEntity {
+export class Page extends Base {
   @ApiProperty({
     type: PageMeta,
   })
