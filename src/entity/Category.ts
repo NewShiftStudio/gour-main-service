@@ -24,7 +24,9 @@ export class Category extends Base {
   title: TranslatableString;
 
   @ApiProperty()
-  @ManyToMany(() => Category, (subCategory) => subCategory.parentCategories)
+  @ManyToMany(() => Category, (subCategory) => subCategory.parentCategories, {
+    onDelete: 'CASCADE',
+  })
   @JoinTable()
   subCategories?: Category[];
 
@@ -34,6 +36,7 @@ export class Category extends Base {
     (parentCategory) => parentCategory.subCategories,
     {
       cascade: true,
+      onDelete: 'CASCADE',
     },
   )
   parentCategories?: Category[];
