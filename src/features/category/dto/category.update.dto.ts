@@ -10,13 +10,11 @@ export class CategoryUpdateDto {
   @ApiPropertyOptional()
   title?: TranslatableStringDto;
 
-  @ValidateNested()
   @ApiPropertyOptional()
   @IsOptional()
   @IsArray()
   subCategoriesIds?: number[];
 
-  @ValidateNested()
   @ApiPropertyOptional()
   @IsOptional()
   @IsArray()
