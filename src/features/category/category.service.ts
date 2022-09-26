@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, FindManyOptions, Repository } from 'typeorm';
+import { DeepPartial, FindManyOptions, In, Repository } from 'typeorm';
 
 import { Category } from '../../entity/Category';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
@@ -120,7 +120,20 @@ export class CategoryService {
     });
   }
 
-  remove(id: number) {
-    return this.categoryRepository.delete(id);
+  async remove(id: number) {
+    const categories = await this.categoryRepository
+      .createQueryBuilder('category')
+      .leftJoin('category.parentCategories', 'midCategories')
+      .leftJoin('midCategories.parentCategories', 'topCategories')
+      .where('category.id = :id', { id: id })
+      .orWhere('midCategories.id = :id', { id })
+      .orWhere('topCategories.id = :id', { id: id })
+      .getMany();
+
+    const categoriesIds = categories.map((i) => i.id);
+    if (categoriesIds.length) {
+      return await this.categoryRepository.delete(categoriesIds); // через 1 запрос не удаляются
+    }
+    throw new NotFoundException('Нет подходящих категорий');
   }
 }

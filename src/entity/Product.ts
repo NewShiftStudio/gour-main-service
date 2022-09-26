@@ -90,7 +90,9 @@ export class Product extends Base {
   })
   roleDiscounts: RoleDiscount[];
 
-  @ManyToMany(() => Category, (category) => category.products)
+  @ManyToMany(() => Category, (category) => category.products, {
+    onDelete: 'CASCADE',
+  })
   @JoinTable({
     name: 'product_category',
     joinColumn: {
