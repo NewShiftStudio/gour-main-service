@@ -23,7 +23,7 @@ export class AuthController {
 
   @MessagePattern('send-code')
   sendCode(@Payload() dto: SendCodeDto) {
-    return this.authService.sendCode(dto.phone);
+    return this.authService.sendCode(dto.email);
   }
 
   @MessagePattern('check-code')
