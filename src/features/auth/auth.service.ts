@@ -14,10 +14,10 @@ import { Repository } from 'typeorm';
 import { firstValueFrom } from 'rxjs';
 
 import {
-  decodePhoneCode,
+  decodeSomeDataCode,
   decodeToken,
   encodeJwt,
-  encodePhoneCode,
+  encodeSomeDataCode,
   encodeRefreshJwt,
   verifyJwt,
 } from './jwt.service';
@@ -53,9 +53,9 @@ export class AuthService {
     await this.client.connect();
   }
 
-  async sendCode(phone: string): Promise<string> {
+  async sendCode(email: string): Promise<string> {
     const user = await this.clientRepository.findOne({
-      phone,
+      email,
     });
 
     if (user)
@@ -64,16 +64,16 @@ export class AuthService {
     const code = generateSmsCode();
 
     try {
-      await this.sendSms(phone, code);
+      await this.sendEmail(email, code);
     } catch (error) {
       throw new BadRequestException('Ошибка при отправке кода');
     }
 
-    return encodePhoneCode(phone, code);
+    return encodeSomeDataCode(email, code);
   }
 
   checkCode(code: string, hash: string): boolean {
-    const result = decodePhoneCode(hash);
+    const result = decodeSomeDataCode(hash);
     return code === result?.code;
   }
 
@@ -83,13 +83,23 @@ export class AuthService {
     );
   }
 
+  async sendEmail(email: string, code: number) {
+    return firstValueFrom(
+      this.client.send('send-email', {
+        email,
+        subject: `Код для регистрации Gour Food ${code.toString()}`,
+        content: `Ваш код для регистрации: ${code.toString()}`,
+      }),
+    );
+  }
+
   async signup(dto: SignUpDto) {
     const isValidCode = this.checkCode(dto.code, dto.codeHash);
 
     if (!isValidCode) throw new ForbiddenException('Неверный код');
 
     const user = await this.clientRepository.findOne({
-      phone: dto.phone,
+      email: dto.email,
     });
 
     if (user)
@@ -119,7 +129,7 @@ export class AuthService {
       role: dto.roleId,
       firstName: dto.firstName,
       lastName: dto.lastName,
-      phone: dto.phone,
+      email: dto.email,
       city: dto.cityId,
       referralCode,
       password,
