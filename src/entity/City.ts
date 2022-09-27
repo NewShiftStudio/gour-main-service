@@ -1,9 +1,9 @@
 import { Entity, JoinColumn, OneToOne } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { TranslatableString } from './TranslatableString';
 
 @Entity()
-export class City extends AppEntity {
+export class City extends Base {
   @OneToOne(() => TranslatableString, {
     eager: true,
     cascade: true,

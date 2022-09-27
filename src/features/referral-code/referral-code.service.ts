@@ -1,6 +1,7 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, IsNull, Not, Repository } from 'typeorm';
+
 import { ReferralCode } from '../../entity/ReferralCode';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
@@ -14,6 +15,7 @@ export class ReferralCodeService {
   constructor(
     @InjectRepository(ReferralCode)
     private referralCodeRepository: Repository<ReferralCode>,
+
     @InjectRepository(Client)
     private clientRepository: Repository<Client>,
   ) {}
@@ -27,9 +29,8 @@ export class ReferralCodeService {
   async getReferrals(params: ReferralCodeGetListDto): Promise<Client[]> {
     const options: FindManyOptions<Client> = {
       ...getPaginationOptions(params.offset, params.length),
-      relations: ['referralCode'],
       where: {
-        referralCodeId: Not(IsNull()),
+        referralCode: Not(IsNull()),
       },
     };
 
@@ -46,16 +47,15 @@ export class ReferralCodeService {
     return this.referralCodeRepository.findOne({ id });
   }
 
-  async create(referralCode: ReferralCodeCreateDto) {
-    try {
-      const discount = await this.getDiscount();
-      return await this.referralCodeRepository.save({
-        discount,
-        code: referralCode.code,
-      });
-    } catch (e) {
-      throw new HttpException(e?.driverError?.detail || 'error', 400);
-    }
+  async create(dto: ReferralCodeCreateDto) {
+    const discount = await this.getDiscount();
+
+    const referralCode = await this.referralCodeRepository.save({
+      discount,
+      code: dto.code,
+    });
+
+    return referralCode;
   }
 
   update(id: number, dto: ReferralCodeEditDto) {
@@ -70,15 +70,25 @@ export class ReferralCodeService {
   }
 
   async getDiscount(): Promise<number> {
-    return (await this.referralCodeRepository.findOne())?.discount || 0;
+    const referralCode = await this.referralCodeRepository.findOne();
+    const discount = referralCode?.discount || 0;
+
+    return discount;
   }
 
   async setDiscount(discount: number) {
-    return this.referralCodeRepository.update(
+    await this.referralCodeRepository.update(
       {},
       {
         discount,
       },
     );
+
+    const updatedDiscount = await this.getDiscount();
+
+    if (discount !== updatedDiscount)
+      throw new BadRequestException('Не удалось изменить размер скидки');
+
+    return discount;
   }
 }

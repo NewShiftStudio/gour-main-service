@@ -1,9 +1,9 @@
 import { Entity, Column, ManyToMany } from 'typeorm';
-import { AppEntity } from './AppEntity';
-import { Product } from './Product'
+import { Base } from './Base';
+import { Product } from './Product';
 
 @Entity()
-export class Image extends AppEntity {
+export class Image extends Base {
   @Column({
     type: 'varchar',
     length: 500,

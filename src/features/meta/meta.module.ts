@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { MetaService } from './meta.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { Meta } from '../../entity/Meta';
+import { MetaService } from './meta.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Meta])],

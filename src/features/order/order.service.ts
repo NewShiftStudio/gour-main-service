@@ -23,12 +23,16 @@ export class OrderService {
   constructor(
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
+
     @InjectRepository(OrderProduct)
     private orderProductRepository: Repository<OrderProduct>,
+
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+
     @InjectRepository(OrderProfile)
     private orderProfileRepository: Repository<OrderProfile>,
+
     private productService: ProductService,
     private discountService: DiscountService,
   ) {}
@@ -88,8 +92,7 @@ export class OrderService {
       },
     );
 
-    if (!order)
-      throw new HttpException('Order with this id was not found', 400);
+    if (!order) throw new NotFoundException('Заказ не найден');
 
     const orderWithTotalSum = await this.prepareOrder(order);
 
@@ -101,8 +104,7 @@ export class OrderService {
       order.orderProfileId,
     );
 
-    if (!orderProfile)
-      throw new HttpException('Order profile with this id was not found', 400);
+    if (!orderProfile) throw new NotFoundException('Профиль заказа не найден');
 
     const orderProducts: OrderProduct[] = [];
 
@@ -113,8 +115,7 @@ export class OrderService {
         relations: ['categories'],
       });
 
-      if (!product)
-        throw new NotFoundException('Product with this id was not found');
+      if (!product) throw new NotFoundException('Товар не найден');
 
       const discountPromises = product.categories.map((category) =>
         this.discountService.add(
@@ -223,9 +224,9 @@ export class OrderService {
 
   getDescription(order: OrderWithTotalSumDto): string {
     if (!order.orderProducts?.length)
-      throw new Error('order.orderProducts is required');
+      throw new Error('Необходимы товары из заказа');
 
-    if (!order.orderProfile) throw new Error('order.orderProfile is required');
+    if (!order.orderProfile) throw new Error('Необходим профиль заказа');
 
     let description = `
       Заказ от ${order.firstName} ${order.lastName}

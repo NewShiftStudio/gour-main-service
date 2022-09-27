@@ -34,8 +34,8 @@ export class ReferralCodeController {
   }
 
   @MessagePattern('get-referrals')
-  export(@Payload() params: ReferralCodeExportDto) {
-    return this.referralCodeService.getReferrals(params);
+  export(@Payload() dto: ReferralCodeExportDto) {
+    return this.referralCodeService.getReferrals(dto);
   }
 
   @MessagePattern('get-referral-discount')

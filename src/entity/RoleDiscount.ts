@@ -1,10 +1,10 @@
 import { Entity, Column, ManyToOne } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { ClientRole } from './ClientRole';
 import { Product } from './Product';
 
 @Entity()
-export class RoleDiscount extends AppEntity {
+export class RoleDiscount extends Base {
   @ManyToOne(() => Product, {
     onDelete: 'CASCADE',
   })

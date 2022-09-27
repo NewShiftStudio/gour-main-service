@@ -1,10 +1,10 @@
 import { Entity, Column, ManyToOne } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { Product } from './Product';
 import { Order } from './Order';
 
 @Entity()
-export class OrderProduct extends AppEntity {
+export class OrderProduct extends Base {
   @ManyToOne(() => Order)
   order: Order;
 

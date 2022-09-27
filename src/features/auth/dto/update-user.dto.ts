@@ -42,4 +42,9 @@ export class UpdateUserDto {
   @IsNumber()
   @IsOptional()
   avatarId?: number;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  referralCode?: string;
 }

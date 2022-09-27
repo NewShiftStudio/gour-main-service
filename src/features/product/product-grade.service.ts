@@ -1,6 +1,7 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, Not, Repository } from 'typeorm';
+
 import { ProductGrade } from '../../entity/ProductGrade';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { ProductGradeCreateDto } from './dto/product-grade-create.dto';
@@ -12,6 +13,7 @@ export class ProductGradeService {
   constructor(
     @InjectRepository(ProductGrade)
     private productGradeRepository: Repository<ProductGrade>,
+
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
   ) {}
@@ -61,8 +63,7 @@ export class ProductGradeService {
   async create(id: number, productGrade: ProductGradeCreateDto) {
     const product = await this.productRepository.findOne(id);
 
-    if (!product)
-      throw new HttpException(`Product with id=${id} was not found`, 400);
+    if (!product) throw new NotFoundException('Товар не найден');
 
     const grade = await this.productGradeRepository.save({
       ...productGrade,
