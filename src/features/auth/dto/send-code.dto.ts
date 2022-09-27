@@ -1,8 +1,8 @@
-import { IsPhoneNumber } from 'class-validator';
+import { IsEmail } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SendCodeDto {
   @ApiProperty()
-  @IsPhoneNumber()
-  phone: string;
+  @IsEmail()
+  email: string;
 }

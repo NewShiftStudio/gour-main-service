@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { decodePhoneCode } from './jwt.service';
+import { decodeSomeDataCode } from './jwt.service';
 import { ChangePhoneDto } from './dto/change-phone.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Client } from '../../entity/Client';
@@ -43,12 +43,13 @@ export class CurrentUserService {
     });
   }
 
+  //FIXME: заменить этот метод на смену email
   async changePhone(userId: number, hashedCode: string, dto: ChangePhoneDto) {
     if (!hashedCode) throw new NotFoundException('Cookie не найден');
 
-    const { code, phone } = decodePhoneCode(hashedCode || '');
+    const { code, someData } = decodeSomeDataCode(hashedCode || '');
 
-    if (phone !== dto.phone)
+    if (someData !== dto.phone)
       throw new BadRequestException('Неверный номер телефона');
 
     if (+code !== dto.code) throw new BadRequestException('Неверный код');
