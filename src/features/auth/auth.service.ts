@@ -132,7 +132,7 @@ export class AuthService {
     client: Client;
   }> {
     const user = await this.clientRepository.findOne({
-      phone: '+7 (995) 235-96-50',
+      phone: dto.phone,
     });
 
     if (!user) throw new NotFoundException('Пользователь не найден');
