@@ -107,11 +107,15 @@ export class AuthService {
         'Пользователь с таким телефоном существует',
       );
 
-    const role = await this.clientRoleRepository.findOne({ id: dto.roleId });
+    const role = await this.clientRoleRepository.findOne({
+      where: { id: dto.roleId },
+    });
 
     if (!role) throw new NotFoundException('Роль не найдена');
 
-    const city = await this.cityRepository.findOne({ id: dto.cityId });
+    const city = await this.cityRepository.findOne({
+      where: { id: dto.cityId },
+    });
 
     if (!city) throw new NotFoundException('Город не найден');
 
