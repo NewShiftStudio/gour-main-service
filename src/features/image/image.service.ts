@@ -10,11 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Image } from '../../entity/Image';
 
-const STATIC_FOLDER_PATH = path.resolve(
-  process.env.STATIC_FOLDER_PATH,
-  'static',
-);
-
+const STATIC_FOLDER_PATH = path.resolve(process.cwd(), 'static');
 const IMAGES_FOLDER_NAME = 'images';
 const STATIC_SERVER_PATH = process.env.STATIC_SERVER_PATH;
 
