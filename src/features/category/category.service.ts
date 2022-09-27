@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, FindManyOptions, In, Repository } from 'typeorm';
+import { DeepPartial, FindManyOptions, Repository } from 'typeorm';
 
 import { Category } from '../../entity/Category';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
@@ -34,33 +34,6 @@ export class CategoryService {
       .skip(options.skip)
       .take(options.take)
       .getManyAndCount();
-  }
-
-  async findCommon(params: BaseGetListDto) {
-    const options: FindManyOptions<Category> = {
-      ...getPaginationOptions(params.offset, params.length),
-    };
-
-    const parentCategoriesLength = await this.categoryRepository
-      .createQueryBuilder('top_categories')
-      .leftJoinAndSelect('top_categories.parentCategories', 'parent')
-      .where('parent.id IS NULL')
-      .getCount();
-
-    const midCategories = await this.categoryRepository
-      .createQueryBuilder('mid_categories')
-      .leftJoinAndSelect('mid_categories.parentCategories', 'top_categories')
-      .leftJoinAndSelect('mid_categories.subCategories', 'bot_categories')
-      .leftJoinAndSelect('mid_categories.title', 'mid_title')
-      .where('top_categories.id IS NOT NULL')
-      .where('bot_categories.id IS NOT NULL')
-      .getMany();
-
-    const commonMidCategories = midCategories.filter(
-      (category) => category.parentCategories.length === parentCategoriesLength,
-    );
-
-    return commonMidCategories;
   }
 
   async getOne(id: number) {

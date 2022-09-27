@@ -17,11 +17,6 @@ export class CategoryController {
     return this.categoryService.findMany(params);
   }
 
-  @MessagePattern('get-common-categories')
-  getCommon(@Payload() params: BaseGetListDto) {
-    return this.categoryService.findCommon(params);
-  }
-
   @MessagePattern('get-category')
   getOne(@Payload() id: number) {
     return this.categoryService.getOne(id);

@@ -7,8 +7,12 @@ import { AppModule } from './app.module';
 import { getRequiredEnvsByNodeEnv } from './common/utils/getRequiredEnvsByNodeEnv';
 import { NodeEnv } from './common/types/App';
 
-
-const envs = ['NODE_ENV', 'STATIC_FOLDER_PATH', 'MESSAGES_SERVICE_PORT', 'MESSAGES_SERVICE_HOST'];
+const envs = [
+  'NODE_ENV',
+  'STATIC_FOLDER_PATH',
+  'MESSAGES_SERVICE_PORT',
+  'MESSAGES_SERVICE_HOST',
+];
 
 const requiredEnvs = getRequiredEnvsByNodeEnv(
   { common: envs, development: ['SENTRY_DSN'], production: ['SENTRY_DSN'] },
