@@ -19,6 +19,7 @@ export class Category extends Base {
   @OneToOne(() => TranslatableString, {
     cascade: true,
     eager: true,
+    onDelete: 'CASCADE',
   })
   @JoinColumn()
   title: TranslatableString;
@@ -42,7 +43,10 @@ export class Category extends Base {
   parentCategories?: Category[];
 
   @ApiProperty()
-  @ManyToMany(() => Product, (product) => product.categories, { cascade: true })
+  @ManyToMany(() => Product, (product) => product.categories, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   products: Product[];
 
   @OneToMany(() => Discount, (discount) => discount.productCategory, {
