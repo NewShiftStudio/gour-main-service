@@ -35,26 +35,26 @@ export function decodeToken(token: string) {
 
 const HASH_SEPARATOR = '___';
 
-export function decodePhoneCode(
+export function decodeSomeDataCode(
   hash: string,
-): { phone: string; code: string } | null {
+): { someData: string; code: string } | null {
   const bytes = AES.decrypt(hash, process.env.PHONE_CODE_SECRET_KEY);
   const result = bytes.toString(enc.Utf8);
   if (!result) {
     return null;
   }
 
-  const [_, phone, code] = result.split(HASH_SEPARATOR);
+  const [_, someData, code] = result.split(HASH_SEPARATOR);
 
   return {
-    phone,
+    someData,
     code,
   };
 }
 
-export function encodePhoneCode(phone: string, code: number): string {
+export function encodeSomeDataCode(someData: string, code: number): string {
   return AES.encrypt(
-    `PHONE_CODE${HASH_SEPARATOR}${phone}${HASH_SEPARATOR}${code}`,
+    `SOME_DATA_CODE${HASH_SEPARATOR}${someData}${HASH_SEPARATOR}${code}`,
     process.env.PHONE_CODE_SECRET_KEY,
   ).toString();
 }
