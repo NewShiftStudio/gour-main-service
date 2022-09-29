@@ -15,7 +15,7 @@ const generateCategory = (
 });
 
 export class SeedProductCategories2662982868825 implements MigrationInterface {
-  name = 'SeedProductCategories2662982868825';
+  name = 'SeedProductCategories2662982868865';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     const insertToCategoryTable = (
