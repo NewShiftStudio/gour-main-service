@@ -84,12 +84,12 @@ export class Client extends Base {
   })
   password: string;
 
-  @OneToOne(() => Image, {
-    nullable: true,
+  @ManyToOne(() => Image, (image) => image.id, {
     eager: true,
+    nullable: true,
+    onDelete: 'SET NULL',
   })
-  @JoinColumn()
-  avatar: Image;
+  avatar: number;
 
   @OneToOne(() => OrderProfile, {
     nullable: true,

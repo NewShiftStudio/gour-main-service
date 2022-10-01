@@ -19,9 +19,9 @@ export class UpdateUserDto {
   lastName?: string;
 
   @ApiPropertyOptional()
-  @IsEmail()
+  @IsString()
   @IsOptional()
-  email?: string;
+  phone?: string;
 
   @ApiPropertyOptional()
   @IsArray()
@@ -37,11 +37,6 @@ export class UpdateUserDto {
   @IsOptional()
   @ApiPropertyOptional()
   mainOrderProfileId?: number;
-
-  @ApiPropertyOptional()
-  @IsNumber()
-  @IsOptional()
-  avatarId?: number;
 
   @ApiPropertyOptional()
   @IsString()
