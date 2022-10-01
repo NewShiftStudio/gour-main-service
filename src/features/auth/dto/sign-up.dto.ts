@@ -20,7 +20,7 @@ export class SignUpDto {
 
   @ApiProperty()
   @IsString()
-  codeHash: string;
+  hashedCode: string;
 
   @ApiProperty()
   @IsString()

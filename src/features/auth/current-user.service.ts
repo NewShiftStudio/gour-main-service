@@ -4,7 +4,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { decodeSomeDataCode } from './jwt.service';
-import { ChangePhoneDto } from './dto/change-phone.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Client } from '../../entity/Client';
 import { Repository } from 'typeorm';
@@ -17,6 +16,7 @@ import { Image } from '../../entity/Image';
 import { OrderProfile } from '../../entity/OrderProfile';
 import { City } from '../../entity/City';
 import { ReferralCode } from 'src/entity/ReferralCode';
+import { ChangeEmailDto } from './dto/change-email.dto';
 
 @Injectable()
 export class CurrentUserService {
@@ -43,29 +43,33 @@ export class CurrentUserService {
     });
   }
 
-  //FIXME: заменить этот метод на смену email
-  async changePhone(userId: number, hashedCode: string, dto: ChangePhoneDto) {
+  async changeEmail(userId: number, hashedCode: string, dto: ChangeEmailDto) {
     if (!hashedCode) throw new NotFoundException('Cookie не найден');
+
+    const user = await this.clientRepository.findOne({
+      where: { email: dto.email },
+    });
+
+    if (user) throw new BadRequestException('Email занят');
 
     const { code, someData } = decodeSomeDataCode(hashedCode || '');
 
-    if (someData !== dto.phone)
-      throw new BadRequestException('Неверный номер телефона');
+    if (code !== dto.code) throw new BadRequestException('Неверный код');
 
-    if (+code !== dto.code) throw new BadRequestException('Неверный код');
+    if (someData !== dto.email) throw new BadRequestException('Неверный email');
 
-    await this.clientRepository.save({
+    return this.clientRepository.save({
       id: userId,
-      phone: dto.phone,
+      email: dto.email,
     });
   }
 
   async changePassword(currentUserId: number, dto: ChangePasswordDto) {
-    const prevPassHash = (
-      await this.clientRepository.findOne({
-        id: currentUserId,
-      })
-    )?.password;
+    const user = await this.clientRepository.findOne(currentUserId);
+
+    if (!user) throw new NotFoundException('Пользователь не найден');
+
+    const prevPassHash = user.password;
 
     const isValidPrevPass = await bcrypt.compare(
       dto.prevPassword,
@@ -87,9 +91,20 @@ export class CurrentUserService {
 
     if (!city) throw new NotFoundException('Город не найден');
 
-    await this.clientRepository.save({
+    return this.clientRepository.save({
       id: currentUserId,
       city: city.id,
+    });
+  }
+
+  async changeAvatarId(currentUserId: number, avatarId: number) {
+    const avatar = await this.imageRepository.findOne(avatarId);
+
+    if (!avatar) throw new NotFoundException('Изображение не найдено');
+
+    return this.clientRepository.save({
+      id: currentUserId,
+      avatar: avatar.id,
     });
   }
 
@@ -97,34 +112,33 @@ export class CurrentUserService {
     const updatedObj: DeepPartial<Client> = {
       firstName: dto.firstName,
       lastName: dto.lastName,
-      email: dto.email,
       id,
     };
 
-    if ('avatarId' in dto) {
-      if (dto.avatarId === null) updatedObj.avatar = null;
-      else {
-        const avatar = await this.imageRepository.findOne(dto.avatarId);
+    if (dto.phone) {
+      const client = await this.clientRepository.findOne({
+        where: { phone: dto.phone },
+      });
 
-        if (!avatar) throw new NotFoundException('Аватар не найден');
+      if (client) throw new NotFoundException('Номер телефона занят');
 
-        updatedObj.avatar = avatar;
-      }
+      updatedObj.phone = dto.phone;
     }
 
     if (dto.mainOrderProfileId) {
       const orderProfile = await this.orderProfileRepository.findOne(
         dto.mainOrderProfileId,
       );
-      if (!orderProfile) {
+
+      if (!orderProfile)
         throw new NotFoundException('Профиль заказа не найден');
-      }
+
       updatedObj.mainOrderProfile = orderProfile;
     }
 
     if (dto.referralCode) {
       const referralCode = await this.referralCodeRepository.findOne({
-        where: { code: dto.referralCode },
+        code: dto.referralCode,
       });
 
       if (referralCode) updatedObj.referralCode = referralCode;
