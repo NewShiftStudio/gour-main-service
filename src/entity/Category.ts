@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  Column,
   Entity,
   JoinColumn,
   JoinTable,
@@ -23,6 +24,11 @@ export class Category extends Base {
   })
   @JoinColumn()
   title: TranslatableString;
+
+  @Column({
+    default: false,
+  })
+  hasDiscount: boolean;
 
   @ApiProperty()
   @ManyToMany(() => Category, (subCategory) => subCategory.parentCategories, {
