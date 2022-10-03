@@ -1,5 +1,10 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsOptional, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsOptional,
+  ValidateNested,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 import { TranslatableStringDto } from '../../../common/dto/translatable-string.dto';
@@ -14,6 +19,11 @@ export class CategoryUpdateDto {
   @IsOptional()
   @IsArray()
   subCategoriesIds?: number[];
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  hasDiscount?: boolean;
 
   @ApiPropertyOptional()
   @IsOptional()
