@@ -1,10 +1,10 @@
 import { Entity, Column, ManyToOne } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { City } from './City';
 import { Client } from './Client';
 
 @Entity()
-export class OrderProfile extends AppEntity {
+export class OrderProfile extends Base {
   @Column()
   title: string;
 

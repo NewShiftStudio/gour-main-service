@@ -7,7 +7,7 @@ import {
   JoinTable,
   JoinColumn,
 } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { TranslatableString } from './TranslatableString';
 import { TranslatableText } from './TranslatableText';
 import { ProductModification } from './ProductModification';
@@ -21,7 +21,7 @@ import { Promotion } from './Promotion';
 import { Category } from './Category';
 
 @Entity()
-export class Product extends AppEntity {
+export class Product extends Base {
   @ApiProperty()
   @OneToOne(() => TranslatableString, {
     cascade: true,
@@ -90,7 +90,9 @@ export class Product extends AppEntity {
   })
   roleDiscounts: RoleDiscount[];
 
-  @ManyToMany(() => Category, (category) => category.products)
+  @ManyToMany(() => Category, (category) => category.products, {
+    onDelete: 'CASCADE',
+  })
   @JoinTable({
     name: 'product_category',
     joinColumn: {

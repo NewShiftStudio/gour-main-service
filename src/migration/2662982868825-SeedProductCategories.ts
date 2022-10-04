@@ -14,7 +14,9 @@ const generateCategory = (
   ...((subCategories && { subCategories }) || {}),
 });
 
-export class SeedProductCategories1662982868824 implements MigrationInterface {
+export class SeedProductCategories2662982868825 implements MigrationInterface {
+  name = 'SeedProductCategories2662982868865';
+
   public async up(queryRunner: QueryRunner): Promise<void> {
     const insertToCategoryTable = (
       rows: ReturnType<typeof generateCategory>[],
@@ -26,31 +28,6 @@ export class SeedProductCategories1662982868824 implements MigrationInterface {
     ]);
 
     await insertToCategoryTable([
-      // общие
-      generateCategory(
-        'Страна происхождения',
-        [cheeseCategory, meatCategory],
-        await insertToCategoryTable([
-          generateCategory('Испания'),
-          generateCategory('Италия'),
-          generateCategory('Франция'),
-          generateCategory('Голландия'),
-          generateCategory('Великобритания'),
-          generateCategory('Россия'),
-        ]),
-      ),
-      generateCategory(
-        'Выдержка',
-        [cheeseCategory, meatCategory],
-        await insertToCategoryTable([
-          generateCategory('Без выдержки'),
-          generateCategory('От 1 месяца'),
-          generateCategory('От 3 месяцев'),
-          generateCategory('От 6 месяцев'),
-          generateCategory('От 1 года'),
-        ]),
-      ),
-
       // сыр
       generateCategory(
         'Молоко',
@@ -91,6 +68,29 @@ export class SeedProductCategories1662982868824 implements MigrationInterface {
           generateCategory('Нет'),
         ]),
       ),
+      generateCategory(
+        'Страна происхождения',
+        [cheeseCategory],
+        await insertToCategoryTable([
+          generateCategory('Испания'),
+          generateCategory('Италия'),
+          generateCategory('Франция'),
+          generateCategory('Голландия'),
+          generateCategory('Великобритания'),
+          generateCategory('Россия'),
+        ]),
+      ),
+      generateCategory(
+        'Выдержка',
+        [cheeseCategory],
+        await insertToCategoryTable([
+          generateCategory('Без выдержки'),
+          generateCategory('От 1 месяца'),
+          generateCategory('От 3 месяцев'),
+          generateCategory('От 6 месяцев'),
+          generateCategory('От 1 года'),
+        ]),
+      ),
 
       // мясо
       generateCategory(
@@ -123,6 +123,29 @@ export class SeedProductCategories1662982868824 implements MigrationInterface {
           generateCategory('Холодного копчения'),
           generateCategory('Вяленое'),
           generateCategory('Сыровяленое'),
+        ]),
+      ),
+      generateCategory(
+        'Страна происхождения',
+        [meatCategory],
+        await insertToCategoryTable([
+          generateCategory('Испания'),
+          generateCategory('Италия'),
+          generateCategory('Франция'),
+          generateCategory('Голландия'),
+          generateCategory('Великобритания'),
+          generateCategory('Россия'),
+        ]),
+      ),
+      generateCategory(
+        'Выдержка',
+        [meatCategory],
+        await insertToCategoryTable([
+          generateCategory('Без выдержки'),
+          generateCategory('От 1 месяца'),
+          generateCategory('От 3 месяцев'),
+          generateCategory('От 6 месяцев'),
+          generateCategory('От 1 года'),
         ]),
       ),
     ]);

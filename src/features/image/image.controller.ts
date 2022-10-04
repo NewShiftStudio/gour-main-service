@@ -1,4 +1,4 @@
-import { Controller, HttpException } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -11,9 +11,6 @@ export class ImageController {
 
   @MessagePattern('upload-image')
   uploadFile(@Payload() image: Express.Multer.File) {
-    if (!image) {
-      throw new HttpException('field image must be provided', 400);
-    }
     return this.imageService.uploadImage(image);
   }
 }

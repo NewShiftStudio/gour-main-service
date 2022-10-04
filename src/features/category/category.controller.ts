@@ -19,10 +19,8 @@ export class CategoryController {
 
   @MessagePattern('get-category')
   getOne(@Payload() id: number) {
-    return this.categoryService.getOne(id);
+    return this.categoryService.getOneOrFail(id);
   }
-
-  // TODO update or delete on table "category" violates foreign key constraint on table "product"
 
   @MessagePattern('create-category')
   async post(@Payload() dto: CategoryCreateDto) {

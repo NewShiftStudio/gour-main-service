@@ -1,32 +1,34 @@
 import {
   BadRequestException,
   ForbiddenException,
-  HttpException,
   Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { SignUpDto } from './dto/sign-up.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Client } from '../../entity/Client';
+import { ClientProxy } from '@nestjs/microservices';
 import * as bcrypt from 'bcryptjs';
-import { SignInDto } from './dto/sign-in.dto';
+import { Request } from 'express';
+import { Repository } from 'typeorm';
+import { firstValueFrom } from 'rxjs';
+
 import {
-  decodePhoneCode,
+  decodeSomeDataCode,
   decodeToken,
   encodeJwt,
-  encodePhoneCode,
   encodeRefreshJwt,
+  encodeSomeDataCode,
   verifyJwt,
 } from './jwt.service';
-import { Request } from 'express';
+import { SignUpDto } from './dto/sign-up.dto';
+import { Client } from '../../entity/Client';
+import { SignInDto } from './dto/sign-in.dto';
 import { ReferralCode } from '../../entity/ReferralCode';
 import { generateSmsCode } from 'src/utils/generateSmsCode';
-import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
 import { RecoverPasswordDto } from './dto/recover-password.dto';
+import { ClientRole } from '../../entity/ClientRole';
+import { City } from '../../entity/City';
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
@@ -35,8 +37,16 @@ export class AuthService {
   constructor(
     @InjectRepository(Client)
     private clientRepository: Repository<Client>,
+
+    @InjectRepository(ClientRole)
+    private clientRoleRepository: Repository<ClientRole>,
+
+    @InjectRepository(City)
+    private cityRepository: Repository<City>,
+
     @InjectRepository(ReferralCode)
     private referralCodeRepository: Repository<ReferralCode>,
+
     @Inject('MESSAGES_SERVICE') private client: ClientProxy,
   ) {}
 
@@ -44,29 +54,27 @@ export class AuthService {
     await this.client.connect();
   }
 
-  async sendCode(phone: string): Promise<string> {
-    const foundPhone = await this.clientRepository.findOne({
-      phone,
+  async sendCode(email: string): Promise<string> {
+    const user = await this.clientRepository.findOne({
+      email,
     });
 
-    if (foundPhone) {
+    if (user)
       throw new BadRequestException('Такой пользователь уже существует');
-    }
 
     const code = generateSmsCode();
 
     try {
-      const res = await this.sendSms(phone, code);
-      console.log('res: ', res);
+      await this.sendEmail(email, code);
     } catch (error) {
       throw new BadRequestException('Ошибка при отправке кода');
     }
 
-    return encodePhoneCode(phone, code);
+    return encodeSomeDataCode(email, code);
   }
 
   checkCode(code: string, hash: string): boolean {
-    const result = decodePhoneCode(hash);
+    const result = decodeSomeDataCode(hash);
     return code === result?.code;
   }
 
@@ -76,17 +84,37 @@ export class AuthService {
     );
   }
 
+  async sendEmail(email: string, code: number) {
+    return firstValueFrom(
+      this.client.send('send-email', {
+        email,
+        subject: `Код для регистрации Gour Food ${code.toString()}`,
+        content: `Ваш код для регистрации: ${code.toString()}`,
+      }),
+    );
+  }
+
   async signup(dto: SignUpDto) {
     const isValidCode = this.checkCode(dto.code, dto.codeHash);
 
     if (!isValidCode) throw new ForbiddenException('Неверный код');
 
-    const foundUser = await this.clientRepository.findOne({
-      phone: dto.phone,
+    const user = await this.clientRepository.findOne({
+      email: dto.email,
     });
 
-    if (foundUser)
-      throw new HttpException('Пользователь с таким телефоном существует', 400);
+    if (user)
+      throw new BadRequestException(
+        'Пользователь с таким телефоном существует',
+      );
+
+    const role = await this.clientRoleRepository.findOne(dto.roleId);
+
+    if (!role) throw new NotFoundException('Роль не найдена');
+
+    const city = await this.cityRepository.findOne(dto.cityId);
+
+    if (!city) throw new NotFoundException('Город не найден');
 
     let referralCode: ReferralCode;
 
@@ -96,14 +124,16 @@ export class AuthService {
       });
     }
 
+    const password = await this.getPasswordHash(dto.password);
+
     return this.clientRepository.save({
       role: dto.roleId,
       firstName: dto.firstName,
       lastName: dto.lastName,
-      phone: dto.phone,
+      email: dto.email,
       city: dto.cityId,
-      referralCode: referralCode,
-      password: await this.getPasswordHash(dto.password),
+      referralCode,
+      password,
     });
   }
 
@@ -130,26 +160,20 @@ export class AuthService {
     client: Client;
   }> {
     const user = await this.clientRepository.findOne({
-      phone: dto.phone,
+      email: dto.email,
     });
-
-    if (user && (await bcrypt.compare(dto.password, user.password))) {
-      return {
-        token: encodeJwt(user),
-        refreshToken: encodeRefreshJwt(user),
-        client: user,
-      };
-    }
 
     if (!user) throw new NotFoundException('Пользователь не найден');
 
-    // if (!user.isApproved) {
-    //   throw new HttpException('User is not approved', 401);
-    // }
+    const isValidPassword = await bcrypt.compare(dto.password, user.password);
 
-    if (!(await bcrypt.compare(dto.password, user.password))) {
-      throw new UnauthorizedException('Неверный пароль');
-    }
+    if (!isValidPassword) throw new UnauthorizedException('Неверный пароль');
+
+    return {
+      token: encodeJwt(user),
+      refreshToken: encodeRefreshJwt(user),
+      client: user,
+    };
   }
 
   async signinById(id: number): Promise<{
@@ -166,16 +190,12 @@ export class AuthService {
       token: encodeJwt(user),
       client: user,
     };
-
-    // if (!user.isApproved) {
-    //   throw new HttpException('User is not approved', 401);
-    // }
   }
 
   decodeToken(token: string) {
-    if (!verifyJwt(token, ACCESS_SECRET)) {
-      throw new UnauthorizedException('Некорректный токен');
-    }
+    const isValidToken = verifyJwt(token, ACCESS_SECRET);
+
+    if (!isValidToken) throw new ForbiddenException('Неверный токен');
 
     return decodeToken(token);
   }
@@ -187,9 +207,8 @@ export class AuthService {
 
 export function getToken(req: Request): string | undefined {
   const header = req.header('Authorization');
-  if (header) {
-    return header.replace('Bearer ', '');
-  }
+
+  if (header) return header.replace('Bearer ', '');
 
   return req.cookies['AccessToken'];
 }

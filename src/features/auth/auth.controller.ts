@@ -1,4 +1,4 @@
-import { Controller, UnauthorizedException, UseFilters } from '@nestjs/common';
+import { Controller, UnauthorizedException } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
@@ -9,7 +9,6 @@ import { SendCodeDto } from './dto/send-code.dto';
 import { SignUpDto } from './dto/sign-up.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import { Client } from 'src/entity/Client';
-import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 import { CheckCodeDto } from './dto/check-code.dto';
 import { RecoverPasswordDto } from './dto/recover-password.dto';
 
@@ -25,7 +24,7 @@ export class AuthController {
 
   @MessagePattern('send-code')
   sendCode(@Payload() dto: SendCodeDto) {
-    return this.authService.sendCode(dto.phone);
+    return this.authService.sendCode(dto.email);
   }
 
   @MessagePattern('check-code')

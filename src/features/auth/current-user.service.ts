@@ -1,5 +1,9 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
-import { decodePhoneCode } from './jwt.service';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { decodeSomeDataCode } from './jwt.service';
 import { ChangePhoneDto } from './dto/change-phone.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Client } from '../../entity/Client';
@@ -12,18 +16,25 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Image } from '../../entity/Image';
 import { OrderProfile } from '../../entity/OrderProfile';
 import { City } from '../../entity/City';
+import { ReferralCode } from 'src/entity/ReferralCode';
 
 @Injectable()
 export class CurrentUserService {
   constructor(
     @InjectRepository(Client)
     private clientRepository: Repository<Client>,
+
     @InjectRepository(Image)
     private imageRepository: Repository<Image>,
+
     @InjectRepository(OrderProfile)
     private orderProfileRepository: Repository<OrderProfile>,
+
     @InjectRepository(City)
     private cityRepository: Repository<City>,
+
+    @InjectRepository(ReferralCode)
+    private referralCodeRepository: Repository<ReferralCode>,
   ) {}
 
   getUser(id: number) {
@@ -32,19 +43,16 @@ export class CurrentUserService {
     });
   }
 
+  //FIXME: заменить этот метод на смену email
   async changePhone(userId: number, hashedCode: string, dto: ChangePhoneDto) {
-    if (!hashedCode) {
-      throw new HttpException('Cookie code was not found', 400);
-    }
-    const { code, phone } = decodePhoneCode(hashedCode || '');
+    if (!hashedCode) throw new NotFoundException('Cookie не найден');
 
-    if (phone !== dto.phone) {
-      throw new HttpException('Wrong phone', 400);
-    }
+    const { code, someData } = decodeSomeDataCode(hashedCode || '');
 
-    if (+code !== dto.code) {
-      throw new HttpException('Wrong code, please, try again', 400);
-    }
+    if (someData !== dto.phone)
+      throw new BadRequestException('Неверный номер телефона');
+
+    if (+code !== dto.code) throw new BadRequestException('Неверный код');
 
     return this.clientRepository.save({
       id: userId,
@@ -59,20 +67,25 @@ export class CurrentUserService {
       })
     )?.password;
 
-    if (!(await bcrypt.compare(dto.prevPassword, prevPassHash))) {
-      throw new HttpException('Wrong password', 400);
-    }
+    const isValidPrevPass = await bcrypt.compare(
+      dto.prevPassword,
+      prevPassHash,
+    );
+
+    if (!isValidPrevPass) throw new BadRequestException('Неверный пароль');
+
+    const password = await bcrypt.hash(dto.newPassword, 5);
 
     return this.clientRepository.save({
       id: currentUserId,
-      password: await bcrypt.hash(dto.newPassword, 5),
+      password,
     });
   }
 
   async changeCityId(currentUserId: number, cityId: number) {
     const city = await this.cityRepository.findOne(cityId);
 
-    if (!city) throw new HttpException('City with this id was not found ', 400);
+    if (!city) throw new NotFoundException('Город не найден');
 
     return this.clientRepository.save({
       id: currentUserId,
@@ -108,13 +121,12 @@ export class CurrentUserService {
     };
 
     if ('avatarId' in dto) {
-      if (dto.avatarId === null) {
-        updatedObj.avatar = null;
-      } else if (dto.avatarId) {
+      if (dto.avatarId === null) updatedObj.avatar = null;
+      else {
         const avatar = await this.imageRepository.findOne(dto.avatarId);
-        if (!avatar) {
-          throw new HttpException('Avatar with this id was not found', 400);
-        }
+
+        if (!avatar) throw new NotFoundException('Аватар не найден');
+
         updatedObj.avatar = avatar;
       }
     }
@@ -124,12 +136,17 @@ export class CurrentUserService {
         dto.mainOrderProfileId,
       );
       if (!orderProfile) {
-        throw new HttpException(
-          'Order profile with this id was not found',
-          400,
-        );
+        throw new NotFoundException('Профиль заказа не найден');
       }
       updatedObj.mainOrderProfileId = orderProfile.id;
+    }
+
+    if (dto.referralCode) {
+      const referralCode = await this.referralCodeRepository.findOne({
+        where: { code: dto.referralCode },
+      });
+
+      if (referralCode) updatedObj.referralCode = referralCode;
     }
 
     return this.clientRepository.save(updatedObj);

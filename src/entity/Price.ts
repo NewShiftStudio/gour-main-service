@@ -1,8 +1,8 @@
 import { Entity, Column } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 
 @Entity()
-export class Price extends AppEntity {
+export class Price extends Base {
   @Column({
     type: 'float',
   })

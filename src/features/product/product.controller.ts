@@ -12,6 +12,7 @@ import { ProductGradeCreateDto } from './dto/product-grade-create.dto';
 import { ProductUpdateDto } from './dto/product-update.dto';
 import { ProductGradeGetListDto } from './dto/product-grade-get-list.dto';
 import { ProductGradeUpdateDto } from './dto/product-grade-update.dto';
+import { ProductGetSimilarDto } from './dto/product-get-similar.dto';
 
 @ApiTags('products')
 @Controller('products')
@@ -37,6 +38,14 @@ export class ProductController {
     return this.productService.findNovelties(params, client);
   }
 
+  @MessagePattern('get-product-similar')
+  getSimilarProducts(
+    @Payload('params') params: ProductGetSimilarDto,
+    @Payload('client') client: Client,
+  ) {
+    return this.productService.getSimilar(params, client);
+  }
+
   @MessagePattern('get-product')
   getOne(
     @Payload('id') id: number,
@@ -47,7 +56,7 @@ export class ProductController {
   }
 
   @MessagePattern('create-product')
-  post(@Payload('dto') dto: ProductCreateDto) {
+  post(@Payload() dto: ProductCreateDto) {
     return this.productService.create(dto);
   }
 

@@ -1,9 +1,9 @@
 import { Entity, Column, ManyToOne } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { City } from './City';
 
 @Entity()
-export class Warehouse extends AppEntity {
+export class Warehouse extends Base {
   @Column()
   title: string;
 

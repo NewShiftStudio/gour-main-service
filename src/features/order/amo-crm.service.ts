@@ -1,5 +1,9 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { HttpException, Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 
 import { MetaService } from '../meta/meta.service';
 import { LeadCreateDto } from './dto/lead-create.dto';
@@ -144,7 +148,9 @@ export class AmoCrmService {
       const lead = result._embedded.leads[0];
 
       if (lead) return lead;
-      throw new HttpException('Failed to create a lead', 400);
+      throw new InternalServerErrorException(
+        'Не удалось создать заголовок заказа',
+      );
     } catch (error) {
       console.error('createLeadAMO error', error);
     }

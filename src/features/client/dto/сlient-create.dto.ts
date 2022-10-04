@@ -10,7 +10,11 @@ import {
 export class ClientCreateDto {
   @ApiProperty()
   @IsString()
-  name: string;
+  firstName: string;
+
+  @ApiProperty()
+  @IsString()
+  lastName: string;
 
   @ApiProperty()
   @IsPhoneNumber()

@@ -9,7 +9,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePhoneDto } from './dto/change-phone.dto';
 import { SendCodeDto } from './dto/send-code.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { encodePhoneCode } from './jwt.service';
+import { encodeSomeDataCode } from './jwt.service';
 
 @ApiTags('current-user')
 @Controller('client-auth/current-user')
@@ -33,10 +33,10 @@ export class CurrentUserController {
     return this.currentUserService.updateCurrentUser(id, dto);
   }
 
-  @MessagePattern('send-phone-code')
+  @MessagePattern('send-email-code')
   async sendCode(@Payload() dto: SendCodeDto) {
-    const code = await this.authService.sendCode(dto.phone);
-    const hashedCode = encodePhoneCode(dto.phone, +code);
+    const code = await this.authService.sendCode(dto.email);
+    const hashedCode = encodeSomeDataCode(dto.email, +code);
 
     return hashedCode;
   }

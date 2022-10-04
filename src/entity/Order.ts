@@ -1,5 +1,5 @@
 import { Entity, Column, OneToMany, ManyToOne } from 'typeorm';
-import { AppEntity } from './AppEntity';
+import { Base } from './Base';
 import { OrderProduct } from './OrderProduct';
 import { Client } from './Client';
 import { OrderProfile } from './OrderProfile';
@@ -18,7 +18,7 @@ export enum OrderStatus {
 }
 
 @Entity()
-export class Order extends AppEntity {
+export class Order extends Base {
   @Column({
     type: 'enum',
     enum: OrderStatus,
