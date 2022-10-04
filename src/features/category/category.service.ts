@@ -1,12 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, FindManyOptions, In, Repository } from 'typeorm';
+import { DeepPartial, FindManyOptions, Repository } from 'typeorm';
 
+import { Client } from 'src/entity/Client';
 import { Category } from '../../entity/Category';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { CategoryCreateDto } from './dto/category.create.dto';
 import { CategoryUpdateDto } from './dto/category.update.dto';
+import { getUniqueCategoriesWithDiscounts } from './category.helpers';
+
+const MINIMUM_DISCOUNT = 100_000;
 
 @Injectable()
 export class CategoryService {
@@ -34,6 +38,31 @@ export class CategoryService {
       .skip(options.skip)
       .take(options.take)
       .getManyAndCount();
+  }
+
+  async findCategoriesWithDiscounts(client: Client) {
+    const categoriesList = await this.categoryRepository
+      .createQueryBuilder('category')
+      .leftJoinAndSelect('category.title', 'categoryTitle')
+      .leftJoinAndSelect('category.subCategories', 'subCategories')
+      .leftJoinAndSelect('subCategories.title', 'subCategoriesTitle')
+      .leftJoinAndSelect('subCategories.discounts', 'discounts')
+      .leftJoin('discounts.client', 'client')
+
+      .where('client.id = :id', { id: client.id })
+      .andWhere('discounts.price > :value', { value: MINIMUM_DISCOUNT })
+      .select([
+        'category.id',
+        'categoryTitle.ru',
+        'categoryTitle.en',
+        'subCategories.id',
+        'subCategoriesTitle.ru',
+        'subCategoriesTitle.en',
+        'discounts.price',
+      ])
+      .getMany();
+
+    return getUniqueCategoriesWithDiscounts(categoriesList);
   }
 
   async getOneOrFail(id: number) {

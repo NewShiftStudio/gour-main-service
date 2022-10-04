@@ -1,5 +1,5 @@
 import { Repository } from 'typeorm';
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import {
@@ -269,7 +269,7 @@ export class OrderService {
       }
     `;
 
-    // TODO: добавить рассчет стоимости
+    // TODO: добавить расчет стоимости
     return description;
   }
 }
