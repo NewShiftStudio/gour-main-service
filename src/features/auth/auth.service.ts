@@ -70,7 +70,7 @@ export class AuthService {
     const decodedHash = decodeSomeDataCode(hash);
     const isEqual = code === decodedHash?.code;
 
-    if (isEqual) return;
+    if (isEqual) return code;
     throw new BadRequestException('Неверный код');
   }
 
