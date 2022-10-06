@@ -54,7 +54,7 @@ export class CurrentUserService {
 
     if (+code !== dto.code) throw new BadRequestException('Неверный код');
 
-    await this.clientRepository.save({
+    return this.clientRepository.save({
       id: userId,
       phone: dto.phone,
     });
@@ -87,9 +87,28 @@ export class CurrentUserService {
 
     if (!city) throw new NotFoundException('Город не найден');
 
-    await this.clientRepository.save({
+    return this.clientRepository.save({
       id: currentUserId,
       city: city.id,
+    });
+  }
+
+  async changeMainProfileId(
+    currentUserId: number,
+    orderProfileId: number | null,
+  ) {
+    if (orderProfileId !== null) {
+      const orderProfile = await this.orderProfileRepository.findOne(
+        orderProfileId,
+      );
+
+      if (!orderProfile)
+        throw new NotFoundException('Адрес доставки не найден');
+    }
+
+    return this.clientRepository.save({
+      id: currentUserId,
+      mainOrderProfileId: orderProfileId,
     });
   }
 
@@ -119,7 +138,7 @@ export class CurrentUserService {
       if (!orderProfile) {
         throw new NotFoundException('Профиль заказа не найден');
       }
-      updatedObj.mainOrderProfile = orderProfile;
+      updatedObj.mainOrderProfileId = orderProfile.id;
     }
 
     if (dto.referralCode) {

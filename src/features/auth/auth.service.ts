@@ -17,15 +17,16 @@ import {
   decodeSomeDataCode,
   decodeToken,
   encodeJwt,
-  encodeSomeDataCode,
   encodeRefreshJwt,
+  encodeSomeDataCode,
   verifyJwt,
 } from './jwt.service';
 import { SignUpDto } from './dto/sign-up.dto';
 import { Client } from '../../entity/Client';
 import { SignInDto } from './dto/sign-in.dto';
 import { ReferralCode } from '../../entity/ReferralCode';
-import { generateSmsCode } from '../../utils/generateSmsCode';
+import { generateSmsCode } from 'src/utils/generateSmsCode';
+import { RecoverPasswordDto } from './dto/recover-password.dto';
 import { ClientRole } from '../../entity/ClientRole';
 import { City } from '../../entity/City';
 
@@ -133,6 +134,23 @@ export class AuthService {
       city: dto.cityId,
       referralCode,
       password,
+    });
+  }
+
+  async recoverPassword(dto: RecoverPasswordDto) {
+    const isValidCode = this.checkCode(dto.code, dto.codeHash);
+
+    if (!isValidCode) throw new BadRequestException('Неверный код');
+
+    const foundUser = await this.clientRepository.findOne({
+      phone: dto.phone,
+    });
+
+    if (!foundUser) throw new NotFoundException('Пользователь не найден');
+
+    return this.clientRepository.save({
+      phone: dto.phone,
+      password: await this.getPasswordHash(dto.password),
     });
   }
 
