@@ -8,9 +8,8 @@ import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { CategoryCreateDto } from './dto/category.create.dto';
 import { CategoryUpdateDto } from './dto/category.update.dto';
+import categoryQueryBuilder from './category.repository';
 import { getUniqueCategoriesWithDiscounts } from './category.helpers';
-
-const MINIMUM_DISCOUNT = 100_000;
 
 @Injectable()
 export class CategoryService {
@@ -41,26 +40,10 @@ export class CategoryService {
   }
 
   async findCategoriesWithDiscounts(client: Client) {
-    const categoriesList = await this.categoryRepository
-      .createQueryBuilder('category')
-      .leftJoinAndSelect('category.title', 'categoryTitle')
-      .leftJoinAndSelect('category.subCategories', 'subCategories')
-      .leftJoinAndSelect('subCategories.title', 'subCategoriesTitle')
-      .leftJoinAndSelect('subCategories.discounts', 'discounts')
-      .leftJoin('discounts.client', 'client')
-
-      .where('client.id = :id', { id: client.id })
-      .andWhere('discounts.price > :value', { value: MINIMUM_DISCOUNT })
-      .select([
-        'category.id',
-        'categoryTitle.ru',
-        'categoryTitle.en',
-        'subCategories.id',
-        'subCategoriesTitle.ru',
-        'subCategoriesTitle.en',
-        'discounts.price',
-      ])
-      .getMany();
+    const categoriesList = await categoryQueryBuilder.findCategoryWithDiscounts(
+      this.categoryRepository,
+      client.id,
+    );
 
     return getUniqueCategoriesWithDiscounts(categoriesList);
   }

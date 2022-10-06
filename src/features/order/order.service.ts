@@ -269,7 +269,6 @@ export class OrderService {
       }
     `;
 
-    // TODO: добавить расчет стоимости
     return description;
   }
 }
