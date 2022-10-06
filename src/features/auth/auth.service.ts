@@ -68,10 +68,7 @@ export class AuthService {
 
   checkCode(code: string, hash: string) {
     const decodedHash = decodeSomeDataCode(hash);
-    const isEqual = code === decodedHash?.code;
-
-    if (isEqual) return code;
-    throw new BadRequestException('Неверный код');
+    return code === decodedHash?.code;
   }
 
   async sendSms(phone: string, code: number) {
@@ -91,7 +88,9 @@ export class AuthService {
   }
 
   async signup(dto: SignUpDto) {
-    this.checkCode(dto.code, dto.hashedCode);
+    const isValid = this.checkCode(dto.code, dto.hashedCode);
+
+    if (!isValid) throw new BadRequestException('Неверный код');
 
     const user = await this.clientRepository.findOne({
       email: dto.email,
@@ -130,7 +129,9 @@ export class AuthService {
   }
 
   async recoverPassword(dto: RecoverPasswordDto) {
-    this.checkCode(dto.code, dto.hashedCode);
+    const isValid = this.checkCode(dto.code, dto.hashedCode);
+
+    if (!isValid) throw new BadRequestException('Неверный код');
 
     const user = await this.clientRepository.findOne({
       email: dto.email,
