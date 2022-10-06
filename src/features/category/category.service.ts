@@ -1,12 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, FindManyOptions, In, Repository } from 'typeorm';
+import { DeepPartial, FindManyOptions, Repository } from 'typeorm';
 
+import { Client } from 'src/entity/Client';
 import { Category } from '../../entity/Category';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { CategoryCreateDto } from './dto/category.create.dto';
 import { CategoryUpdateDto } from './dto/category.update.dto';
+import categoryQueryBuilder from './category.repository';
+import { getUniqueCategoriesWithDiscounts } from './category.helpers';
 
 @Injectable()
 export class CategoryService {
@@ -34,6 +37,15 @@ export class CategoryService {
       .skip(options.skip)
       .take(options.take)
       .getManyAndCount();
+  }
+
+  async findCategoriesWithDiscounts(client: Client) {
+    const categoriesList = await categoryQueryBuilder.findCategoryWithDiscounts(
+      this.categoryRepository,
+      client.id,
+    );
+
+    return getUniqueCategoriesWithDiscounts(categoriesList);
   }
 
   async getOneOrFail(id: number) {
