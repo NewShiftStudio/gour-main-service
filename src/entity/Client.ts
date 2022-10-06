@@ -15,7 +15,6 @@ import { Product } from './Product';
 import { City } from './City';
 import { ReferralCode } from './ReferralCode';
 import { Image } from './Image';
-import { OrderProfile } from './OrderProfile';
 import { Wallet } from './Wallet';
 import { Discount } from './Discount';
 
