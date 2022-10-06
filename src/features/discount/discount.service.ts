@@ -11,21 +11,7 @@ export class DiscountService {
   constructor(
     @InjectRepository(Discount)
     private discountRepository: Repository<Discount>,
-    @InjectRepository(Category)
-    private categoryRepository: Repository<Category>,
   ) {}
-
-  findByClient(client: Client) {
-    // TODO: мб вынести в модуль с категориями?
-    return this.categoryRepository
-      .createQueryBuilder('category')
-      .leftJoinAndSelect('category.title', 'title')
-      .leftJoinAndSelect('category.parentCategories', 'parentCategories')
-      .leftJoinAndSelect('category.discounts', 'discounts')
-      .leftJoinAndSelect('discounts.client', 'client')
-      .where('discounts.client.id = :id', { id: client.id })
-      .getMany();
-  }
 
   findOneByFK(client: Client, category: Category) {
     return this.discountRepository.findOne({
@@ -50,4 +36,6 @@ export class DiscountService {
       price,
     });
   }
+
+  // TODO: добавить метод удаления скидок
 }

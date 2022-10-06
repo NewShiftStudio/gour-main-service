@@ -82,4 +82,12 @@ export class CurrentUserController {
   ) {
     return this.currentUserService.changeAvatarId(clientId, avatarId);
   }
+
+  @MessagePattern('change-main-address')
+  changeMainProfile(
+    @Payload('clientId') clientId: number,
+    @Payload('addressId') addressId: number | null,
+  ) {
+    return this.currentUserService.changeMainProfileId(clientId, addressId);
+  }
 }

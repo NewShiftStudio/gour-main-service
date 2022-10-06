@@ -17,18 +17,18 @@ import {
   decodeSomeDataCode,
   decodeToken,
   encodeJwt,
-  encodeSomeDataCode,
   encodeRefreshJwt,
+  encodeSomeDataCode,
   verifyJwt,
 } from './jwt.service';
 import { SignUpDto } from './dto/sign-up.dto';
 import { Client } from '../../entity/Client';
 import { SignInDto } from './dto/sign-in.dto';
 import { ReferralCode } from '../../entity/ReferralCode';
-import { generateSmsCode } from '../../utils/generateSmsCode';
+import { generateSmsCode } from 'src/utils/generateSmsCode';
+import { RecoverPasswordDto } from './dto/recover-password.dto';
 import { ClientRole } from '../../entity/ClientRole';
 import { City } from '../../entity/City';
-import { RecoverPasswordDto } from './dto/recover-password.dto';
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 

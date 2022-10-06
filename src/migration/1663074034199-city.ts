@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {MigrationInterface, QueryRunner} from "typeorm";
 
 export class city1663074034199 implements MigrationInterface {
