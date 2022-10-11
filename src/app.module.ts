@@ -45,6 +45,7 @@ import { SentryInterceptor } from './common/interceptors/sentry.interceptor';
 import { ProductCategory } from './entity/ProductCategory';
 import { Discount } from './entity/Discount';
 import { DiscountModule } from './features/discount/discount.module';
+import { WarehouseModule } from './features/warehouse/warehouse.module';
 
 const requiredEnvs = ['PORT', 'MESSAGES_SERVICE_PORT', 'MESSAGES_SERVICE_HOST'];
 
@@ -118,6 +119,7 @@ requiredEnvs.forEach((envKey) => {
     ImageModule,
     MetaModule,
     WalletModule,
+    WarehouseModule,
   ],
   providers: [
     {
