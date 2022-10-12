@@ -6,3 +6,4 @@ type WeightInGrams = string;
 type StockInPiece = number;
 type GramsInString = string;
 type CityName = string;
+type Token = string;

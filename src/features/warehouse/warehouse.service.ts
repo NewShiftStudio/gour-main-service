@@ -1,10 +1,52 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { IWarehouseService } from './@types/WarehouseService';
 import { MoyskladService } from './moysklad.service';
+import { AxiosError, AxiosInstance } from 'axios';
 
 @Injectable()
 export class WarehouseService implements IWarehouseService<MoyskladService> {
-  constructor(private moyskladService: MoyskladService) {}
+  constructor(
+    private moyskladService: MoyskladService,
+    private httpService: HttpService,
+  ) {}
+
+  onModuleInit() {
+    const axios = this.httpService.axiosRef;
+    axios.interceptors.response.use(
+      (res) => res,
+      this.axiosReauth.bind(this, axios),
+    );
+  }
+
+  async axiosReauth(axios: AxiosInstance, err: AxiosError) {
+    const originalRequest = err.config;
+    const status = err.response ? err.response.status : null;
+    if (
+      status === HttpStatus.UNAUTHORIZED &&
+      !originalRequest.headers['_retry']
+    ) {
+      originalRequest.headers['_retry'] = true;
+      const token = await this.getAuthorizationToken();
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      return axios(originalRequest);
+    }
+    return err;
+  }
+
+  async getAuthorizationToken() {
+    const token = await this.moyskladService.getAuthorizationToken({
+      login: process.env.WAREHOUSE_LOGIN,
+      password: process.env.WAREHOUSE_PASSWORD,
+    });
+
+    return token;
+  }
 
   async getStockOfProductByWarehouseIdCityNameAndGram(
     uuid: Uuid,
@@ -25,16 +67,18 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
           gramInString,
         );
 
-      if (!modification.id) {
+      if (!modification) {
         throw new BadRequestException(
-          `Модификации с id ${modification.id} не существует`,
+          `Модификации с id продукта ${product.id} или кол-вом граммов ${gramInString} не существует`,
         );
       }
 
       const store = await this.moyskladService.getStoreByCityName(city);
 
       if (!store) {
-        throw new BadRequestException(`Склада с id ${store.id} не существует`);
+        throw new BadRequestException(
+          `Склада с в городе ${city} не существует`,
+        );
       }
 
       const stock = await this.moyskladService.getStockByAssortmentIdAndStoreId(
@@ -44,9 +88,9 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
 
       return stock;
     } catch (error) {
-      throw new BadRequestException(
+      throw new HttpException(
         error?.message || 'Ошибка при получении остатков',
-        error,
+        error?.status || error?.statusCode,
       );
     }
   }

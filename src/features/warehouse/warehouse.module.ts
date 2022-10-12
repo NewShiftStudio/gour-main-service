@@ -8,9 +8,6 @@ import { HttpModule } from '@nestjs/axios';
   imports: [
     HttpModule.register({
       baseURL: process.env.WAREHOUSE_API_URL,
-      headers: {
-        Authorization: `Bearer ${process.env.WAREHOUSE_AUTH_TOKEN}`,
-      },
     }),
   ],
   providers: [WarehouseService, MoyskladService],

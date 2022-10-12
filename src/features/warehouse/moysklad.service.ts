@@ -2,28 +2,19 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import {
-  ApiResponse,
+  MoyskladAuth,
   MoyskladModification,
   MoyskladProduct,
   MoyskladStock,
   MoyskladStore,
 } from './@types/Moysklad';
-import {
-  AbstractModification,
-  AbstractProduct,
-  AbstractService,
-  AbstractStock,
-  AbstractStore,
-} from './@types/WarehouseService';
+import { AbstractService, StrategyData } from './@types/WarehouseService';
 
 @Injectable()
 export class MoyskladService implements AbstractService {
   constructor(private httpService: HttpService) {}
 
-  async getModificationByProductIdAndGram(
-    uuid: Uuid,
-    gram: GramsInString,
-  ): ApiResponse<AbstractModification> {
+  async getModificationByProductIdAndGram(uuid: Uuid, gram: GramsInString) {
     const { data } = await firstValueFrom(
       this.httpService.get<MoyskladModification>(`/entity/variant/`, {
         params: {
@@ -31,14 +22,34 @@ export class MoyskladService implements AbstractService {
         },
       }),
     );
-    return data.rows.reduce<AbstractModification>((acc, r) => {
+    return data.rows.find((r) => {
       const current = r.characteristics.find((c) => c.value === gram);
-      if (current) acc.id = r.id;
-      return acc;
-    }, {} as AbstractModification);
+      if (current) {
+        return {
+          id: r.id,
+        };
+      }
+    });
   }
 
-  async getProductById(uuid: Uuid): ApiResponse<AbstractProduct> {
+  async getAuthorizationToken({ login, password }: StrategyData['BASIC_AUTH']) {
+    const basicAuth = Buffer.from(`${login}:${password}`).toString('base64'); // convert to RFC2045-MIME string
+    const res = await firstValueFrom(
+      this.httpService.post<MoyskladAuth>(
+        '/security/token',
+        {},
+        {
+          headers: {
+            Authorization: `Basic ${basicAuth}`,
+          },
+        },
+      ),
+    );
+
+    return res.data.access_token;
+  }
+
+  async getProductById(uuid: Uuid) {
     const { data } = await firstValueFrom(
       this.httpService.get<MoyskladProduct>(`/entity/product/${uuid}`),
     );
@@ -48,16 +59,16 @@ export class MoyskladService implements AbstractService {
   async getStockByAssortmentIdAndStoreId(
     assortmentUuid: Uuid,
     storeUuid: Uuid,
-  ): ApiResponse<AbstractStock> {
+  ) {
     const { data } = await firstValueFrom(
       this.httpService.get<MoyskladStock[]>(
         `/report/stock/all/current?filter=assortmentId=${assortmentUuid}&filter=storeId=${storeUuid}`,
       ),
     );
-    return { id: data[0]?.assortmentId, value: data[0].stock };
+    return { id: data[0]?.assortmentId, value: data[0]?.stock };
   }
 
-  async getStoreByCityName(city: CityName): ApiResponse<AbstractStore> {
+  async getStoreByCityName(city: CityName) {
     const { data } = await firstValueFrom(
       this.httpService.get<MoyskladStore>(`/entity/store/`),
     );
@@ -66,6 +77,6 @@ export class MoyskladService implements AbstractService {
       r?.addressFull.city.toLowerCase().includes(city.toLowerCase()),
     );
 
-    return { city: row.addressFull.city, id: row.id };
+    return { city: row?.addressFull.city, id: row.id };
   }
 }

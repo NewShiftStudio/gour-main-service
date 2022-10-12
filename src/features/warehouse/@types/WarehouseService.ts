@@ -36,6 +36,22 @@ export type AbstractService = {
     city: CityName,
     gram: number,
   ): Promise<AbstractStock>;
+
+  getAuthorizationToken?<S extends AuthStrategy>(
+    data: StrategyData[S],
+    strategy: S,
+  ): Promise<Token>;
+};
+
+export enum AuthStrategy {
+  BASIC_AUTH = 'BASIC_AUTH',
+}
+
+export type StrategyData = {
+  [AuthStrategy.BASIC_AUTH]: {
+    login: string;
+    password: string;
+  };
 };
 
 export type IWarehouseService<S extends AbstractService> = {

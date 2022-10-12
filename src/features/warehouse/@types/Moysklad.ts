@@ -30,3 +30,7 @@ export type MoyskladStore = {
     };
   }[];
 };
+
+export type MoyskladAuth = {
+  access_token: Token;
+};

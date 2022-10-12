@@ -13,7 +13,8 @@ const envs = [
   'MESSAGES_SERVICE_PORT',
   'MESSAGES_SERVICE_HOST',
   'WAREHOUSE_API_URL',
-  'WAREHOUSE_AUTH_TOKEN',
+  'WAREHOUSE_LOGIN',
+  'WAREHOUSE_PASSWORD',
 ];
 
 const requiredEnvs = getRequiredEnvsByNodeEnv(
