@@ -74,9 +74,9 @@ export class MoyskladService implements AbstractService {
     );
 
     const row = data.rows.find((r) =>
-      r?.addressFull.city.toLowerCase().includes(city.toLowerCase()),
+      r?.addressFull?.city.toLowerCase().includes(city.toLowerCase()),
     );
 
-    return { city: row?.addressFull.city, id: row.id };
+    return { city: row?.addressFull?.city, id: row?.id };
   }
 }

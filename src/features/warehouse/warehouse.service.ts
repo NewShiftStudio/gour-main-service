@@ -75,10 +75,8 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
 
       const store = await this.moyskladService.getStoreByCityName(city);
 
-      if (!store) {
-        throw new BadRequestException(
-          `Склада с в городе ${city} не существует`,
-        );
+      if (!store.city) {
+        throw new BadRequestException(`Склада в городе ${city} не существует`);
       }
 
       const stock = await this.moyskladService.getStockByAssortmentIdAndStoreId(
