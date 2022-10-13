@@ -22,14 +22,14 @@ export interface AppRequest extends Request {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @MessagePattern('send-code')
+  @MessagePattern('send-email-code')
   sendCode(@Payload() dto: SendCodeDto) {
     return this.authService.sendCode(dto.email);
   }
 
   @MessagePattern('check-code')
   checkCode(@Payload() dto: CheckCodeDto) {
-    return this.authService.checkCode(dto.code, dto.codeHash);
+    return this.authService.checkCode(dto.code, dto.hashedCode);
   }
 
   @MessagePattern('signup')

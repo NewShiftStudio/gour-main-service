@@ -15,7 +15,6 @@ import { Product } from './Product';
 import { City } from './City';
 import { ReferralCode } from './ReferralCode';
 import { Image } from './Image';
-import { OrderProfile } from './OrderProfile';
 import { Wallet } from './Wallet';
 import { Discount } from './Discount';
 
@@ -84,12 +83,12 @@ export class Client extends Base {
   })
   password: string;
 
-  @OneToOne(() => Image, {
-    nullable: true,
+  @ManyToOne(() => Image, (image) => image.id, {
     eager: true,
+    nullable: true,
+    onDelete: 'SET NULL',
   })
-  @JoinColumn()
-  avatar: Image;
+  avatar: number;
 
   @Column({
     default: null,

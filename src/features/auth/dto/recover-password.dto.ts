@@ -1,10 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsPhoneNumber, IsString } from 'class-validator';
+import { IsEmail, IsString } from 'class-validator';
 
 export class RecoverPasswordDto {
   @ApiProperty()
-  @IsPhoneNumber()
-  phone: string;
+  @IsEmail()
+  email: string;
+
+  @ApiProperty()
+  @IsString()
+  password: string;
+
+  @ApiProperty()
+  @IsString()
+  passwordConfirm: string;
 
   @ApiProperty()
   @IsString()
@@ -12,9 +20,5 @@ export class RecoverPasswordDto {
 
   @ApiProperty()
   @IsString()
-  codeHash: string;
-
-  @ApiProperty()
-  @IsString()
-  password: string;
+  hashedCode: string;
 }

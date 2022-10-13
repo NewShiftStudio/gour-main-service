@@ -2,20 +2,16 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 
-import { AuthService } from './auth.service';
 import { ClientsService } from '../client/client.service';
 import { CurrentUserService } from './current-user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ChangePhoneDto } from './dto/change-phone.dto';
-import { SendCodeDto } from './dto/send-code.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { encodeSomeDataCode } from './jwt.service';
+import { ChangeEmailDto } from './dto/change-email.dto';
 
 @ApiTags('current-user')
 @Controller('client-auth/current-user')
 export class CurrentUserController {
   constructor(
-    private readonly authService: AuthService,
     private readonly clientsService: ClientsService,
     private readonly currentUserService: CurrentUserService,
   ) {}
@@ -33,21 +29,13 @@ export class CurrentUserController {
     return this.currentUserService.updateCurrentUser(id, dto);
   }
 
-  @MessagePattern('send-email-code')
-  async sendCode(@Payload() dto: SendCodeDto) {
-    const code = await this.authService.sendCode(dto.email);
-    const hashedCode = encodeSomeDataCode(dto.email, +code);
-
-    return hashedCode;
-  }
-
-  @MessagePattern('change-phone')
-  changePhone(
+  @MessagePattern('change-email')
+  changeEmail(
     @Payload('id') id: number,
     @Payload('hashedCode') hashedCode: string,
-    @Payload('dto') dto: ChangePhoneDto,
+    @Payload('dto') dto: ChangeEmailDto,
   ) {
-    return this.currentUserService.changePhone(id, hashedCode, dto);
+    return this.currentUserService.changeEmail(id, hashedCode, dto);
   }
 
   @MessagePattern('change-password')
@@ -85,6 +73,14 @@ export class CurrentUserController {
     @Payload('cityId') cityId: number,
   ) {
     return this.currentUserService.changeCityId(clientId, cityId);
+  }
+
+  @MessagePattern('change-avatar')
+  changeAvatar(
+    @Payload('clientId') clientId: number,
+    @Payload('avatarId') avatarId: number,
+  ) {
+    return this.currentUserService.changeAvatarId(clientId, avatarId);
   }
 
   @MessagePattern('change-main-address')

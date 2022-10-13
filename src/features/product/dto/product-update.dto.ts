@@ -1,10 +1,4 @@
-import {
-  IsArray,
-  IsObject,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
+import { IsArray, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { TranslatableStringDto } from '../../../common/dto/translatable-string.dto';
 import { TranslatableTextDto } from '../../../common/dto/translatable-text.dto';

@@ -55,13 +55,6 @@ export class AuthService {
   }
 
   async sendCode(email: string): Promise<string> {
-    const user = await this.clientRepository.findOne({
-      email,
-    });
-
-    if (user)
-      throw new BadRequestException('Такой пользователь уже существует');
-
     const code = generateSmsCode();
 
     try {
@@ -73,9 +66,9 @@ export class AuthService {
     return encodeSomeDataCode(email, code);
   }
 
-  checkCode(code: string, hash: string): boolean {
-    const result = decodeSomeDataCode(hash);
-    return code === result?.code;
+  checkCode(code: string, hash: string) {
+    const decodedHash = decodeSomeDataCode(hash);
+    return code === decodedHash?.code;
   }
 
   async sendSms(phone: string, code: number) {
@@ -88,25 +81,23 @@ export class AuthService {
     return firstValueFrom(
       this.client.send('send-email', {
         email,
-        subject: `Код для регистрации Gour Food ${code.toString()}`,
-        content: `Ваш код для регистрации: ${code.toString()}`,
+        subject: `Код подтверждения Gour Food ${code.toString()}`,
+        content: `Ваш код подтверждения: ${code.toString()}`,
       }),
     );
   }
 
   async signup(dto: SignUpDto) {
-    const isValidCode = this.checkCode(dto.code, dto.codeHash);
+    const isValid = this.checkCode(dto.code, dto.hashedCode);
 
-    if (!isValidCode) throw new ForbiddenException('Неверный код');
+    if (!isValid) throw new BadRequestException('Неверный код');
 
     const user = await this.clientRepository.findOne({
       email: dto.email,
     });
 
     if (user)
-      throw new BadRequestException(
-        'Пользователь с таким телефоном существует',
-      );
+      throw new BadRequestException('Пользователь с таким Email существует');
 
     const role = await this.clientRoleRepository.findOne(dto.roleId);
 
@@ -138,19 +129,25 @@ export class AuthService {
   }
 
   async recoverPassword(dto: RecoverPasswordDto) {
-    const isValidCode = this.checkCode(dto.code, dto.codeHash);
+    const isValid = this.checkCode(dto.code, dto.hashedCode);
 
-    if (!isValidCode) throw new BadRequestException('Неверный код');
+    if (!isValid) throw new BadRequestException('Неверный код');
 
-    const foundUser = await this.clientRepository.findOne({
-      phone: dto.phone,
+    const user = await this.clientRepository.findOne({
+      email: dto.email,
     });
 
-    if (!foundUser) throw new NotFoundException('Пользователь не найден');
+    if (!user) throw new NotFoundException('Пользователь не найден');
+
+    if (dto.password !== dto.passwordConfirm)
+      throw new BadRequestException('Пароли не совпадают');
+
+    const password = await this.getPasswordHash(dto.password);
 
     return this.clientRepository.save({
-      phone: dto.phone,
-      password: await this.getPasswordHash(dto.password),
+      id: user.id,
+      email: dto.email,
+      password,
     });
   }
 

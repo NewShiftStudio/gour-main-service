@@ -136,7 +136,7 @@ export class ClientsService {
     const updatedObj: DeepPartial<Client> = {
       ...client,
       firstName: dto.name || client.firstName,
-      avatar: avatar || client.avatar,
+      avatar: avatar.id || client.avatar,
       additionalInfo: {
         ...client.additionalInfo,
         ...(dto.additionalInfo || {}),
