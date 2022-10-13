@@ -2,7 +2,7 @@ import { Repository } from 'typeorm';
 
 import { Category } from 'src/entity/Category';
 
-const MINIMUM_DISCOUNT = 100_000;
+const MINIMUM_DISCOUNT = 0;
 
 const categoryQueryBuilder = {
   findCategoryWithDiscounts: (
@@ -18,7 +18,7 @@ const categoryQueryBuilder = {
       .leftJoin('discounts.client', 'client')
 
       .where('client.id = :id', { id: clientId })
-      .andWhere('discounts.price > :value', { value: MINIMUM_DISCOUNT })
+      .andWhere('discounts.price > :discount', { discount: MINIMUM_DISCOUNT })
       .select([
         'category.id',
         'categoryTitle.ru',

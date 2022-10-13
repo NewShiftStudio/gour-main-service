@@ -174,7 +174,8 @@ export class AuthService {
   }
 
   async signinById(id: number): Promise<{
-    token: string;
+    accessToken: string;
+    refreshToken: string;
     client: Client;
   }> {
     const user = await this.clientRepository.findOne({
@@ -184,7 +185,8 @@ export class AuthService {
     if (!user) throw new NotFoundException('Пользователь не найден');
 
     return {
-      token: encodeJwt(user),
+      accessToken: encodeJwt(user),
+      refreshToken: encodeRefreshJwt(user),
       client: user,
     };
   }

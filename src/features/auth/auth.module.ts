@@ -12,7 +12,6 @@ import { CurrentUserController } from './current-user.controller';
 import { CurrentUserService } from './current-user.service';
 import { OrderProfile } from '../../entity/OrderProfile';
 import { Image } from '../../entity/Image';
-import { CookieService } from './cookie.service';
 import { City } from '../../entity/City';
 import { ClientRole } from '../../entity/ClientRole';
 
@@ -40,7 +39,7 @@ import { ClientRole } from '../../entity/ClientRole';
     HttpModule,
   ],
   controllers: [AuthController, CurrentUserController],
-  providers: [AuthService, CurrentUserService, CookieService],
+  providers: [AuthService, CurrentUserService],
   exports: [AuthService],
 })
 export class AuthModule {}
