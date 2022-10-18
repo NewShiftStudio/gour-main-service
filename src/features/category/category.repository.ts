@@ -19,6 +19,7 @@ const categoryQueryBuilder = {
 
       .where('client.id = :id', { id: clientId })
       .andWhere('discounts.price > :discount', { discount: MINIMUM_DISCOUNT })
+      .andWhere('discounts.hasDiscount = true')
       .select([
         'category.id',
         'categoryTitle.ru',
