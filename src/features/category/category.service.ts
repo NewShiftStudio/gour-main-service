@@ -59,7 +59,7 @@ export class CategoryService {
   async create(dto: CategoryCreateDto) {
     const category: DeepPartial<Category> = {
       title: dto.title,
-      hasDiscount: dto.hasDiscount || false,
+      hasDiscount: dto.hasDiscount ?? false,
     };
 
     if (dto.subCategoriesIds) {
