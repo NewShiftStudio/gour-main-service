@@ -7,10 +7,8 @@ import { AppModule } from './app.module';
 import { getRequiredEnvsByNodeEnv } from './common/utils/getRequiredEnvsByNodeEnv';
 import { NodeEnv } from './common/types/App';
 
-
 const envs = [
   'NODE_ENV',
-  'STATIC_FOLDER_PATH',
   'MESSAGES_SERVICE_PORT',
   'MESSAGES_SERVICE_HOST',
   'WAREHOUSE_API_URL',
