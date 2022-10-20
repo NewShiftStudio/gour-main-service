@@ -139,9 +139,10 @@ export class CurrentUserService {
         where: { phone: dto.phone },
       });
 
-      if (client) throw new NotFoundException('Номер телефона занят');
+      if (client && client.id !== id)
+        throw new NotFoundException('Номер телефона занят');
 
-      updatedObj.phone = dto.phone;
+      if (!client) updatedObj.phone = dto.phone;
     }
 
     if (dto.mainOrderProfileId) {
