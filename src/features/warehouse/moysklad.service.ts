@@ -2,13 +2,21 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import {
+  CreateOrderMeta,
+  MoyskladAgent,
   MoyskladAuth,
   MoyskladModification,
+  MoyskladOrder,
   MoyskladProduct,
   MoyskladStock,
   MoyskladStore,
 } from './@types/Moysklad';
-import { AbstractService, StrategyData } from './@types/WarehouseService';
+import {
+  AbstractAssortment,
+  AbstractService,
+  StrategyData,
+} from './@types/WarehouseService';
+import { CreateWarehouseAgentDto } from './dto/create-agent.dto';
 
 @Injectable()
 export class MoyskladService implements AbstractService {
@@ -78,5 +86,60 @@ export class MoyskladService implements AbstractService {
     );
 
     return { city: row?.addressFull?.city, id: row?.id };
+  }
+
+  async createWarehouseAgent(agent: CreateWarehouseAgentDto) {
+    const { data } = await firstValueFrom(
+      this.httpService.post<MoyskladAgent>('/entity/counterparty/', agent),
+    );
+    return data;
+  }
+
+  async createOrder(assortment: AbstractAssortment[], meta: CreateOrderMeta) {
+    const { data } = await firstValueFrom(
+      this.httpService.post<MoyskladOrder>('/entity/customerorder', {
+        organization: {
+          meta: {
+            href: `${process.env.WAREHOUSE_API_URL}/entity/organization/${meta?.organizationId}`,
+            metadataHref: `${process.env.WAREHOUSE_API_URL}/entity/organization/metadata`,
+            type: 'organization',
+            mediaType: 'application/json',
+          },
+        },
+        agent: {
+          meta: {
+            href: `${process.env.WAREHOUSE_API_URL}entity/counterparty/${meta.counterpartyId}`,
+            type: 'counterparty',
+            mediaType: 'application/json',
+          },
+        },
+        shipmentAddressFull: {
+          apartment: meta.apartment,
+          house: meta.house,
+          city: meta.city,
+          street: meta.street,
+          postalCode: meta.postalCode,
+          addInfo: meta.addInfo || 'addInfo',
+          comment: meta.comment || '',
+        },
+        positions: assortment.map((ass) => ({
+          quantity: ass.quantity,
+          price: ass.price,
+          discount: ass.discount,
+          reserve: ass.quantity,
+          vat: 0,
+          assortment: {
+            meta: {
+              href: `${process.env.WAREHOUSE_API_URL}/entity/${ass.type}/${ass.id}`,
+              metadataHref: `${process.env.WAREHOUSE_API_URL}/entity/${ass.type}/metadata`,
+              type: ass.type,
+              mediaType: 'application/json',
+            },
+          },
+        })),
+      }),
+    );
+
+    return data;
   }
 }

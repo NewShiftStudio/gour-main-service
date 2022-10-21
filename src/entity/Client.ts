@@ -105,6 +105,9 @@ export class Client extends Base {
     default: 1,
   })
   lives: number;
+
+  @Column({ type: 'uuid', nullable: true })
+  warehouseClientId: string;
 }
 
 export type IClient = Client;

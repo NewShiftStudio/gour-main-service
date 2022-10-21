@@ -62,4 +62,9 @@ export class ClientUpdateDto {
   @IsOptional()
   @ApiPropertyOptional()
   avatarId?: number;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  warehouseClientId?: string;
 }

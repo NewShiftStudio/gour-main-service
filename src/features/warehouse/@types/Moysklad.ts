@@ -34,3 +34,25 @@ export type MoyskladStore = {
 export type MoyskladAuth = {
   access_token: Token;
 };
+
+export type MoyskladOrder = {
+  id: Uuid;
+};
+
+export type MoyskladAgent = {
+  id: Uuid;
+};
+
+export type CreateOrderMeta = {
+  organizationId: Uuid;
+  counterpartyId?: Uuid;
+  postalCode: string;
+  addInfo: string;
+  firstName: string;
+  lastName: string;
+  apartment: string;
+  house: string;
+  city: string;
+  street: string;
+  comment: string;
+};

@@ -137,6 +137,7 @@ export class ClientsService {
       ...client,
       firstName: dto.name || client.firstName,
       avatar: avatar.id || client.avatar,
+      warehouseClientId: dto.warehouseClientId,
       additionalInfo: {
         ...client.additionalInfo,
         ...(dto.additionalInfo || {}),
@@ -172,6 +173,13 @@ export class ClientsService {
     return this.clientRepository.save({
       id,
       phone,
+    });
+  }
+
+  updateWarehouseClientId(id: number, warehouseClientId: string) {
+    return this.clientRepository.save({
+      id,
+      warehouseClientId,
     });
   }
 
