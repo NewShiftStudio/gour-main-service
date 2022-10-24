@@ -168,11 +168,10 @@ export class ProductService {
   async create(dto: ProductCreateDto) {
     const saveParams: Omit<
       ProductCreateDto,
-      'category' | 'similarProducts' | 'roleDiscounts' | 'images' | 'categories'
+      'category' | 'similarProducts' | 'images' | 'categories'
     > & {
       categories?: Category[];
       similarProducts?: (Product | number)[];
-      roleDiscounts?: (RoleDiscount | object)[];
       images?: (Image | number)[];
     } = dto;
 
@@ -197,23 +196,6 @@ export class ProductService {
       saveParams.similarProducts = similarProducts;
     }
 
-    if (dto.roleDiscounts) {
-      const roleDiscounts: RoleDiscount[] = [];
-
-      for (const roleDiscount of dto.roleDiscounts) {
-        const role = await this.clientRoleRepository.findOne(roleDiscount.role);
-
-        roleDiscounts.push(
-          this.roleDiscountRepository.create({
-            role,
-            value: roleDiscount.value,
-          }),
-        );
-      }
-
-      saveParams.roleDiscounts = roleDiscounts;
-    }
-
     const images: Image[] = [];
 
     for (const imageId of dto.images) {
@@ -230,11 +212,11 @@ export class ProductService {
     return this.productRepository.save(saveParams as DeepPartial<Product>);
   }
 
-  async update(id: number, product: ProductUpdateDto) {
+  async update(id: number, dto: ProductUpdateDto) {
     const images: Image[] = [];
 
-    if (product.images) {
-      for (const imageId of product.images) {
+    if (dto.images) {
+      for (const imageId of dto.images) {
         const image = await this.imageRepository.findOne(imageId);
 
         if (!image)
@@ -245,28 +227,28 @@ export class ProductService {
     }
 
     const saveParams: DeepPartial<Product> = {
-      title: product.title,
-      description: product.description,
-      moyskladId: product.moyskladId,
-      images,
-      price: product.price,
-      meta: product.meta,
       id,
+      title: dto.title,
+      description: dto.description,
+      moyskladId: dto.moyskladId,
+      images,
+      meta: dto.meta,
     };
 
-    if (product.categoryIds) {
+    if (dto.categoryIds) {
       saveParams.categories = [];
-      for (const categoryId of product.categoryIds) {
+
+      for (const categoryId of dto.categoryIds) {
         saveParams.categories.push(
           await this.categoryRepository.findOne(categoryId),
         );
       }
     }
 
-    if (product.similarProducts) {
+    if (dto.similarProducts) {
       const similarProducts: Product[] = [];
 
-      for (const productId of product.similarProducts) {
+      for (const productId of dto.similarProducts) {
         similarProducts.push(await this.productRepository.findOne(productId));
       }
 
