@@ -90,8 +90,8 @@ export class ClientsService {
     });
   }
 
-  async remove(id: number): Promise<void> {
-    await this.clientRepository.softDelete(id);
+  remove(id: number) {
+    return this.clientRepository.softDelete(id);
   }
 
   async create(dto: ClientCreateDto) {
@@ -129,19 +129,22 @@ export class ClientsService {
 
     if (!client) throw new NotFoundException('Пользователь не найден');
 
-    const avatar = await this.imageRepository.findOne(dto.avatarId);
-
-    if (!avatar) throw new NotFoundException('Аватар не найден');
-
     const updatedObj: DeepPartial<Client> = {
       ...client,
       firstName: dto.name || client.firstName,
-      avatar: avatar.id || client.avatar,
       additionalInfo: {
         ...client.additionalInfo,
         ...(dto.additionalInfo || {}),
       },
     };
+
+    if (dto.avatarId) {
+      const avatar = await this.imageRepository.findOne(dto.avatarId);
+
+      if (!avatar) throw new NotFoundException('Аватар не найден');
+
+      updatedObj.avatar = dto.avatarId;
+    }
 
     if (dto.roleId) {
       const role = await this.clientRoleRepository.findOne(dto.roleId);
