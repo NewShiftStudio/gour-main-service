@@ -86,6 +86,19 @@ export class CurrentUserService {
     });
   }
 
+  async reduceGameLive(currentUserId: number) {
+    const user = await this.clientRepository.findOne(currentUserId);
+
+    if (!user) throw new NotFoundException('Пользователь не найден');
+    if (user.lives <= 0)
+      throw new BadRequestException('Некорректное количество жизней');
+
+    return this.clientRepository.save({
+      id: currentUserId,
+      lives: user.lives - 1,
+    });
+  }
+
   async changeCityId(currentUserId: number, cityId: number) {
     const city = await this.cityRepository.findOne(cityId);
 
