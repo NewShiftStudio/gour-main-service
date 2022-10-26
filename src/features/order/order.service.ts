@@ -1,5 +1,9 @@
-import { Repository } from 'typeorm';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Repository, QueryRunner, Connection } from 'typeorm';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import {
@@ -17,6 +21,10 @@ import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { ProductService } from '../product/product.service';
 import { Product } from '../../entity/Product';
 import { DiscountService } from '../discount/discount.service';
+import { Discount } from 'src/entity/Discount';
+import { WarehouseService } from '../warehouse/warehouse.service';
+import { ModificationDto } from '../warehouse/dto/modification.dto';
+import { ClientsService } from '../client/client.service';
 
 @Injectable()
 export class OrderService {
@@ -34,7 +42,10 @@ export class OrderService {
     private orderProfileRepository: Repository<OrderProfile>,
 
     private productService: ProductService,
+    private clientService: ClientsService,
+    private warehouseService: WarehouseService,
     private discountService: DiscountService,
+    private connection: Connection,
   ) {}
 
   async findUsersOrders(params: BaseGetListDto, client: Client) {
@@ -100,53 +111,142 @@ export class OrderService {
   }
 
   async create(order: OrderCreateDto, client: Client) {
-    const orderProfile = await this.orderProfileRepository.findOne(
-      order.orderProfileId,
-    );
+    const queryRunner = this.connection.createQueryRunner();
 
-    if (!orderProfile) throw new NotFoundException('Профиль заказа не найден');
+    await queryRunner.connect();
 
-    const orderProducts: OrderProduct[] = [];
+    await queryRunner.startTransaction();
 
-    for (const orderProductDto of order.orderProducts) {
-      const { productId, weight, amount } = orderProductDto;
+    const discountRepository = queryRunner.manager.getRepository(Discount);
+    const orderRepository = queryRunner.manager.getRepository(Order);
 
-      const product = await this.productRepository.findOne(productId, {
-        relations: ['categories'],
-      });
-
-      if (!product) throw new NotFoundException('Товар не найден');
-
-      const discountPromises = product.categories.map((category) =>
-        this.discountService.add(
-          client,
-          category,
-          product.price.cheeseCoin * amount,
-        ),
+    try {
+      const orderProfile = await this.orderProfileRepository.findOne(
+        order.orderProfileId,
       );
 
-      await Promise.all(discountPromises);
+      if (!orderProfile)
+        throw new NotFoundException('Профиль заказа не найден');
 
-      const orderProduct = await this.orderProductRepository.save({
-        product,
-        weight,
-        amount,
+      const orderProducts: OrderProduct[] = [];
+
+      for (const orderProductDto of order.orderProducts) {
+        const { productId, amount, gram } = orderProductDto;
+
+        const product = await this.productRepository.findOne(productId, {
+          relations: ['categories'],
+        });
+
+        if (!product) throw new NotFoundException('Товар не найден');
+
+        const discountPromises = product.categories.map(async (category) => {
+          const candidateDiscount = await this.discountService.findOneByFK(
+            client,
+            category,
+          );
+
+          const price = product.price.cheeseCoin * amount * gram;
+
+          if (candidateDiscount) {
+            return discountRepository.save({
+              ...candidateDiscount,
+              price: candidateDiscount.price + price,
+            });
+          }
+
+          return discountRepository.save({
+            client,
+            productCategory: category,
+            price,
+          });
+        });
+
+        await Promise.all(discountPromises);
+
+        const orderProduct = await this.orderProductRepository.save({
+          product,
+          amount,
+          gram,
+        });
+
+        orderProducts.push(orderProduct);
+      }
+
+      const newOrder = await orderRepository.save({
+        status: OrderStatus.basketFilling,
+        firstName: order.firstName,
+        lastName: order.lastName,
+        phone: order.phone,
+        email: order.email,
+        orderProducts,
+        client,
+        orderProfile,
+        comment: order.comment || '',
       });
 
-      orderProducts.push(orderProduct);
-    }
+      const assortment: ModificationDto[] = orderProducts.map((o) => ({
+        discount: 0,
+        price: o.product.price.cheeseCoin,
+        quantity: o.amount,
+        type: 'variant',
+        productId: o.product?.moyskladId,
+        gram: o.gram,
+      }));
 
-    return this.orderRepository.save({
-      status: OrderStatus.basketFilling,
-      firstName: order.firstName,
-      lastName: order.lastName,
-      phone: order.phone,
-      email: order.email,
-      orderProducts,
-      client,
-      orderProfile,
-      comment: order.comment,
-    });
+      const fullClient = await this.clientService.findOne(client.id);
+
+      let warehouseClientId = fullClient.warehouseClientId;
+
+      // Создание контрагента, требование моего склада
+      if (!warehouseClientId) {
+        const agent = await this.warehouseService.createWarehouseAgent({
+          description: 'Клиент из интернет-магазина tastyoleg.com',
+          email: fullClient.email,
+          name: `${fullClient.firstName}  ${fullClient.lastName}`,
+          phone: fullClient.phone,
+        });
+
+        warehouseClientId = agent.id;
+
+        await this.clientService.updateWarehouseClientId(
+          client.id,
+          warehouseClientId,
+        );
+      }
+
+      const warehouseOrder = await this.warehouseService.createOrder(
+        assortment,
+        {
+          organizationId: process.env.WAREHOUSE_ORGANIZATION_ID,
+          firstName: newOrder.firstName,
+          lastName: newOrder.lastName,
+          city: newOrder.orderProfile.city.name.ru,
+          street: newOrder.orderProfile.street,
+          house: newOrder.orderProfile.house,
+          apartment: newOrder.orderProfile.apartment,
+          comment: newOrder.orderProfile.comment,
+          addInfo: newOrder.comment,
+          postalCode: '000000', //FIXME: добавить в профиль создание постал кода
+          counterpartyId: warehouseClientId,
+        },
+      );
+
+      if (!warehouseOrder) {
+        throw new BadRequestException(
+          'Ошибка при создании заказа в сервисе склада',
+        );
+      }
+
+      console.info('Warehouse order: ', warehouseOrder);
+
+      await queryRunner.commitTransaction();
+      return newOrder;
+    } catch (error) {
+      console.error(error);
+      await queryRunner.rollbackTransaction();
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   update(id: number, order: Partial<Order>) {
@@ -175,9 +275,7 @@ export class OrderService {
         fullOrderProducts.push({
           ...orderProduct,
           product,
-          totalSum: product.isWeightGood
-            ? product.totalCost * orderProduct.weight
-            : product.totalCost * orderProduct.amount,
+          totalSum: product.totalCost * orderProduct.gram,
         });
     }
 
@@ -195,9 +293,7 @@ export class OrderService {
         let value =
           (promotion.discount / 100) * orderProduct.product.price.cheeseCoin;
 
-        if (orderProduct.product.isWeightGood)
-          value = value * orderProduct.weight;
-        else value = value * orderProduct.amount;
+        value = value * orderProduct.gram;
 
         const index = promotions.findIndex(
           (it) => it.title === promotion.title.ru,
@@ -238,9 +334,7 @@ export class OrderService {
 
     order.orderProducts.forEach((op) => {
       description += `${op.product.title.ru} `;
-      description += op.product.isWeightGood
-        ? op.weight + 'гр'
-        : op.amount + 'шт';
+      description += op.gram + 'гр';
       description += ` ${op.totalSum}₡`;
       description += '\n';
     });

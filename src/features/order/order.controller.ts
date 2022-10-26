@@ -56,32 +56,30 @@ export class OrderController {
   }
 
   @MessagePattern('create-order')
-  async post(
+  async create(
     @Payload('client') client: Client,
     @Payload('dto') dto: OrderCreateDto,
   ) {
-    const { id } = await this.orderService.create(dto, client);
+    // const order = await this.orderService.getOne(id);
 
-    const order = await this.orderService.getOne(id);
+    // const description = this.orderService.getDescription(order);
 
-    const description = this.orderService.getDescription(order);
+    // const lead = await this.amoCrmService.createLead({
+    //   name: `${order.lastName} ${order.firstName} ${order.createdAt}`,
+    //   description,
+    //   price: order.totalSum,
+    // });
 
-    const lead = await this.amoCrmService.createLead({
-      name: `${order.lastName} ${order.firstName} ${order.createdAt}`,
-      description,
-      price: order.totalSum,
-    });
+    // await this.orderService.update(id, {
+    //   leadId: lead.id,
+    // });
 
-    await this.orderService.update(id, {
-      leadId: lead.id,
-    });
+    // const fullOrder = {
+    //   ...order,
+    //   crmInfo: lead,
+    // };
 
-    const fullOrder = {
-      ...order,
-      crmInfo: lead,
-    };
-
-    return fullOrder;
+    return this.orderService.create(dto, client);
   }
 
   @MessagePattern('edit-order')

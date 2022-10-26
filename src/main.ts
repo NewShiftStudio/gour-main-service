@@ -14,6 +14,7 @@ const envs = [
   'WAREHOUSE_API_URL',
   'WAREHOUSE_LOGIN',
   'WAREHOUSE_PASSWORD',
+  'WAREHOUSE_ORGANIZATION_ID',
 ];
 
 const requiredEnvs = getRequiredEnvsByNodeEnv(

@@ -5,9 +5,15 @@ import {
   HttpStatus,
   Injectable,
 } from '@nestjs/common';
-import { IWarehouseService } from './@types/WarehouseService';
+import {
+  AbstractAssortment,
+  IWarehouseService,
+} from './@types/WarehouseService';
 import { MoyskladService } from './moysklad.service';
 import { AxiosError, AxiosInstance } from 'axios';
+import { ModificationDto } from './dto/modification.dto';
+import { CreateOrderMeta } from './@types/Moysklad';
+import { CreateWarehouseAgentDto } from './dto/create-agent.dto';
 
 @Injectable()
 export class WarehouseService implements IWarehouseService<MoyskladService> {
@@ -44,7 +50,6 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
       login: process.env.WAREHOUSE_LOGIN,
       password: process.env.WAREHOUSE_PASSWORD,
     });
-
     return token;
   }
 
@@ -91,5 +96,23 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
         error?.status || error?.statusCode,
       );
     }
+  }
+
+  async createOrder(assortment: ModificationDto[], meta: CreateOrderMeta) {
+    const modifications: AbstractAssortment[] = [];
+    for (const ass of assortment) {
+      const modification =
+        await this.moyskladService.getModificationByProductIdAndGram(
+          ass.productId,
+          `${ass.gram}гр`,
+        );
+      modifications.push({ ...ass, id: modification.id });
+    }
+
+    return this.moyskladService.createOrder(modifications, meta);
+  }
+
+  async createWarehouseAgent(agent: CreateWarehouseAgentDto) {
+    return this.moyskladService.createWarehouseAgent(agent);
   }
 }

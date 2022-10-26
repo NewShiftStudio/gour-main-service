@@ -14,7 +14,8 @@ import { Meta } from '../../entity/Meta';
 import { AmoCrmService } from './amo-crm.service';
 import { ProductModule } from '../product/product.module';
 import { DiscountModule } from '../discount/discount.module';
-
+import { WarehouseModule } from '../warehouse/warehouse.module';
+import { ClientModule } from '../client/client.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -28,6 +29,8 @@ import { DiscountModule } from '../discount/discount.module';
     MetaModule,
     ProductModule,
     DiscountModule,
+    WarehouseModule,
+    ClientModule,
   ],
   providers: [OrderService, AmoCrmService, MetaService],
   controllers: [OrderController],
