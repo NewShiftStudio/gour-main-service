@@ -1,3 +1,6 @@
+import { CreateWarehouseAgentDto } from '../dto/create-agent.dto';
+import { ModificationDto } from '../dto/modification.dto';
+
 export type AbstractService = {
   increaseAmountOfProductById?(
     id: Id,
@@ -41,6 +44,13 @@ export type AbstractService = {
     data: StrategyData[S],
     strategy: S,
   ): Promise<Token>;
+
+  createOrder(
+    assortment: AbstractAssortment[],
+    meta: object,
+  ): Promise<AbstractOrder>;
+
+  createWarehouseAgent(agent: CreateWarehouseAgentDto): Promise<AbstractAgent>;
 };
 
 export enum AuthStrategy {
@@ -56,6 +66,16 @@ export type StrategyData = {
 
 export type IWarehouseService<S extends AbstractService> = {
   [M in keyof AbstractService]: S[M];
+};
+
+export type AbstractAssortment = {
+  id: Uuid;
+  productId: Uuid;
+  price: AmountInCents;
+  quantity: Piece;
+  discount: Percent;
+  gram: number;
+  type: 'variant' | 'product';
 };
 
 export type AbstractProduct = {
@@ -74,4 +94,12 @@ export type AbstractStock = {
 export type AbstractStore = {
   id: Uuid;
   city: CityName;
+};
+
+export type AbstractOrder = {
+  id: Uuid;
+};
+
+export type AbstractAgent = {
+  id: Uuid;
 };

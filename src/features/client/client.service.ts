@@ -132,6 +132,7 @@ export class ClientsService {
     const updatedObj: DeepPartial<Client> = {
       ...client,
       firstName: dto.name || client.firstName,
+      warehouseClientId: dto.warehouseClientId,
       additionalInfo: {
         ...client.additionalInfo,
         ...(dto.additionalInfo || {}),
@@ -175,6 +176,13 @@ export class ClientsService {
     return this.clientRepository.save({
       id,
       phone,
+    });
+  }
+
+  updateWarehouseClientId(id: number, warehouseClientId: string) {
+    return this.clientRepository.save({
+      id,
+      warehouseClientId,
     });
   }
 

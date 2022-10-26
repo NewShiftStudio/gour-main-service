@@ -33,32 +33,63 @@ export class PromotionService {
     return this.promotionRepository.findOne({ id });
   }
 
-  async create(promotionDto: any | PromotionCreateDto) {
-    const cardImage = await this.imageRepository.findOne(
-      promotionDto.cardImageId,
-    );
+  async create({
+    title,
+    description,
+    cardImageId,
+    pageImageId,
+    start,
+    end,
+    discount,
+    pageMeta,
+    products: productIds,
+  }: PromotionCreateDto) {
+    let cardImage: Image | undefined;
+    let pageImage: Image | undefined;
 
-    if (!cardImage) {
-      throw new NotFoundException('Фото 1:2 не найдено');
+    if (cardImageId) {
+      cardImage = await this.imageRepository.findOne(cardImageId);
+
+      if (!cardImage) throw new NotFoundException('Фото 1:2 не найдено');
     }
 
-    const pageImage = await this.imageRepository.findOne(
-      promotionDto.pageImageId,
-    );
+    if (pageImageId) {
+      pageImage = await this.imageRepository.findOne(pageImageId);
 
-    if (!pageImage) {
-      throw new NotFoundException('Фото 1:1 не найдено');
+      if (!pageImage) throw new NotFoundException('Фото 1:1 не найдено');
     }
+
+    const products = await this.productRepository.findByIds(productIds);
+
+    if (!products) throw new NotFoundException('Продукты не найдены');
 
     return this.promotionRepository.save({
-      ...promotionDto,
+      title,
+      description,
       cardImage,
       pageImage,
-      products: await this.productRepository.findByIds(promotionDto.products),
+      start,
+      end,
+      discount,
+      pageMeta,
+      products,
     });
   }
 
-  async update(id: number, dto: PromotionUpdateDto) {
+  async update(
+    id: number,
+    {
+      title,
+      description,
+      cardImageId,
+      pageImageId,
+      start,
+      end,
+      discount,
+      pageMeta,
+      products: productIds,
+    }: PromotionUpdateDto,
+  ) {
     const promotion = await this.promotionRepository.findOne(id);
 
     if (!promotion) throw new NotFoundException('Акция не найдена');
@@ -67,26 +98,34 @@ export class PromotionService {
     let pageImage: Image | undefined;
     let products: Product[] = [];
 
-    if (dto.cardImageId) {
-      cardImage = await this.imageRepository.findOne(dto.cardImageId);
+    if (cardImageId) {
+      cardImage = await this.imageRepository.findOne(cardImageId);
 
       if (!cardImage) throw new NotFoundException('Фото 1:2 не найдено');
     }
 
-    if (dto.pageImageId) {
-      pageImage = await this.imageRepository.findOne(dto.pageImageId);
+    if (pageImageId) {
+      pageImage = await this.imageRepository.findOne(pageImageId);
 
       if (!pageImage) throw new NotFoundException('Фото 1:1 не найдено');
     }
 
-    if (dto.products)
-      products = await this.productRepository.findByIds(dto.products);
+    if (productIds) {
+      products = await this.productRepository.findByIds(productIds);
+
+      if (!products) throw new NotFoundException('Товары не найдены');
+    }
 
     return this.promotionRepository.save({
       ...promotion,
-      ...dto,
+      title,
+      description,
       cardImage,
       pageImage,
+      start,
+      end,
+      discount,
+      pageMeta,
       products,
     });
   }

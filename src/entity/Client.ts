@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import {
   Entity,
   Column,
@@ -78,6 +79,7 @@ export class Client extends Base {
   })
   referralCode: ReferralCode;
 
+  @Exclude()
   @Column({
     default: '',
   })
@@ -105,6 +107,9 @@ export class Client extends Base {
     default: 1,
   })
   lives: number;
+
+  @Column({ type: 'uuid', nullable: true })
+  warehouseClientId: string;
 }
 
 export type IClient = Client;

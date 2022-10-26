@@ -46,6 +46,11 @@ export class CurrentUserController {
     return this.currentUserService.changePassword(id, dto);
   }
 
+  @MessagePattern('reduce-game-live')
+  reduceGameLive(@Payload('id') id: number) {
+    return this.currentUserService.reduceGameLive(id);
+  }
+
   @MessagePattern('get-favorites')
   getFavoritesProducts(@Payload() id: number) {
     return this.clientsService.getFavorites(id);

@@ -81,8 +81,8 @@ export class AuthService {
     return firstValueFrom(
       this.client.send('send-email', {
         email,
-        subject: `Код подтверждения Gour Food`,
-        content: `Ваш код подтверждения: <b>${code}</b>`,
+        subject: `Код подтверждения Gour Food ${code.toString()}`,
+        content: `Ваш код подтверждения: <b>${code.toString()}</b>`,
       }),
     );
   }

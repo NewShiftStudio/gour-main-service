@@ -14,8 +14,8 @@ export class OrderProduct extends Base {
   product: Product;
 
   @Column()
-  weight: number;
-
-  @Column()
   amount: number;
+
+  @Column({ nullable: true })
+  gram: number;
 }

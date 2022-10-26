@@ -86,6 +86,19 @@ export class CurrentUserService {
     });
   }
 
+  async reduceGameLive(currentUserId: number) {
+    const user = await this.clientRepository.findOne(currentUserId);
+
+    if (!user) throw new NotFoundException('Пользователь не найден');
+    if (user.lives <= 0)
+      throw new BadRequestException('Некорректное количество жизней');
+
+    return this.clientRepository.save({
+      id: currentUserId,
+      lives: user.lives - 1,
+    });
+  }
+
   async changeCityId(currentUserId: number, cityId: number) {
     const city = await this.cityRepository.findOne(cityId);
 
@@ -139,9 +152,10 @@ export class CurrentUserService {
         where: { phone: dto.phone },
       });
 
-      if (client) throw new NotFoundException('Номер телефона занят');
+      if (client && client.id !== id)
+        throw new NotFoundException('Номер телефона занят');
 
-      updatedObj.phone = dto.phone;
+      if (!client) updatedObj.phone = dto.phone;
     }
 
     if (dto.mainOrderProfileId) {
