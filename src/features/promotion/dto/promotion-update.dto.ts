@@ -20,9 +20,10 @@ export class PromotionUpdateDto {
   title?: TranslatableStringDto;
 
   @ValidateNested()
-  @Type(() => TranslatableTextDto)
   @IsOptional()
-  @ApiPropertyOptional()
+  @ApiModelPropertyOptional({
+    type: () => TranslatableTextDto,
+  })
   description?: TranslatableTextDto;
 
   @IsNumber()
@@ -53,12 +54,12 @@ export class PromotionUpdateDto {
   @IsArray()
   @IsOptional()
   @ApiPropertyOptional()
-  products: number[];
+  products?: number[];
 
   @ValidateNested()
   @IsOptional()
   @ApiModelPropertyOptional({
     type: () => PageMetaDto,
   })
-  pageMeta: PageMetaDto;
+  pageMeta?: PageMetaDto;
 }
