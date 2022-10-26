@@ -145,7 +145,7 @@ export class OrderService {
             category,
           );
 
-          const price = product.price.cheeseCoin * amount;
+          const price = product.price.cheeseCoin * amount * gram;
 
           if (candidateDiscount) {
             return discountRepository.save({
@@ -275,9 +275,7 @@ export class OrderService {
         fullOrderProducts.push({
           ...orderProduct,
           product,
-          totalSum: product.isWeightGood
-            ? product.totalCost * orderProduct.gram
-            : product.totalCost * orderProduct.amount,
+          totalSum: product.totalCost * orderProduct.gram,
         });
     }
 
@@ -295,9 +293,7 @@ export class OrderService {
         let value =
           (promotion.discount / 100) * orderProduct.product.price.cheeseCoin;
 
-        if (orderProduct.product.isWeightGood)
-          value = value * orderProduct.gram;
-        else value = value * orderProduct.amount;
+        value = value * orderProduct.gram;
 
         const index = promotions.findIndex(
           (it) => it.title === promotion.title.ru,
@@ -338,9 +334,7 @@ export class OrderService {
 
     order.orderProducts.forEach((op) => {
       description += `${op.product.title.ru} `;
-      description += op.product.isWeightGood
-        ? op.gram + 'гр'
-        : op.amount + 'шт';
+      description += op.gram + 'гр';
       description += ` ${op.totalSum}₡`;
       description += '\n';
     });
