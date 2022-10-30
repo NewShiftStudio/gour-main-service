@@ -29,6 +29,7 @@ import { generateSmsCode } from 'src/utils/generateSmsCode';
 import { RecoverPasswordDto } from './dto/recover-password.dto';
 import { ClientRole } from '../../entity/ClientRole';
 import { City } from '../../entity/City';
+import { WalletService } from '../wallet/wallet.service';
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
@@ -48,6 +49,8 @@ export class AuthService {
     private referralCodeRepository: Repository<ReferralCode>,
 
     @Inject('MESSAGES_SERVICE') private client: ClientProxy,
+
+    private walletService: WalletService,
   ) {}
 
   async onModuleInit() {
@@ -92,11 +95,11 @@ export class AuthService {
 
     if (!isValid) throw new BadRequestException('Неверный код');
 
-    const user = await this.clientRepository.findOne({
+    const candidateUser = await this.clientRepository.findOne({
       email: dto.email,
     });
 
-    if (user)
+    if (candidateUser)
       throw new BadRequestException('Пользователь с таким Email существует');
 
     const role = await this.clientRoleRepository.findOne(dto.roleId);
@@ -117,7 +120,7 @@ export class AuthService {
 
     const password = await this.getPasswordHash(dto.password);
 
-    return this.clientRepository.save({
+    const user = await this.clientRepository.save({
       role: dto.roleId,
       firstName: dto.firstName,
       lastName: dto.lastName,
@@ -126,6 +129,10 @@ export class AuthService {
       referralCode,
       password,
     });
+
+    await this.walletService.create(user.id);
+
+    return user;
   }
 
   async recoverPassword(dto: RecoverPasswordDto) {
@@ -173,7 +180,7 @@ export class AuthService {
     };
   }
 
-  async signinById(id: number): Promise<{
+  async signinById(id: string): Promise<{
     accessToken: string;
     refreshToken: string;
     client: Client;

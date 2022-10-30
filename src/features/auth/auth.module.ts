@@ -14,6 +14,8 @@ import { OrderProfile } from '../../entity/OrderProfile';
 import { Image } from '../../entity/Image';
 import { City } from '../../entity/City';
 import { ClientRole } from '../../entity/ClientRole';
+import { WalletService } from '../wallet/wallet.service';
+import { WalletModule } from '../wallet/wallet.module';
 
 @Module({
   imports: [
@@ -36,6 +38,7 @@ import { ClientRole } from '../../entity/ClientRole';
       ClientRole,
     ]),
     forwardRef(() => ClientModule),
+    forwardRef(() => WalletModule),
     HttpModule,
   ],
   controllers: [AuthController, CurrentUserController],

@@ -7,7 +7,7 @@ const MINIMUM_DISCOUNT = 0;
 const categoryQueryBuilder = {
   findCategoryWithDiscounts: (
     repository: Repository<Category>,
-    clientId: number,
+    clientId: string,
   ) =>
     repository
       .createQueryBuilder('category')

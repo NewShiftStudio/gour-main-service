@@ -8,6 +8,10 @@ import {
   OneToOne,
   JoinColumn,
   OneToMany,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 import { Base } from './Base';
@@ -20,11 +24,14 @@ import { Wallet } from './Wallet';
 import { Discount } from './Discount';
 
 @Entity()
-export class Client extends Base {
+export class Client {
   @ManyToOne(() => ClientRole, (role) => role.id, {
     eager: true,
   })
   role: number;
+
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({
     default: false,
@@ -110,6 +117,15 @@ export class Client extends Base {
 
   @Column({ type: 'uuid', nullable: true })
   warehouseClientId: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn({ default: null })
+  deletedAt?: Date;
 }
 
 export type IClient = Client;

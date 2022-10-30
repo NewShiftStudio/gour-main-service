@@ -10,8 +10,8 @@ import * as bcrypt from 'bcryptjs';
 
 import { Client } from '../../entity/Client';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
-import { ClientCreateDto } from './dto/сlient-create.dto';
-import { ClientGetListDto } from './dto/сlient-get-list.dto';
+import { ClientCreateDto } from './dto/client-create.dto';
+import { ClientGetListDto } from './dto/client-get-list.dto';
 import { ClientUpdateDto } from './dto/client-update.dto';
 import { ClientRole } from '../../entity/ClientRole';
 import { Product } from '../../entity/Product';
@@ -56,11 +56,13 @@ export class ClientsService {
     return this.clientRepository.findAndCount(options);
   }
 
-  findOne(id: number): Promise<Client> {
-    return this.clientRepository.findOne(id);
+  findOne(uuid: string): Promise<Client> {
+    return this.clientRepository.findOne(uuid, {
+      relations: ['wallet'],
+    });
   }
 
-  async getFavorites(id: number): Promise<Product[]> {
+  async getFavorites(id: string): Promise<Product[]> {
     const { favorites } = await this.clientRepository.findOne(id, {
       relations: ['favorites'],
     });
@@ -68,7 +70,7 @@ export class ClientsService {
     return favorites;
   }
 
-  async addToFavorites(clientId: number, productId: number) {
+  async addToFavorites(clientId: string, productId: number) {
     const product = await this.productRepository.findOne(productId);
 
     if (!product) throw new NotFoundException('Товар не найден');
@@ -81,7 +83,7 @@ export class ClientsService {
     });
   }
 
-  async removeFromFavorites(clientId: number, productId: number) {
+  async removeFromFavorites(clientId: string, productId: number) {
     const favorites = await this.getFavorites(clientId);
 
     return this.clientRepository.save({
@@ -172,14 +174,14 @@ export class ClientsService {
     return this.clientRepository.save(updatedObj);
   }
 
-  updatePhone(id: number, phone: string) {
+  updatePhone(id: string, phone: string) {
     return this.clientRepository.save({
       id,
       phone,
     });
   }
 
-  updateWarehouseClientId(id: number, warehouseClientId: string) {
+  updateWarehouseClientId(id: string, warehouseClientId: string) {
     return this.clientRepository.save({
       id,
       warehouseClientId,

@@ -37,13 +37,13 @@ export class CurrentUserService {
     private referralCodeRepository: Repository<ReferralCode>,
   ) {}
 
-  getUser(id: number) {
+  getUser(id: string) {
     return this.clientRepository.findOne(id, {
       relations: ['role', 'city', 'referralCode', 'avatar'],
     });
   }
 
-  async changeEmail(userId: number, hashedCode: string, dto: ChangeEmailDto) {
+  async changeEmail(userId: string, hashedCode: string, dto: ChangeEmailDto) {
     if (!hashedCode) throw new NotFoundException('Cookie не найден');
 
     const user = await this.clientRepository.findOne({
@@ -64,7 +64,7 @@ export class CurrentUserService {
     });
   }
 
-  async changePassword(currentUserId: number, dto: ChangePasswordDto) {
+  async changePassword(currentUserId: string, dto: ChangePasswordDto) {
     const user = await this.clientRepository.findOne(currentUserId);
 
     if (!user) throw new NotFoundException('Пользователь не найден');
@@ -86,7 +86,7 @@ export class CurrentUserService {
     });
   }
 
-  async reduceGameLive(currentUserId: number) {
+  async reduceGameLive(currentUserId: string) {
     const user = await this.clientRepository.findOne(currentUserId);
 
     if (!user) throw new NotFoundException('Пользователь не найден');
@@ -99,7 +99,7 @@ export class CurrentUserService {
     });
   }
 
-  async changeCityId(currentUserId: number, cityId: number) {
+  async changeCityId(currentUserId: string, cityId: number) {
     const city = await this.cityRepository.findOne(cityId);
 
     if (!city) throw new NotFoundException('Город не найден');
@@ -110,7 +110,7 @@ export class CurrentUserService {
     });
   }
 
-  async changeAvatarId(currentUserId: number, avatarId: number) {
+  async changeAvatarId(currentUserId: string, avatarId: number) {
     const avatar = await this.imageRepository.findOne(avatarId);
 
     if (!avatar) throw new NotFoundException('Изображение не найдено');
@@ -122,7 +122,7 @@ export class CurrentUserService {
   }
 
   async changeMainProfileId(
-    currentUserId: number,
+    currentUserId: string,
     orderProfileId: number | null,
   ) {
     if (orderProfileId !== null) {
@@ -140,7 +140,7 @@ export class CurrentUserService {
     });
   }
 
-  async updateCurrentUser(id: number, dto: UpdateUserDto) {
+  async updateCurrentUser(id: string, dto: UpdateUserDto) {
     const updatedObj: DeepPartial<Client> = {
       firstName: dto.firstName,
       lastName: dto.lastName,
