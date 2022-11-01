@@ -19,7 +19,11 @@ export class WalletController {
 
   @MessagePattern('wallet-change-value')
   changeValue(@Payload() dto: WalletChangeValueDto) {
-    return this.walletService.changeSum(dto.walletUuid, dto.value);
+    return this.walletService.changeSum(
+      dto.walletUuid,
+      dto.value,
+      dto.description,
+    );
   }
 
   @MessagePattern('get-wallet-transactions')

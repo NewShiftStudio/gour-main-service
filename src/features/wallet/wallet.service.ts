@@ -94,7 +94,11 @@ export class WalletService {
       );
 
       if (invoice.status === InvoiceStatus.PAID) {
-        return this.addCoins(wallet.uuid, invoice.amount);
+        return this.addCoins(
+          wallet.uuid,
+          invoice.amount,
+          'Пополнение баланса кошелька',
+        );
       }
 
       const tsxSignatureObj = {
@@ -120,8 +124,14 @@ export class WalletService {
     }
   }
 
-  async createWalletTransaction(dto: createWalletTransactionDto) {
-    return this.transactionRepository.save(dto);
+  async createWalletTransaction(
+    dto: createWalletTransactionDto,
+    repository?: Repository<WalletTransaction>,
+  ) {
+    const transactionRepository = repository
+      ? repository
+      : this.transactionRepository;
+    return transactionRepository.save(dto);
   }
 
   async getWalletTransactionsByClientId(clientId: string) {
@@ -143,7 +153,11 @@ export class WalletService {
     return signTsx(signatureObject);
   }
 
-  async changeSum(uuid: string, value: number): Promise<WalletTransaction> {
+  async changeSum(
+    uuid: string,
+    value: number,
+    description: string,
+  ): Promise<WalletTransaction> {
     const wallet = await this.getById(uuid);
 
     if (!wallet) {
@@ -173,6 +187,7 @@ export class WalletService {
     return this.createWalletTransaction({
       ...signatureObject,
       wallet,
+      description,
       signature,
     });
   }
@@ -201,8 +216,22 @@ export class WalletService {
     });
   }
 
-  async useCoins(uuid: string, value: number): Promise<WalletTransaction> {
+  async useCoins(
+    uuid: string,
+    value: number,
+    description: string,
+    walletRepository?: Repository<Wallet>,
+    transactionRepository?: Repository<WalletTransaction>,
+  ): Promise<WalletTransaction> {
     const wallet = await this.getById(uuid);
+
+    const currentWalletRepository = walletRepository
+      ? walletRepository
+      : this.walletRepository;
+
+    const currentTransactionRepository = transactionRepository
+      ? transactionRepository
+      : this.transactionRepository;
 
     if (!wallet) throw new NotFoundException('Кошелёк не найден');
     if (wallet.value < value)
@@ -213,7 +242,7 @@ export class WalletService {
       throw new BadRequestException('Некорректный тип суммы');
     }
 
-    await this.walletRepository.save({
+    await currentWalletRepository.save({
       uuid,
       value: newValue,
     });
@@ -230,14 +259,22 @@ export class WalletService {
 
     const signature = this.signTsx(signatureObject);
 
-    return this.createWalletTransaction({
-      ...signatureObject,
-      wallet: updatedWallet,
-      signature,
-    });
+    return this.createWalletTransaction(
+      {
+        ...signatureObject,
+        wallet: updatedWallet,
+        description,
+        signature,
+      },
+      currentTransactionRepository,
+    );
   }
 
-  async addCoins(uuid: string, value: number): Promise<WalletTransaction> {
+  async addCoins(
+    uuid: string,
+    value: number,
+    description: string,
+  ): Promise<WalletTransaction> {
     const wallet = await this.getById(uuid);
 
     if (!wallet) throw new NotFoundException('Кошелёк не найден');
@@ -269,6 +306,7 @@ export class WalletService {
       ...signatureObject,
       wallet: updatedWallet,
       signature,
+      description,
     });
   }
 }

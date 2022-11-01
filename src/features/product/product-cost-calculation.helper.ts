@@ -59,9 +59,13 @@ export function getProductsWithFullCost<P extends MinimumProduct>(
       product.discount = promotionValue;
     }
 
-    const totalDiscount = promotions.reduce((acc, it) => acc + it.value, 0);
+    const totalDiscount = Math.ceil(
+      promotions.reduce((acc, it) => acc + it.value, 0),
+    );
 
-    const totalCost = product.price.cheeseCoin * (1 - totalDiscount / 100);
+    const totalCost = Math.ceil(
+      product.price.cheeseCoin * (1 - totalDiscount / 100),
+    );
 
     productsWithFullCost.push({
       ...product,
