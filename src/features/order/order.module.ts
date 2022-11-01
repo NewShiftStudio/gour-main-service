@@ -16,6 +16,7 @@ import { ProductModule } from '../product/product.module';
 import { DiscountModule } from '../discount/discount.module';
 import { WarehouseModule } from '../warehouse/warehouse.module';
 import { ClientModule } from '../client/client.module';
+import { WalletModule } from '../wallet/wallet.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -31,6 +32,7 @@ import { ClientModule } from '../client/client.module';
     DiscountModule,
     WarehouseModule,
     ClientModule,
+    WalletModule,
   ],
   providers: [OrderService, AmoCrmService, MetaService],
   controllers: [OrderController],

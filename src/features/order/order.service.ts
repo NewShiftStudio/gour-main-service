@@ -25,6 +25,9 @@ import { Discount } from 'src/entity/Discount';
 import { WarehouseService } from '../warehouse/warehouse.service';
 import { ModificationDto } from '../warehouse/dto/modification.dto';
 import { ClientsService } from '../client/client.service';
+import { WalletService } from '../wallet/wallet.service';
+import { Wallet } from 'src/entity/Wallet';
+import { WalletTransaction } from 'src/entity/WalletTransaction';
 
 @Injectable()
 export class OrderService {
@@ -45,6 +48,7 @@ export class OrderService {
     private clientService: ClientsService,
     private warehouseService: WarehouseService,
     private discountService: DiscountService,
+    private walletService: WalletService,
     private connection: Connection,
   ) {}
 
@@ -119,6 +123,9 @@ export class OrderService {
 
     const discountRepository = queryRunner.manager.getRepository(Discount);
     const orderRepository = queryRunner.manager.getRepository(Order);
+    const walletRepository = queryRunner.manager.getRepository(Wallet);
+    const transactionRepository =
+      queryRunner.manager.getRepository(WalletTransaction);
 
     try {
       const orderProfile = await this.orderProfileRepository.findOne(
@@ -145,7 +152,9 @@ export class OrderService {
             category,
           );
 
-          const price = product.price.cheeseCoin * amount * gram;
+          const price = Math.ceil(
+            (product.price.cheeseCoin * amount * gram) / 1000,
+          );
 
           if (candidateDiscount) {
             return discountRepository.save({
@@ -184,9 +193,22 @@ export class OrderService {
         comment: order.comment || '',
       });
 
+      const orderWithTotalSum = await this.prepareOrder(newOrder);
+
+      const wallet = await this.walletService.getByClientId(client.id);
+      await this.walletService.useCoins(
+        wallet.uuid,
+        orderWithTotalSum.totalSum,
+        'Оплата заказа',
+        walletRepository,
+        transactionRepository,
+      );
+
       const assortment: ModificationDto[] = orderProducts.map((o) => ({
         discount: 0,
-        price: o.product.price.cheeseCoin,
+        price: Math.ceil(
+          (o.product.price.cheeseCoin * o.amount * o.gram) / 1000,
+        ),
         quantity: o.amount,
         type: 'variant',
         productId: o.product?.moyskladId,
@@ -275,13 +297,12 @@ export class OrderService {
         fullOrderProducts.push({
           ...orderProduct,
           product,
-          totalSum: product.totalCost * orderProduct.gram,
+          totalSum: Math.ceil(product.totalCost * orderProduct.gram),
         });
     }
 
-    const totalSum = fullOrderProducts.reduce(
-      (acc, item) => acc + item.totalSum,
-      0,
+    const totalSum = Math.ceil(
+      fullOrderProducts.reduce((acc, item) => acc + item.totalSum, 0),
     );
 
     const promotions: OrderPromotion[] = [];
