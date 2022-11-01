@@ -247,14 +247,12 @@ export class WalletService {
       value: newValue,
     });
 
-    const updatedWallet = await this.getById(uuid);
-
     const signatureObject = {
       prevValue: wallet.value,
-      newValue: updatedWallet.value,
+      newValue,
       status: WalletTransactionStatus.approved,
       type: WalletTransactionType.expense,
-      walletUuid: updatedWallet.uuid,
+      walletUuid: uuid,
     };
 
     const signature = this.signTsx(signatureObject);
@@ -262,7 +260,7 @@ export class WalletService {
     return this.createWalletTransaction(
       {
         ...signatureObject,
-        wallet: updatedWallet,
+        wallet,
         description,
         signature,
       },
@@ -290,21 +288,19 @@ export class WalletService {
       value: newValue,
     });
 
-    const updatedWallet = await this.getById(uuid);
-
     const signatureObject = {
       prevValue: wallet.value,
-      newValue: updatedWallet.value,
+      newValue,
       status: WalletTransactionStatus.approved,
       type: WalletTransactionType.income,
-      walletUuid: updatedWallet.uuid,
+      walletUuid: wallet.uuid,
     };
 
     const signature = this.signTsx(signatureObject);
 
     return this.createWalletTransaction({
       ...signatureObject,
-      wallet: updatedWallet,
+      wallet,
       signature,
       description,
     });

@@ -153,7 +153,7 @@ export class OrderService {
           );
 
           const price = Math.ceil(
-            (product.price.cheeseCoin * amount * gram) / 1000,
+            (product.price.cheeseCoin / 1000) * gram * amount,
           );
 
           if (candidateDiscount) {
@@ -207,7 +207,7 @@ export class OrderService {
       const assortment: ModificationDto[] = orderProducts.map((o) => ({
         discount: 0,
         price: Math.ceil(
-          (o.product.price.cheeseCoin * o.amount * o.gram) / 1000,
+          (o.product.price.cheeseCoin / 1000) * o.gram * o.amount,
         ),
         quantity: o.amount,
         type: 'variant',
@@ -236,30 +236,30 @@ export class OrderService {
         );
       }
 
-      const warehouseOrder = await this.warehouseService.createOrder(
-        assortment,
-        {
-          organizationId: process.env.WAREHOUSE_ORGANIZATION_ID,
-          firstName: newOrder.firstName,
-          lastName: newOrder.lastName,
-          city: newOrder.orderProfile.city.name.ru,
-          street: newOrder.orderProfile.street,
-          house: newOrder.orderProfile.house,
-          apartment: newOrder.orderProfile.apartment,
-          comment: newOrder.orderProfile.comment,
-          addInfo: newOrder.comment,
-          postalCode: '000000', //FIXME: добавить в профиль создание постал кода
-          counterpartyId: warehouseClientId,
-        },
-      );
+      // const warehouseOrder = await this.warehouseService.createOrder(
+      //   assortment,
+      //   {
+      //     organizationId: process.env.WAREHOUSE_ORGANIZATION_ID,
+      //     firstName: newOrder.firstName,
+      //     lastName: newOrder.lastName,
+      //     city: newOrder.orderProfile.city.name.ru,
+      //     street: newOrder.orderProfile.street,
+      //     house: newOrder.orderProfile.house,
+      //     apartment: newOrder.orderProfile.apartment,
+      //     comment: newOrder.orderProfile.comment,
+      //     addInfo: newOrder.comment,
+      //     postalCode: '000000', //FIXME: добавить в профиль создание постал кода
+      //     counterpartyId: warehouseClientId,
+      //   },
+      // );
 
-      if (!warehouseOrder) {
-        throw new BadRequestException(
-          'Ошибка при создании заказа в сервисе склада',
-        );
-      }
+      // if (!warehouseOrder) {
+      //   throw new BadRequestException(
+      //     'Ошибка при создании заказа в сервисе склада',
+      //   );
+      // }
 
-      console.info('Warehouse order: ', warehouseOrder);
+      // console.info('Warehouse order: ', warehouseOrder);
 
       await queryRunner.commitTransaction();
       return newOrder;
@@ -297,7 +297,11 @@ export class OrderService {
         fullOrderProducts.push({
           ...orderProduct,
           product,
-          totalSum: Math.ceil(product.totalCost * orderProduct.gram),
+          totalSum: Math.ceil(
+            (product.totalCost / 1000) *
+              orderProduct.gram *
+              orderProduct.amount,
+          ),
         });
     }
 
