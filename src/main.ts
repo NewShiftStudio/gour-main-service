@@ -9,12 +9,9 @@ import { NodeEnv } from './common/types/App';
 
 const envs = [
   'NODE_ENV',
+  'STATIC_FOLDER_PATH',
   'MESSAGES_SERVICE_PORT',
   'MESSAGES_SERVICE_HOST',
-  'WAREHOUSE_API_URL',
-  'WAREHOUSE_LOGIN',
-  'WAREHOUSE_PASSWORD',
-  'WAREHOUSE_ORGANIZATION_ID',
 ];
 
 const requiredEnvs = getRequiredEnvsByNodeEnv(
