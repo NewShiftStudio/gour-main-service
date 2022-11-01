@@ -17,13 +17,13 @@ export class CurrentUserController {
   ) {}
 
   @MessagePattern('get-current-user')
-  getCurrentUser(@Payload() id: number) {
+  getCurrentUser(@Payload() id: string) {
     return this.currentUserService.getUser(id);
   }
 
   @MessagePattern('edit-current-user')
   updateCurrentUser(
-    @Payload('id') id: number,
+    @Payload('id') id: string,
     @Payload('dto') dto: UpdateUserDto,
   ) {
     return this.currentUserService.updateCurrentUser(id, dto);
@@ -31,7 +31,7 @@ export class CurrentUserController {
 
   @MessagePattern('change-email')
   changeEmail(
-    @Payload('id') id: number,
+    @Payload('id') id: string,
     @Payload('hashedCode') hashedCode: string,
     @Payload('dto') dto: ChangeEmailDto,
   ) {
@@ -40,25 +40,25 @@ export class CurrentUserController {
 
   @MessagePattern('change-password')
   changePassword(
-    @Payload('id') id: number,
+    @Payload('id') id: string,
     @Payload('dto') dto: ChangePasswordDto,
   ) {
     return this.currentUserService.changePassword(id, dto);
   }
 
   @MessagePattern('reduce-game-live')
-  reduceGameLive(@Payload('id') id: number) {
+  reduceGameLive(@Payload('id') id: string) {
     return this.currentUserService.reduceGameLive(id);
   }
 
   @MessagePattern('get-favorites')
-  getFavoritesProducts(@Payload() id: number) {
+  getFavoritesProducts(@Payload() id: string) {
     return this.clientsService.getFavorites(id);
   }
 
   @MessagePattern('add-to-favorites')
   addProductToFavorites(
-    @Payload('clientId') clientId: number,
+    @Payload('clientId') clientId: string,
     @Payload('productId') productId: number,
   ) {
     return this.clientsService.addToFavorites(clientId, productId);
@@ -66,7 +66,7 @@ export class CurrentUserController {
 
   @MessagePattern('remove-from-favorites')
   removeProductFromFavorites(
-    @Payload('clientId') clientId: number,
+    @Payload('clientId') clientId: string,
     @Payload('productId') productId: number,
   ) {
     return this.clientsService.removeFromFavorites(clientId, productId);
@@ -74,7 +74,7 @@ export class CurrentUserController {
 
   @MessagePattern('change-city')
   changeCity(
-    @Payload('clientId') clientId: number,
+    @Payload('clientId') clientId: string,
     @Payload('cityId') cityId: number,
   ) {
     return this.currentUserService.changeCityId(clientId, cityId);
@@ -82,7 +82,7 @@ export class CurrentUserController {
 
   @MessagePattern('change-avatar')
   changeAvatar(
-    @Payload('clientId') clientId: number,
+    @Payload('clientId') clientId: string,
     @Payload('avatarId') avatarId: number,
   ) {
     return this.currentUserService.changeAvatarId(clientId, avatarId);
@@ -90,7 +90,7 @@ export class CurrentUserController {
 
   @MessagePattern('change-main-address')
   changeMainProfile(
-    @Payload('clientId') clientId: number,
+    @Payload('clientId') clientId: string,
     @Payload('addressId') addressId: number | null,
   ) {
     return this.currentUserService.changeMainProfileId(clientId, addressId);

@@ -4,8 +4,8 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 
 import { ClientsService } from './client.service';
 import { AuthService } from '../auth/auth.service';
-import { ClientGetListDto } from './dto/сlient-get-list.dto';
-import { ClientCreateDto } from './dto/сlient-create.dto';
+import { ClientGetListDto } from './dto/client-get-list.dto';
+import { ClientCreateDto } from './dto/client-create.dto';
 import { ClientUpdateDto } from './dto/client-update.dto';
 
 @ApiTags('clients')
@@ -22,7 +22,7 @@ export class ClientController {
   }
 
   @MessagePattern('get-client')
-  getOne(@Payload() id: number) {
+  getOne(@Payload() id: string) {
     return this.clientService.findOne(id);
   }
 
@@ -42,7 +42,7 @@ export class ClientController {
   }
 
   @MessagePattern('login-client')
-  login(@Payload() id: number) {
+  login(@Payload() id: string) {
     return this.authService.signinById(id);
   }
 }
