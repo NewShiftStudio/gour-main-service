@@ -5,16 +5,21 @@ import { ApiTags } from '@nestjs/swagger';
 import { WalletService } from './wallet.service';
 import { WalletChangeValueDto } from './dto/wallet-change-value.dto';
 import { GetAmountByCurrencyDto } from './dto/get-amount-by-currency.dto';
-import { WalletReplenishBalanceDto } from './dto/wallet-replenish-balance.dto';
+import { WalletBuyCoinsDto } from './dto/wallet-buy-coins.dto';
 
 @ApiTags('wallet')
 @Controller('wallet')
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
-  @MessagePattern('wallet-replenish-balance')
-  replenishBalance(@Payload() dto: WalletReplenishBalanceDto) {
-    return this.walletService.replenishBalance(dto);
+  @MessagePattern('wallet-buy-coins')
+  buyCoins(@Payload() dto: WalletBuyCoinsDto) {
+    return this.walletService.buyCoins(dto);
+  }
+
+  @MessagePattern('wallet-replenish-balance-buy-token')
+  replenishBalanceByToken(@Payload() token: string) {
+    return this.walletService.replenishBalanceByToken(token);
   }
 
   @MessagePattern('wallet-change-value')
