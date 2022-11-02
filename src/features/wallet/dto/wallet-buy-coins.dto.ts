@@ -2,6 +2,7 @@ import {
   IsEmail,
   IsEnum,
   IsIP,
+  IsOptional,
   IsString,
   IsUrl,
   IsUUID,
@@ -15,6 +16,7 @@ export class WalletBuyCoinsDto {
   payerUuid: string;
 
   @IsEmail()
+  @IsOptional()
   email: string;
 
   @IsIP()
