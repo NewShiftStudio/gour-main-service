@@ -11,4 +11,5 @@ export class InvoiceDto {
   expiresAt: Date;
   amount: number;
   value: number;
+  redirectUri?: string;
 }

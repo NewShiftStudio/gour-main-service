@@ -106,16 +106,23 @@ export class WalletService {
         payerUuid: client.id,
         ipAddress: dto.ipAddress,
         signature: dto.signature,
-        successUrl: `http://host.docker.internal:5001/wallet/wallet-replenish-balance-buy-token?authToken=${encodeJwt(
+        successUrl: `${process.env.REPLENISH_BALANCE_URL}?authToken=${encodeJwt(
           replenishBalancePayload,
           process.env.SIGNATURE_SECRET,
           '5m',
         )}`,
+        rejectUrl: process.env.REJECT_REDIRECT_URL_BUY_COINS,
       };
 
       const data = await firstValueFrom(
         this.client.send<InvoiceDto, WalletBuyCoinsDto>('pay', paymentData),
       );
+
+      if (data.redirectUri) {
+        return {
+          redirect: data.redirectUri,
+        };
+      }
 
       return data;
     } catch (error) {
@@ -126,10 +133,9 @@ export class WalletService {
     }
   }
 
-  async replenishBalanceByToken(token: string): Promise<WalletTransaction> {
+  async replenishBalanceByToken(token: string): Promise<{ redirect: string }> {
     const dto = decodeToken(token) as WalletReplenishBalanceDto;
 
-    console.log('dto: ', dto);
     const wallet = await this.getById(dto.walletUuid);
 
     try {
@@ -145,13 +151,20 @@ export class WalletService {
         throw new ForbiddenException('Токен не действителен');
       }
 
-      return await this.addCoins(
+      await this.addCoins(
         dto.walletUuid,
         +dto.amount,
         'Пополнение баланса кошелька',
       );
+
+      return {
+        redirect: `${process.env.SUCCESS_REDIRECT_URL_BUY_COINS}&amount=${dto.amount}`,
+      };
     } catch (error) {
-      throw new HttpException(error?.message, error?.status);
+      console.error(error);
+      return {
+        redirect: process.env.REJECT_REDIRECT_URL_BUY_COINS,
+      };
     }
   }
 
