@@ -199,16 +199,16 @@ export class OrderService {
       await this.walletService.useCoins(
         wallet.uuid,
         orderWithTotalSum.totalSum,
-        'Оплата заказа',
+        `Оплата заказа №${newOrder.id}`,
         walletRepository,
         transactionRepository,
       );
 
       const assortment: ModificationDto[] = orderProducts.map((o) => ({
         discount: 0,
-        price: Math.ceil(
-          (o.product.price.cheeseCoin / 1000) * o.gram * o.amount,
-        ),
+        price:
+          Math.ceil((o.product.price.cheeseCoin / 1000) * o.gram * o.amount) *
+          100, // цена в копейках
         quantity: o.amount,
         type: 'variant',
         productId: o.product?.moyskladId,
