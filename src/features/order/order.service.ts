@@ -204,16 +204,16 @@ export class OrderService {
         transactionRepository,
       );
 
-      const assortment: ModificationDto[] = orderProducts.map((o) => ({
-        discount: 0,
-        price:
-          Math.ceil((o.product.price.cheeseCoin / 1000) * o.gram * o.amount) *
-          100, // цена в копейках
-        quantity: o.amount,
-        type: 'variant',
-        productId: o.product?.moyskladId,
-        gram: o.gram,
-      }));
+      const assortment: ModificationDto[] = orderWithTotalSum.orderProducts.map(
+        (p) => ({
+          discount: 0,
+          price: p.totalSum * 100, // цена в копейках
+          quantity: p.amount,
+          type: 'variant',
+          productId: p.product?.moyskladId,
+          gram: p.gram,
+        }),
+      );
 
       const fullClient = await this.clientService.findOne(client.id);
 
