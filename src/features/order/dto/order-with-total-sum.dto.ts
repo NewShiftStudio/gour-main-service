@@ -10,6 +10,7 @@ export class OrderPromotion {
 export class OrderProductWithTotalSumDto extends OrderProduct {
   product: ProductWithFullCostDto;
   totalSum: number;
+  totalSumWithoutAmount: number;
 }
 
 export class OrderWithTotalSumDto extends Order {

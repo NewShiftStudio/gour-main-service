@@ -207,7 +207,7 @@ export class OrderService {
       const assortment: ModificationDto[] = orderWithTotalSum.orderProducts.map(
         (p) => ({
           discount: 0,
-          price: p.totalSum * 100, // цена в копейках
+          price: p.totalSumWithoutAmount * 100, // цена в копейках
           quantity: p.amount,
           type: 'variant',
           productId: p.product?.moyskladId,
@@ -301,6 +301,9 @@ export class OrderService {
             (product.totalCost / 1000) *
               orderProduct.gram *
               orderProduct.amount,
+          ),
+          totalSumWithoutAmount: Math.ceil(
+            (product.totalCost / 1000) * orderProduct.gram,
           ),
         });
     }
