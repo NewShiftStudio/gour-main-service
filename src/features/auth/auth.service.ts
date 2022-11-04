@@ -61,7 +61,9 @@ export class AuthService {
     const code = generateSmsCode();
 
     try {
-      await this.sendEmail(email, code);
+      console.log('start sending...');
+      const res = await this.sendEmail(email, code);
+      console.log('res after sending: ', res);
     } catch (error) {
       throw new BadRequestException('Ошибка при отправке кода');
     }
