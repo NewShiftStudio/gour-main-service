@@ -30,7 +30,28 @@ export class PromotionService {
   }
 
   async getOne(id: number) {
-    return this.promotionRepository.findOne({ id });
+    const promotion = this.promotionRepository
+      .createQueryBuilder('promotion')
+      .leftJoinAndSelect('promotion.title', 'promotionTitle')
+      .leftJoinAndSelect('promotion.description', 'description')
+      .leftJoinAndSelect('promotion.cardImage', 'cardImage')
+      .leftJoinAndSelect('promotion.pageImage', 'pageImage')
+      .leftJoinAndSelect('promotion.pageMeta', 'pageMeta')
+      .leftJoinAndSelect('promotion.products', 'products')
+      .leftJoinAndSelect('products.title', 'productTitle')
+      .leftJoinAndSelect('products.price', 'productPrice')
+      .leftJoinAndSelect('products.images', 'productImages')
+      .leftJoinAndSelect('products.categories', 'categories')
+      .leftJoinAndSelect('categories.title', 'categoryTitle')
+      .leftJoinAndSelect('categories.subCategories', 'categorySubCategories')
+      .leftJoinAndSelect(
+        'categories.parentCategories',
+        'category.parentCategories',
+      )
+      .where('promotion.id = :id', { id })
+      .getOne();
+
+    return promotion;
   }
 
   async create({
