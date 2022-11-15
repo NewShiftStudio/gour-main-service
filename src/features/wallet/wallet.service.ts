@@ -111,7 +111,7 @@ export class WalletService {
           process.env.SIGNATURE_SECRET,
           '5m',
         )}`,
-        rejectUrl: process.env.REJECT_REDIRECT_URL_BUY_COINS,
+        rejectUrl: process.env.REJECT_REDIRECT_URL_PAY,
       };
 
       const data = await firstValueFrom(

@@ -1,11 +1,22 @@
-import { Entity, Column, OneToMany, ManyToOne } from 'typeorm';
-import { Base } from './Base';
+import {
+  Entity,
+  Column,
+  OneToMany,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { OrderProduct } from './OrderProduct';
 import { Client } from './Client';
 import { OrderProfile } from './OrderProfile';
 
 @Entity()
-export class Order extends Base {
+export class Order {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
   @OneToMany(() => OrderProduct, (op) => op.order, {
     onDelete: 'CASCADE',
   })
@@ -43,4 +54,18 @@ export class Order extends Base {
     nullable: true,
   })
   warehouseId: string;
+
+  @Column({
+    nullable: true,
+  })
+  invoiceUuid: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn({ default: null })
+  deletedAt?: Date;
 }
