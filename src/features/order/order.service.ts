@@ -1,6 +1,9 @@
 import { Repository, Connection } from 'typeorm';
 import {
   BadRequestException,
+  ForbiddenException,
+  HttpException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -24,12 +27,18 @@ import { Discount } from 'src/entity/Discount';
 import { WarehouseService } from '../warehouse/warehouse.service';
 import { ModificationDto } from '../warehouse/dto/modification.dto';
 import { ClientsService } from '../client/client.service';
-import { WalletService } from '../wallet/wallet.service';
+import { Currency, WalletService } from '../wallet/wallet.service';
 import { Wallet } from 'src/entity/Wallet';
 import { WalletTransaction } from 'src/entity/WalletTransaction';
 import { AmoCrmService } from './amo-crm.service';
 import { cutUuidFromMoyskladHref } from '../warehouse/moysklad.helper';
 import { OrderProfileService } from '../order-profile/order-profile.service';
+import { ClientProxy } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
+import { InvoiceDto } from '../wallet/dto/invoice.dto';
+import { InvoiceCreateDto } from './dto/create-invoice.dto';
+import { decodeToken, encodeJwt, verifyJwt } from '../auth/jwt.service';
+import { PayOrderDto } from './dto/pay-order.dto';
 
 const organizationId = process.env.WAREHOUSE_ORGANIZATION_ID;
 
@@ -38,6 +47,7 @@ export class OrderService {
   constructor(
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
+    @Inject('PAYMENT_SERVICE') private client: ClientProxy,
 
     @InjectRepository(OrderProduct)
     private orderProductRepository: Repository<OrderProduct>,
@@ -54,6 +64,10 @@ export class OrderService {
     private amoCrmService: AmoCrmService,
     private connection: Connection,
   ) {}
+
+  async onModuleInit() {
+    await this.client.connect();
+  }
 
   async findUsersOrders(params: BaseGetListDto, client: Client) {
     const [orders, count] = await this.orderRepository.findAndCount({
@@ -97,7 +111,7 @@ export class OrderService {
     return { orders: ordersWithTotalSum, count };
   }
 
-  async getOne(id: number): Promise<OrderWithTotalSumDto> {
+  async getOne(id: string): Promise<OrderWithTotalSumDto> {
     const order = await this.orderRepository.findOne(
       { id },
       {
@@ -202,15 +216,16 @@ export class OrderService {
 
       const orderWithTotalSum = await this.prepareOrder(newOrder);
 
-      const wallet = await this.walletService.getByClientId(client.id);
+      //TODO: вернуть когда вернем оплату заказа чизкойнами (рублями)
+      // const wallet = await this.walletService.getByClientId(client.id);
 
-      await this.walletService.useCoins(
-        wallet.uuid,
-        orderWithTotalSum.totalSum,
-        `Оплата заказа №${newOrder.id}`,
-        walletRepository,
-        transactionRepository,
-      );
+      // await this.walletService.useCoins(
+      //   wallet.uuid,
+      //   orderWithTotalSum.totalSum,
+      //   `Оплата заказа №${newOrder.id}`,
+      //   walletRepository,
+      //   transactionRepository,
+      // );
 
       const assortment: ModificationDto[] = orderWithTotalSum.orderProducts.map(
         (p) => ({
@@ -287,9 +302,31 @@ export class OrderService {
         warehouseId: warehouseOrder.id,
       });
 
+      const invoice = {
+        currency: Currency.RUB,
+        value: orderWithTotalSum.totalSum,
+        meta: {
+          orderUuid: newOrder.id,
+          crmOrderId: +lead.id,
+        },
+        payerUuid: client.id,
+      };
+
+      const newInvoice = await firstValueFrom(
+        this.client.send<InvoiceDto, InvoiceCreateDto>(
+          'create-invoice',
+          invoice,
+        ),
+      );
+
+      await orderRepository.save({
+        id: newOrder.id,
+        invoiceUuid: newInvoice.uuid,
+      });
+
       await queryRunner.commitTransaction();
 
-      return newOrder;
+      return this.getOne(newOrder.id);
     } catch (error) {
       console.error(error);
       await queryRunner.rollbackTransaction();
@@ -299,14 +336,92 @@ export class OrderService {
     }
   }
 
-  update(id: number, order: Partial<Order>) {
+  async payOrder(dto: PayOrderDto) {
+    const client = await this.clientService.findOne(dto.payerUuid);
+    if (!client) throw new NotFoundException('Пользователь не найден');
+
+    try {
+      const invoice = await firstValueFrom(
+        this.client.send<InvoiceDto>('get-invoice', {
+          uuid: dto.invoiceUuid,
+        }),
+      );
+
+      if (!invoice) {
+        throw new NotFoundException('Счет не найден');
+      }
+
+      const order = await this.getOne(invoice.meta.orderUuid);
+
+      if (!order) {
+        throw new NotFoundException('Заказ не найден');
+      }
+
+      const paymentData = {
+        currency: dto.currency,
+        email: dto.email,
+        invoiceUuid: dto.invoiceUuid,
+        payerUuid: client.id,
+        ipAddress: dto.ipAddress,
+        signature: dto.signature,
+        successUrl: `${
+          process.env.CHANGE_ORDER_STATUS_URL
+        }?authToken=${encodeJwt(
+          { orderUuid: invoice.meta.orderUuid, crmOrderId: order.leadId },
+          process.env.SIGNATURE_SECRET,
+          '5m',
+        )}`,
+        rejectUrl: process.env.REJECT_REDIRECT_URL_BUY_COINS,
+      };
+
+      const data = await firstValueFrom(
+        this.client.send<InvoiceDto, PayOrderDto>('pay', paymentData),
+      );
+
+      if (data.redirectUri) {
+        return {
+          redirect: data.redirectUri,
+        };
+      }
+
+      return data;
+    } catch (error) {
+      throw new HttpException(
+        `Ошибка при оплате: ${error?.message || ''}`,
+        error?.status,
+      );
+    }
+  }
+
+  async changeOrderStatusByToken(token: string): Promise<{ redirect: string }> {
+    const dto = decodeToken(token) as { orderUuid: string; crmOrderId: string };
+
+    try {
+      if (!verifyJwt(token, process.env.SIGNATURE_SECRET)) {
+        throw new ForbiddenException('Токен не действителен');
+      }
+
+      console.info('ЗАКАЗ ОПЛАЧЕН !))))', dto.crmOrderId, dto.orderUuid);
+
+      return {
+        redirect: `${process.env.SUCCESS_REDIRECT_URL_PAY}&crmOrderId=${dto.crmOrderId}`,
+      };
+    } catch (error) {
+      console.error(error);
+      return {
+        redirect: process.env.REJECT_REDIRECT_URL_PAY,
+      };
+    }
+  }
+
+  update(id: string, order: Partial<Order>) {
     return this.orderRepository.save({
       ...order,
       id,
     });
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.orderRepository.softDelete(id);
   }
 

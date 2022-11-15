@@ -10,6 +10,7 @@ export class InvoiceDto {
   status: InvoiceStatus;
   expiresAt: Date;
   amount: number;
+  meta: { orderUuid: string };
   value: number;
   redirectUri?: string;
 }

@@ -9,6 +9,7 @@ import { OrderService } from './order.service';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { OrderCreateDto } from './dto/order-create.dto';
 import { WarehouseService } from '../warehouse/warehouse.service';
+import { PayOrderDto } from './dto/pay-order.dto';
 
 @ApiTags('orders')
 @Controller('orders')
@@ -44,7 +45,7 @@ export class OrderController {
   }
 
   @MessagePattern('get-order')
-  async getOne(@Payload() id: number) {
+  async getOne(@Payload() id: string) {
     const order = await this.orderService.getOne(id);
 
     const lead = await this.amoCrmService.getLead(order.leadId);
@@ -57,6 +58,11 @@ export class OrderController {
     return fullOrder;
   }
 
+  @MessagePattern('change-order-status-by-token')
+  changeOrderStatusByToken(@Payload() token: string) {
+    return this.orderService.changeOrderStatusByToken(token);
+  }
+
   @MessagePattern('create-order')
   async create(
     @Payload('client') client: Client,
@@ -65,14 +71,19 @@ export class OrderController {
     return this.orderService.create(dto, client);
   }
 
+  @MessagePattern('pay-order')
+  async payOrder(@Payload() payload: PayOrderDto) {
+    return this.orderService.payOrder(payload);
+  }
+
   @MessagePattern('edit-order')
-  put(@Payload('id') id: number, @Payload('dto') dto: Partial<Order>) {
+  put(@Payload('id') id: string, @Payload('dto') dto: Partial<Order>) {
     // TODO: если будут меняться товары, то изменить скидки
     return this.orderService.update(id, dto);
   }
 
   @MessagePattern('delete-order')
-  remove(@Payload() id: number) {
+  remove(@Payload() id: string) {
     // TODO: если будут меняться товары, то удалить скидки
     return this.orderService.remove(id);
   }

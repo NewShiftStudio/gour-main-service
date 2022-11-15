@@ -20,8 +20,19 @@ import { AmoCrmService } from './amo-crm.service';
 import { OrderProfileService } from '../order-profile/order-profile.service';
 import { CityModule } from '../city/city.module';
 import { City } from 'src/entity/City';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 @Module({
   imports: [
+    ClientsModule.register([
+      {
+        name: 'PAYMENT_SERVICE',
+        transport: Transport.TCP,
+        options: {
+          host: process.env.PAYMENT_SERVICE_HOST,
+          port: +process.env.PAYMENT_SERVICE_PORT,
+        },
+      },
+    ]),
     TypeOrmModule.forFeature([
       Client,
       Order,
