@@ -8,6 +8,7 @@ import { AmoCrmService } from './amo-crm.service';
 import { OrderService } from './order.service';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { OrderCreateDto } from './dto/order-create.dto';
+import { WarehouseService } from '../warehouse/warehouse.service';
 
 @ApiTags('orders')
 @Controller('orders')
@@ -15,6 +16,7 @@ export class OrderController {
   constructor(
     private readonly orderService: OrderService,
     private readonly amoCrmService: AmoCrmService,
+    private readonly warehouseService: WarehouseService,
   ) {}
 
   @MessagePattern('get-orders')
@@ -60,25 +62,6 @@ export class OrderController {
     @Payload('client') client: Client,
     @Payload('dto') dto: OrderCreateDto,
   ) {
-    // const order = await this.orderService.getOne(id);
-
-    // const description = this.orderService.getDescription(order);
-
-    // const lead = await this.amoCrmService.createLead({
-    //   name: `${order.lastName} ${order.firstName} ${order.createdAt}`,
-    //   description,
-    //   price: order.totalSum,
-    // });
-
-    // await this.orderService.update(id, {
-    //   leadId: lead.id,
-    // });
-
-    // const fullOrder = {
-    //   ...order,
-    //   crmInfo: lead,
-    // };
-
     return this.orderService.create(dto, client);
   }
 
@@ -92,5 +75,19 @@ export class OrderController {
   remove(@Payload() id: number) {
     // TODO: если будут меняться товары, то удалить скидки
     return this.orderService.remove(id);
+  }
+
+  @MessagePattern('refresh-order-status')
+  async updateOrderStatus(@Payload() uuid: string) {
+    const { leadId } = await this.orderService.getOneByWarehouseUuid(uuid);
+
+    const warehouseOrderStateUuid =
+      await this.warehouseService.getOrderStateUuid(uuid);
+
+    const state = await this.warehouseService.getMoyskladState(
+      warehouseOrderStateUuid,
+    );
+
+    return this.amoCrmService.updateLeadStatus(leadId, state.name);
   }
 }

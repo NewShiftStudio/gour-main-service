@@ -11,12 +11,15 @@ import { OrderProduct } from '../../entity/OrderProduct';
 import { MetaService } from '../meta/meta.service';
 import { MetaModule } from '../meta/meta.module';
 import { Meta } from '../../entity/Meta';
-import { AmoCrmService } from './amo-crm.service';
 import { ProductModule } from '../product/product.module';
 import { DiscountModule } from '../discount/discount.module';
 import { WarehouseModule } from '../warehouse/warehouse.module';
 import { ClientModule } from '../client/client.module';
 import { WalletModule } from '../wallet/wallet.module';
+import { AmoCrmService } from './amo-crm.service';
+import { OrderProfileService } from '../order-profile/order-profile.service';
+import { CityModule } from '../city/city.module';
+import { City } from 'src/entity/City';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -25,8 +28,10 @@ import { WalletModule } from '../wallet/wallet.module';
       Product,
       OrderProfile,
       OrderProduct,
+      City,
       Meta,
     ]),
+    CityModule,
     MetaModule,
     ProductModule,
     DiscountModule,
@@ -34,7 +39,7 @@ import { WalletModule } from '../wallet/wallet.module';
     ClientModule,
     WalletModule,
   ],
-  providers: [OrderService, AmoCrmService, MetaService],
+  providers: [OrderService, MetaService, AmoCrmService, OrderProfileService],
   controllers: [OrderController],
   exports: [OrderService],
 })

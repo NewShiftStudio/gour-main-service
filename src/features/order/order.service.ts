@@ -1,4 +1,4 @@
-import { Repository, QueryRunner, Connection } from 'typeorm';
+import { Repository, Connection } from 'typeorm';
 import {
   BadRequestException,
   Injectable,
@@ -12,9 +12,8 @@ import {
   OrderWithTotalSumDto,
 } from './dto/order-with-total-sum.dto';
 import { Client } from '../../entity/Client';
-import { Order, OrderStatus } from '../../entity/Order';
+import { Order } from '../../entity/Order';
 import { OrderProduct } from '../../entity/OrderProduct';
-import { OrderProfile } from '../../entity/OrderProfile';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { OrderCreateDto } from './dto/order-create.dto';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
@@ -28,6 +27,11 @@ import { ClientsService } from '../client/client.service';
 import { WalletService } from '../wallet/wallet.service';
 import { Wallet } from 'src/entity/Wallet';
 import { WalletTransaction } from 'src/entity/WalletTransaction';
+import { AmoCrmService } from './amo-crm.service';
+import { cutUuidFromMoyskladHref } from '../warehouse/moysklad.helper';
+import { OrderProfileService } from '../order-profile/order-profile.service';
+
+const organizationId = process.env.WAREHOUSE_ORGANIZATION_ID;
 
 @Injectable()
 export class OrderService {
@@ -41,14 +45,13 @@ export class OrderService {
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
 
-    @InjectRepository(OrderProfile)
-    private orderProfileRepository: Repository<OrderProfile>,
-
+    private orderProfileService: OrderProfileService,
     private productService: ProductService,
     private clientService: ClientsService,
     private warehouseService: WarehouseService,
     private discountService: DiscountService,
     private walletService: WalletService,
+    private amoCrmService: AmoCrmService,
     private connection: Connection,
   ) {}
 
@@ -114,6 +117,14 @@ export class OrderService {
     return orderWithTotalSum;
   }
 
+  async getOneByWarehouseUuid(uuid: string): Promise<Order> {
+    const order = await this.orderRepository.findOne({ warehouseId: uuid });
+
+    if (!order) throw new NotFoundException('Заказ по uuid склада не найден');
+
+    return order;
+  }
+
   async create(order: OrderCreateDto, client: Client) {
     const queryRunner = this.connection.createQueryRunner();
 
@@ -128,12 +139,9 @@ export class OrderService {
       queryRunner.manager.getRepository(WalletTransaction);
 
     try {
-      const orderProfile = await this.orderProfileRepository.findOne(
-        order.orderProfileId,
+      const orderProfile = await this.orderProfileService.getOne(
+        order.deliveryProfileId,
       );
-
-      if (!orderProfile)
-        throw new NotFoundException('Профиль заказа не найден');
 
       const orderProducts: OrderProduct[] = [];
 
@@ -182,7 +190,6 @@ export class OrderService {
       }
 
       const newOrder = await orderRepository.save({
-        status: OrderStatus.basketFilling,
         firstName: order.firstName,
         lastName: order.lastName,
         phone: order.phone,
@@ -196,6 +203,7 @@ export class OrderService {
       const orderWithTotalSum = await this.prepareOrder(newOrder);
 
       const wallet = await this.walletService.getByClientId(client.id);
+
       await this.walletService.useCoins(
         wallet.uuid,
         orderWithTotalSum.totalSum,
@@ -239,7 +247,7 @@ export class OrderService {
       const warehouseOrder = await this.warehouseService.createOrder(
         assortment,
         {
-          organizationId: process.env.WAREHOUSE_ORGANIZATION_ID,
+          organizationId,
           firstName: newOrder.firstName,
           lastName: newOrder.lastName,
           city: newOrder.orderProfile.city.name.ru,
@@ -253,19 +261,39 @@ export class OrderService {
         },
       );
 
-      if (!warehouseOrder) {
+      if (!warehouseOrder)
         throw new BadRequestException(
           'Ошибка при создании заказа в сервисе склада',
         );
-      }
 
-      console.info('Warehouse order: ', warehouseOrder);
+      const description = this.getDescription(orderWithTotalSum);
+
+      const stateUuid = cutUuidFromMoyskladHref(warehouseOrder.state.meta.href);
+      const state = await this.warehouseService.getMoyskladState(stateUuid);
+      const stateName = state.name;
+
+      const leadName = `${newOrder.lastName} ${newOrder.firstName} ${newOrder.createdAt}`;
+
+      const lead = await this.amoCrmService.createLead({
+        name: leadName,
+        description,
+        price: orderWithTotalSum.totalSum,
+        stateName,
+      });
+
+      await orderRepository.save({
+        id: newOrder.id,
+        leadId: +lead.id,
+        warehouseId: warehouseOrder.id,
+      });
 
       await queryRunner.commitTransaction();
+
       return newOrder;
     } catch (error) {
       console.error(error);
       await queryRunner.rollbackTransaction();
+      throw new BadRequestException(error.message);
     } finally {
       await queryRunner.release();
     }
@@ -352,10 +380,12 @@ export class OrderService {
 
     if (!order.orderProfile) throw new Error('Необходим профиль заказа');
 
+    const { firstName, lastName, phone, email } = order.client;
+
     let description = `
-      Заказ от ${order.firstName} ${order.lastName}
-      Тел: ${order.phone}
-      Email: ${order.email}
+      Заказ от ${firstName} ${lastName}
+      Тел: ${phone}
+      Email: ${email}
     
       Состав заказа:
     `;
@@ -367,12 +397,7 @@ export class OrderService {
       description += '\n';
     });
 
-    const totalOrderSum = order.orderProducts.reduce(
-      (acc, item) => acc + item.totalSum,
-      0,
-    );
-
-    description += `ИТОГО: ${totalOrderSum}₡`;
+    description += `ИТОГО: ${order.totalSum}₡`;
 
     if (order.comment) description += 'Комментарий: ' + order.comment;
 

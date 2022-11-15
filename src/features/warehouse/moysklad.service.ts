@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import {
   CreateOrderMeta,
@@ -8,8 +8,10 @@ import {
   MoyskladModification,
   MoyskladOrder,
   MoyskladProduct,
+  MoyskladState,
   MoyskladStock,
   MoyskladStore,
+  MoyskladWebhook,
 } from './@types/Moysklad';
 import {
   AbstractAssortment,
@@ -18,9 +20,30 @@ import {
 } from './@types/WarehouseService';
 import { CreateWarehouseAgentDto } from './dto/create-agent.dto';
 
+const gatewayHost = process.env.API_GATEWAY_HOST;
+const gatewayPort = process.env.API_GATEWAY_PORT;
+
 @Injectable()
 export class MoyskladService implements AbstractService {
   constructor(private httpService: HttpService) {}
+
+  onModuleInit() {
+    this.subscribeOnOrderStatusUpdate();
+  }
+
+  async subscribeOnOrderStatusUpdate() {
+    const { data } = await firstValueFrom(
+      this.httpService.post<MoyskladWebhook>('/entity/webhook/', {
+        url: `http://${gatewayHost}:${gatewayPort}/order/refresh-order-status/`,
+        action: 'UPDATE',
+        entityType: 'customerorder',
+      }),
+    );
+
+    console.log('ORDER STATUS UPDATE DATA: ', data);
+
+    return data;
+  }
 
   async getModificationByProductIdAndGram(uuid: Uuid, gram: GramsInString) {
     const { data } = await firstValueFrom(
@@ -30,6 +53,12 @@ export class MoyskladService implements AbstractService {
         },
       }),
     );
+
+    if (!data)
+      throw new InternalServerErrorException(
+        'Не удалось получить модификацию продукта',
+      );
+
     return data.rows.find((r) => {
       const current = r.characteristics.find((c) => c.value === gram);
       if (current) {
@@ -92,6 +121,34 @@ export class MoyskladService implements AbstractService {
     const { data } = await firstValueFrom(
       this.httpService.post<MoyskladAgent>('/entity/counterparty/', agent),
     );
+    return data;
+  }
+
+  async getOrder(uuid: string) {
+    const { data } = await firstValueFrom(
+      this.httpService.get<MoyskladOrder>(`/entity/customerorder/${uuid}`),
+    );
+
+    if (!data)
+      throw new InternalServerErrorException(
+        'Не удалось получить заказ из МоегоСклада',
+      );
+
+    return data;
+  }
+
+  async getState(uuid: string) {
+    const { data } = await firstValueFrom(
+      this.httpService.get<MoyskladState>(
+        `/entity/customerorder/metadata/states/${uuid}`,
+      ),
+    );
+
+    if (!data)
+      throw new InternalServerErrorException(
+        'Не удалось получить состояние заказа из МоегоСклада',
+      );
+
     return data;
   }
 
