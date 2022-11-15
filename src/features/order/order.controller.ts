@@ -31,8 +31,6 @@ export class OrderController {
 
     const crmInfoList = await this.amoCrmService.getCrmInfoList();
 
-    console.log(crmInfoList);
-
     const fullOrders = orders.map((order) => {
       const crmInfo = crmInfoList.find((it) => it.id === order.leadId);
 
