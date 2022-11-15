@@ -22,16 +22,16 @@ export class Order extends Base {
   })
   comment: string;
 
-  @Column({ nullable: true })
+  @Column()
   firstName: string;
 
-  @Column({ nullable: true })
+  @Column()
   lastName: string;
 
-  @Column({ nullable: true })
+  @Column()
   phone: string;
 
-  @Column({ nullable: true })
+  @Column()
   email: string;
 
   @Column({
