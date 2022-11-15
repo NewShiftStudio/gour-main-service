@@ -3,31 +3,9 @@ import { Base } from './Base';
 import { OrderProduct } from './OrderProduct';
 import { Client } from './Client';
 import { OrderProfile } from './OrderProfile';
-import { ApiProperty } from '@nestjs/swagger';
-
-export enum OrderStatus {
-  init = 'init',
-  basketFilling = 'basketFilling',
-  registration = 'registration',
-  payment = 'payment',
-  paid = 'paid',
-  atThePointOfIssue = 'atThePointOfIssue',
-  delivery = 'delivery',
-  completed = 'completed',
-  rejected = 'rejected',
-}
 
 @Entity()
 export class Order extends Base {
-  @Column({
-    type: 'enum',
-    enum: OrderStatus,
-  })
-  @ApiProperty({
-    enum: OrderStatus,
-  })
-  status: OrderStatus;
-
   @OneToMany(() => OrderProduct, (op) => op.order, {
     onDelete: 'CASCADE',
   })
@@ -44,20 +22,25 @@ export class Order extends Base {
   })
   comment: string;
 
-  @Column()
+  @Column({ nullable: true })
   firstName: string;
 
-  @Column()
+  @Column({ nullable: true })
   lastName: string;
 
-  @Column()
+  @Column({ nullable: true })
   phone: string;
 
-  @Column()
+  @Column({ nullable: true })
   email: string;
 
   @Column({
     nullable: true,
   })
   leadId: number;
+
+  @Column({
+    nullable: true,
+  })
+  warehouseId: string;
 }

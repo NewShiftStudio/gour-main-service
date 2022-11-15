@@ -14,6 +14,7 @@ import { AxiosError, AxiosInstance } from 'axios';
 import { ModificationDto } from './dto/modification.dto';
 import { CreateOrderMeta } from './@types/Moysklad';
 import { CreateWarehouseAgentDto } from './dto/create-agent.dto';
+import { cutUuidFromMoyskladHref } from './moysklad.helper';
 
 @Injectable()
 export class WarehouseService implements IWarehouseService<MoyskladService> {
@@ -22,8 +23,9 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
     private httpService: HttpService,
   ) {}
 
-  onModuleInit() {
+  async onModuleInit() {
     const axios = this.httpService.axiosRef;
+
     axios.interceptors.response.use(
       (res) => res,
       this.axiosReauth.bind(this, axios),
@@ -96,6 +98,19 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
         error?.status || error?.statusCode,
       );
     }
+  }
+
+  async getOrderStateUuid(uuid: string) {
+    const moyskladOrder = await this.moyskladService.getOrder(uuid);
+
+    const orderStateHref = moyskladOrder.state.meta.href;
+    const orderStateUuid = cutUuidFromMoyskladHref(orderStateHref);
+
+    return orderStateUuid;
+  }
+
+  getMoyskladState(uuid: string) {
+    return this.moyskladService.getState(uuid);
   }
 
   async createOrder(assortment: ModificationDto[], meta: CreateOrderMeta) {

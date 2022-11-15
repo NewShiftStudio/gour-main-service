@@ -6,6 +6,9 @@ import { Meta } from '../../entity/Meta';
 
 @Injectable()
 export class MetaService {
+  META_REFRESH_TOKEN_KEY = 'AMO_REFRESH_TOKEN';
+  META_ACCESS_TOKEN_KEY = 'AMO_ACCESS_TOKEN';
+
   constructor(
     @InjectRepository(Meta) readonly metaRepository: Repository<Meta>,
   ) {}
@@ -22,10 +25,11 @@ export class MetaService {
       key,
     });
 
-    const value = JSON.parse(meta.value);
+    const metaValue = JSON.parse(meta.value);
 
-    if (value) return value;
-    throw new NotFoundException(`Значение meta с key = ${key} не найдено`);
+    if (!metaValue) throw new NotFoundException('Значение меты не найдено');
+
+    return metaValue;
   }
 
   async getMeta(key: string): Promise<Meta> {
@@ -33,7 +37,8 @@ export class MetaService {
       key,
     });
 
-    if (meta) return JSON.parse(meta.value);
-    throw new NotFoundException(`Meta с key = ${key} не найдена`);
+    if (!meta) throw new NotFoundException('Мета не найдено');
+
+    return meta;
   }
 }
