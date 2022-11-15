@@ -6,8 +6,8 @@ import { Meta } from '../../entity/Meta';
 
 @Injectable()
 export class MetaService {
-  META_REFRESH_TOKEN_KEY = 'AMO_REFRESH_TOKEN';
-  META_ACCESS_TOKEN_KEY = 'AMO_ACCESS_TOKEN';
+  META_ACCESS_TOKEN_KEY = process.env.META_ACCESS_TOKEN_KEY;
+  META_REFRESH_TOKEN_KEY = process.env.META_REFRESH_TOKEN_KEY;
 
   constructor(
     @InjectRepository(Meta) readonly metaRepository: Repository<Meta>,
