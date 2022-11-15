@@ -47,21 +47,6 @@ import { Discount } from './entity/Discount';
 import { DiscountModule } from './features/discount/discount.module';
 import { WarehouseModule } from './features/warehouse/warehouse.module';
 
-const requiredEnvs = [
-  'PORT',
-  'MESSAGES_SERVICE_PORT',
-  'MESSAGES_SERVICE_HOST',
-  'REJECT_REDIRECT_URL_BUY_COINS',
-  'SUCCESS_REDIRECT_URL_BUY_COINS',
-  'REPLENISH_BALANCE_URL',
-];
-
-requiredEnvs.forEach((envKey) => {
-  if (!process.env[envKey]) {
-    throw new Error(`Added ${envKey} to .env file !!`);
-  }
-});
-
 @Module({
   imports: [
     ConfigModule.forRoot({
