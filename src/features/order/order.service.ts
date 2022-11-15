@@ -380,7 +380,7 @@ export class OrderService {
 
     if (!order.orderProfile) throw new Error('Необходим профиль заказа');
 
-    const { firstName, lastName, phone, email } = order.client;
+    const { firstName, lastName, phone, email } = order;
 
     let description = `
       Заказ от ${firstName} ${lastName}

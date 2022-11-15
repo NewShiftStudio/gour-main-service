@@ -29,14 +29,16 @@ export class OrderController {
       client,
     );
 
-    const leads = await this.amoCrmService.getLeadList();
+    const crmInfoList = await this.amoCrmService.getCrmInfoList();
+
+    console.log(crmInfoList);
 
     const fullOrders = orders.map((order) => {
-      const lead = leads?.find((it) => it.id === order.leadId);
+      const crmInfo = crmInfoList.find((it) => it.id === order.leadId);
 
       return {
         ...order,
-        crmInfo: lead,
+        crmInfo,
       };
     });
 
@@ -88,6 +90,6 @@ export class OrderController {
       warehouseOrderStateUuid,
     );
 
-    return this.amoCrmService.updateLeadStatus(leadId, state.name);
+    return this.amoCrmService.updateStatus(leadId, state.name);
   }
 }
