@@ -158,12 +158,12 @@ export class WalletService {
       );
 
       return {
-        redirect: `${process.env.SUCCESS_REDIRECT_URL_BUY_COINS}&amount=${dto.amount}`,
+        redirect: `${process.env.SUCCESS_REDIRECT_URL_PAY}&amount=${dto.amount}`,
       };
     } catch (error) {
       console.error(error);
       return {
-        redirect: process.env.REJECT_REDIRECT_URL_BUY_COINS,
+        redirect: process.env.REJECT_REDIRECT_URL_PAY,
       };
     }
   }

@@ -57,6 +57,7 @@ export class Order {
 
   @Column({
     nullable: true,
+    type: 'uuid',
   })
   invoiceUuid: string;
 
