@@ -1,10 +1,15 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import {
   CreateOrderMeta,
   MoyskladAgent,
   MoyskladAuth,
+  MoyskladMetadata,
   MoyskladModification,
   MoyskladOrder,
   MoyskladProduct,
@@ -152,6 +157,46 @@ export class MoyskladService implements AbstractService {
     return data;
   }
 
+  async getStates() {
+    const { data } = await firstValueFrom(
+      this.httpService.get<MoyskladMetadata>(`/entity/customerorder/metadata`),
+    );
+
+    if (!data)
+      throw new InternalServerErrorException(
+        'Не удалось получить состояния заказа из МоегоСклада',
+      );
+
+    return data.states;
+  }
+
+  async getStateByName(name: string) {
+    const states = await this.getStates();
+    const state = states.find((it) => it.name === name);
+
+    if (!state)
+      throw new NotFoundException(
+        'Не удалось найти состояние заказа из МоегоСклада по имени',
+      );
+
+    return state;
+  }
+
+  async updateOrderState(uuid: string, state: MoyskladState) {
+    const { data } = await firstValueFrom(
+      this.httpService.put<MoyskladOrder>(`/entity/customerorder/${uuid}`, {
+        state,
+      }),
+    );
+
+    if (!data)
+      throw new InternalServerErrorException(
+        'Не удалось обновить состояние заказа в Моём складе',
+      );
+
+    return data;
+  }
+
   async createOrder(assortment: AbstractAssortment[], meta: CreateOrderMeta) {
     const { data } = await firstValueFrom(
       this.httpService.post<MoyskladOrder>('/entity/customerorder', {
@@ -196,6 +241,11 @@ export class MoyskladService implements AbstractService {
         })),
       }),
     );
+
+    if (!data)
+      throw new InternalServerErrorException(
+        'Не удалось создать заказ в Моём складе',
+      );
 
     return data;
   }

@@ -12,7 +12,7 @@ import {
 import { MoyskladService } from './moysklad.service';
 import { AxiosError, AxiosInstance } from 'axios';
 import { ModificationDto } from './dto/modification.dto';
-import { CreateOrderMeta } from './@types/Moysklad';
+import { CreateOrderMeta, MoyskladState } from './@types/Moysklad';
 import { CreateWarehouseAgentDto } from './dto/create-agent.dto';
 import { cutUuidFromMoyskladHref } from './moysklad.helper';
 
@@ -111,6 +111,14 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
 
   getMoyskladState(uuid: string) {
     return this.moyskladService.getState(uuid);
+  }
+
+  getMoyskladStateByName(name: string) {
+    return this.moyskladService.getStateByName(name);
+  }
+
+  updateMoyskladOrderState(uuid: string, state: MoyskladState) {
+    return this.moyskladService.updateOrderState(uuid, state);
   }
 
   async createOrder(assortment: ModificationDto[], meta: CreateOrderMeta) {
