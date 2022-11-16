@@ -353,9 +353,19 @@ export class OrderService {
 
       const order = await this.getOne(invoice.meta.orderUuid);
 
-      if (!order) {
-        throw new NotFoundException('Заказ не найден');
-      }
+      const paymentToken = encodeJwt(
+        {
+          orderUuid: invoice.meta.orderUuid,
+          crmOrderId: order.leadId,
+          warehouseId: order.warehouseId,
+        },
+        process.env.SIGNATURE_SECRET,
+        '5m',
+      );
+
+      const changeStatusUrl = process.env.CHANGE_ORDER_STATUS_URL;
+      const rejectUrl = process.env.REJECT_REDIRECT_URL_PAY;
+      const successUrl = `${changeStatusUrl}?authToken=${paymentToken}`;
 
       const paymentData = {
         currency: dto.currency,
@@ -364,14 +374,8 @@ export class OrderService {
         payerUuid: client.id,
         ipAddress: dto.ipAddress,
         signature: dto.signature,
-        successUrl: `${
-          process.env.CHANGE_ORDER_STATUS_URL
-        }?authToken=${encodeJwt(
-          { orderUuid: invoice.meta.orderUuid, crmOrderId: order.leadId },
-          process.env.SIGNATURE_SECRET,
-          '5m',
-        )}`,
-        rejectUrl: process.env.REJECT_REDIRECT_URL_BUY_COINS,
+        successUrl,
+        rejectUrl,
       };
 
       const data = await firstValueFrom(
@@ -394,14 +398,25 @@ export class OrderService {
   }
 
   async changeOrderStatusByToken(token: string): Promise<{ redirect: string }> {
-    const dto = decodeToken(token) as { orderUuid: string; crmOrderId: string };
+    const dto = decodeToken(token) as {
+      orderUuid: string;
+      crmOrderId: string;
+      warehouseId: string;
+    };
 
     try {
       if (!verifyJwt(token, process.env.SIGNATURE_SECRET)) {
         throw new ForbiddenException('Токен не действителен');
       }
 
-      console.info('ЗАКАЗ ОПЛАЧЕН !))))', dto.crmOrderId, dto.orderUuid);
+      const state = await this.warehouseService.getMoyskladStateByName(
+        'Оплачен',
+      );
+
+      await this.warehouseService.updateMoyskladOrderState(
+        dto.warehouseId,
+        state,
+      );
 
       return {
         redirect: `${process.env.SUCCESS_REDIRECT_URL_PAY}&crmOrderId=${dto.crmOrderId}`,
