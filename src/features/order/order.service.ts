@@ -364,7 +364,7 @@ export class OrderService {
       );
 
       const changeStatusUrl = process.env.CHANGE_ORDER_STATUS_URL;
-      const rejectUrl = process.env.REJECT_REDIRECT_URL_BUY_COINS;
+      const rejectUrl = process.env.REJECT_REDIRECT_URL_PAY;
       const successUrl = `${changeStatusUrl}?authToken=${paymentToken}`;
 
       const paymentData = {
