@@ -25,8 +25,7 @@ import {
 } from './@types/WarehouseService';
 import { CreateWarehouseAgentDto } from './dto/create-agent.dto';
 
-const gatewayHost = process.env.API_GATEWAY_HOST;
-const gatewayPort = process.env.API_GATEWAY_PORT;
+const refreshStatusUpdateUrl = process.env.REFRESH_ORDER_STATUS_URL;
 
 @Injectable()
 export class MoyskladService implements AbstractService {
@@ -39,7 +38,7 @@ export class MoyskladService implements AbstractService {
   async subscribeOnOrderStatusUpdate() {
     const { data } = await firstValueFrom(
       this.httpService.post<MoyskladWebhook>('/entity/webhook/', {
-        url: `http://${gatewayHost}:${gatewayPort}/order/refresh-status`,
+        url: refreshStatusUpdateUrl,
         action: 'UPDATE',
         entityType: 'customerorder',
       }),
