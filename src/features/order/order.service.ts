@@ -378,8 +378,8 @@ export class OrderService {
         payerUuid: client.id,
         ipAddress: dto.ipAddress,
         signature: dto.signature,
-        successPaymentUrl,
-        rejectPaymentUrl,
+        successUrl: successPaymentUrl,
+        rejectUrl: rejectPaymentUrl,
       };
 
       const data = await firstValueFrom(
