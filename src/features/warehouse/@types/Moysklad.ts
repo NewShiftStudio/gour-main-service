@@ -1,5 +1,11 @@
 export type ApiResponse<T> = Promise<T>;
 
+export class MoyskladEvent {
+  meta: MoyskladMeta;
+  action: string;
+  accountId: string;
+}
+
 export class MoyskladMeta {
   type: string;
   href: string;

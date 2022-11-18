@@ -41,6 +41,12 @@ import { decodeToken, encodeJwt, verifyJwt } from '../auth/jwt.service';
 import { PayOrderDto } from './dto/pay-order.dto';
 
 const organizationId = process.env.WAREHOUSE_ORGANIZATION_ID;
+const tokenSecret = process.env.SIGNATURE_SECRET;
+
+const updateStatusUrl = process.env.UPDATE_ORDER_STATUS_URL;
+const confirmPaymentUrl = process.env.CONFIRM_PAYMENT_URL;
+const successPaymentUrl = process.env.SUCCESS_REDIRECT_URL_PAY;
+const rejectPaymentUrl = process.env.REJECT_REDIRECT_URL_PAY;
 
 @Injectable()
 export class OrderService {
@@ -359,13 +365,11 @@ export class OrderService {
           crmOrderId: order.leadId,
           warehouseId: order.warehouseId,
         },
-        process.env.SIGNATURE_SECRET,
+        tokenSecret,
         '5m',
       );
 
-      const changeStatusUrl = process.env.CHANGE_ORDER_STATUS_URL;
-      const rejectUrl = process.env.REJECT_REDIRECT_URL_PAY;
-      const successUrl = `${changeStatusUrl}?authToken=${paymentToken}`;
+      const successPaymentUrl = `${confirmPaymentUrl}?authToken=${paymentToken}`;
 
       const paymentData = {
         currency: dto.currency,
@@ -374,8 +378,8 @@ export class OrderService {
         payerUuid: client.id,
         ipAddress: dto.ipAddress,
         signature: dto.signature,
-        successUrl,
-        rejectUrl,
+        successPaymentUrl,
+        rejectPaymentUrl,
       };
 
       const data = await firstValueFrom(
@@ -397,7 +401,7 @@ export class OrderService {
     }
   }
 
-  async changeOrderStatusByToken(token: string): Promise<{ redirect: string }> {
+  async confirmPaymentByToken(token: string): Promise<{ redirect: string }> {
     const dto = decodeToken(token) as {
       orderUuid: string;
       crmOrderId: string;
@@ -405,7 +409,7 @@ export class OrderService {
     };
 
     try {
-      if (!verifyJwt(token, process.env.SIGNATURE_SECRET)) {
+      if (!verifyJwt(token, tokenSecret)) {
         throw new ForbiddenException('Токен не действителен');
       }
 
@@ -419,14 +423,51 @@ export class OrderService {
       );
 
       return {
-        redirect: `${process.env.SUCCESS_REDIRECT_URL_PAY}&crmOrderId=${dto.crmOrderId}`,
+        redirect: `${successPaymentUrl}&crmOrderId=${dto.crmOrderId}`,
       };
     } catch (error) {
       console.error(error);
       return {
-        redirect: process.env.REJECT_REDIRECT_URL_PAY,
+        redirect: rejectPaymentUrl,
       };
     }
+  }
+
+  async refreshOrderStatus(warehouseUuid: string) {
+    const { leadId } = await this.getOneByWarehouseUuid(warehouseUuid);
+
+    const updateToken = encodeJwt(
+      {
+        warehouseUuid,
+        leadId,
+      },
+      tokenSecret,
+      '5m',
+    );
+
+    const updateStatusUrlWithToken = `${updateStatusUrl}?updateToken=${updateToken}`;
+
+    return { redirect: updateStatusUrlWithToken };
+  }
+
+  async updateOrderStatusByToken(token: string) {
+    const tokenIsValid = verifyJwt(token, tokenSecret);
+
+    if (!tokenIsValid) throw new ForbiddenException('Токен не действителен');
+
+    const dto = decodeToken(token) as {
+      warehouseUuid: string;
+      leadId: number;
+    };
+
+    const warehouseOrderStateUuid =
+      await this.warehouseService.getMoyskladOrderStateUuid(dto.warehouseUuid);
+
+    const state = await this.warehouseService.getMoyskladState(
+      warehouseOrderStateUuid,
+    );
+
+    return this.amoCrmService.updateLeadStatus(dto.leadId, state.name);
   }
 
   update(id: string, order: Partial<Order>) {

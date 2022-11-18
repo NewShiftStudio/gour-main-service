@@ -8,8 +8,8 @@ import { AmoCrmService } from './amo-crm.service';
 import { OrderService } from './order.service';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { OrderCreateDto } from './dto/order-create.dto';
-import { WarehouseService } from '../warehouse/warehouse.service';
 import { PayOrderDto } from './dto/pay-order.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 @ApiTags('orders')
 @Controller('orders')
@@ -17,7 +17,6 @@ export class OrderController {
   constructor(
     private readonly orderService: OrderService,
     private readonly amoCrmService: AmoCrmService,
-    private readonly warehouseService: WarehouseService,
   ) {}
 
   @MessagePattern('get-orders')
@@ -58,11 +57,6 @@ export class OrderController {
     return fullOrder;
   }
 
-  @MessagePattern('change-order-status-by-token')
-  changeOrderStatusByToken(@Payload() token: string) {
-    return this.orderService.changeOrderStatusByToken(token);
-  }
-
   @MessagePattern('create-order')
   async create(
     @Payload('client') client: Client,
@@ -88,17 +82,23 @@ export class OrderController {
     return this.orderService.remove(id);
   }
 
+  @MessagePattern('confirm-payment-by-token')
+  changeOrderStatusByToken(@Payload() token: string) {
+    return this.orderService.confirmPaymentByToken(token);
+  }
+
   @MessagePattern('refresh-order-status')
-  async updateOrderStatus(@Payload() uuid: string) {
-    const { leadId } = await this.orderService.getOneByWarehouseUuid(uuid);
+  async refreshOrderStatus(@Payload() dto: UpdateOrderStatusDto) {
+    const parsedDto: UpdateOrderStatusDto = JSON.parse(JSON.stringify(dto));
+    const updateEvent = parsedDto.events[0];
+    const splitedEventMeta = updateEvent.meta.href.split('/');
+    const orderUuid = splitedEventMeta[splitedEventMeta.length - 1];
 
-    const warehouseOrderStateUuid =
-      await this.warehouseService.getOrderStateUuid(uuid);
+    return this.orderService.refreshOrderStatus(orderUuid);
+  }
 
-    const state = await this.warehouseService.getMoyskladState(
-      warehouseOrderStateUuid,
-    );
-
-    return this.amoCrmService.updateStatus(leadId, state.name);
+  @MessagePattern('update-order-status-by-token')
+  async updateOrderStatusByToken(@Payload() token: string) {
+    return this.orderService.updateOrderStatusByToken(token);
   }
 }
