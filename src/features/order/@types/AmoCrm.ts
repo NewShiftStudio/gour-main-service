@@ -16,3 +16,8 @@ export type AmoCrmInfo = {
   id: number;
   status: AmoCrmStatus;
 };
+
+export type AmoCrmAuthData = {
+  access_token: string;
+  refresh_token: string;
+};

@@ -39,13 +39,13 @@ export class MoyskladService implements AbstractService {
   async subscribeOnOrderStatusUpdate() {
     const { data } = await firstValueFrom(
       this.httpService.post<MoyskladWebhook>('/entity/webhook/', {
-        url: `http://${gatewayHost}:${gatewayPort}/order/refresh-order-status/`,
+        url: `http://${gatewayHost}:${gatewayPort}/order/refresh-status`,
         action: 'UPDATE',
         entityType: 'customerorder',
       }),
     );
 
-    console.log('ORDER STATUS UPDATE DATA: ', data);
+    console.log('ORDER STATUS UPDATE DATA:', data);
 
     return data;
   }

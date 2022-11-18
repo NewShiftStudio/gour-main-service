@@ -100,7 +100,7 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
     }
   }
 
-  async getOrderStateUuid(uuid: string) {
+  async getMoyskladOrderStateUuid(uuid: string) {
     const moyskladOrder = await this.moyskladService.getOrder(uuid);
 
     const orderStateHref = moyskladOrder.state.meta.href;
