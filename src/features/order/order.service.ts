@@ -43,7 +43,7 @@ import { PayOrderDto } from './dto/pay-order.dto';
 const organizationId = process.env.WAREHOUSE_ORGANIZATION_ID;
 const tokenSecret = process.env.SIGNATURE_SECRET;
 
-const updateStatusUrl = process.env.UPDATE_ORDER_STATUS_URL;
+const updateStatusUrl = process.env.UPDATE_ORDER_STATUS_BY_TOKEN_URL;
 const confirmPaymentUrl = process.env.CONFIRM_PAYMENT_URL;
 const successPaymentUrl = process.env.SUCCESS_REDIRECT_URL_PAY;
 const rejectPaymentUrl = process.env.REJECT_REDIRECT_URL_PAY;

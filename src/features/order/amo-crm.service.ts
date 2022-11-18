@@ -71,7 +71,7 @@ export class AmoCrmService {
       return;
     }
 
-    this.accessToken = accessTokenMeta.value;
+    this.accessToken = JSON.parse(JSON.stringify(accessTokenMeta.value));
   }
 
   async refreshTokens(): Promise<{
@@ -297,8 +297,6 @@ export class AmoCrmService {
 
   async getAllStatuses(): Promise<AmoCrmStatus[]> {
     try {
-      console.log(this.accessToken);
-
       const { data } = await amoCrmApi.get(
         `api/v4/leads/pipelines/${pipelineId}/statuses`,
         {
