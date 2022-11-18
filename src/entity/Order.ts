@@ -1,32 +1,21 @@
-import { Entity, Column, OneToMany, ManyToOne } from 'typeorm';
-import { Base } from './Base';
+import {
+  Entity,
+  Column,
+  OneToMany,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { OrderProduct } from './OrderProduct';
 import { Client } from './Client';
 import { OrderProfile } from './OrderProfile';
-import { ApiProperty } from '@nestjs/swagger';
-
-export enum OrderStatus {
-  init = 'init',
-  basketFilling = 'basketFilling',
-  registration = 'registration',
-  payment = 'payment',
-  paid = 'paid',
-  atThePointOfIssue = 'atThePointOfIssue',
-  delivery = 'delivery',
-  completed = 'completed',
-  rejected = 'rejected',
-}
 
 @Entity()
-export class Order extends Base {
-  @Column({
-    type: 'enum',
-    enum: OrderStatus,
-  })
-  @ApiProperty({
-    enum: OrderStatus,
-  })
-  status: OrderStatus;
+export class Order {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @OneToMany(() => OrderProduct, (op) => op.order, {
     onDelete: 'CASCADE',
@@ -60,4 +49,24 @@ export class Order extends Base {
     nullable: true,
   })
   leadId: number;
+
+  @Column({
+    nullable: true,
+  })
+  warehouseId: string;
+
+  @Column({
+    nullable: true,
+    type: 'uuid',
+  })
+  invoiceUuid: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn({ default: null })
+  deletedAt?: Date;
 }

@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  ForbiddenException,
+  HttpException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -16,10 +18,16 @@ import {
 import { Equal, Repository } from 'typeorm';
 
 import { Wallet } from '../../entity/Wallet';
-import { signTsx } from '../auth/jwt.service';
+import {
+  decodeToken,
+  encodeJwt,
+  signTsx,
+  verifyJwt,
+} from '../auth/jwt.service';
 import { ClientsService } from '../client/client.service';
 import { createWalletTransactionDto } from './dto/create-transaction.dto';
 import { InvoiceDto, InvoiceStatus } from './dto/invoice.dto';
+import { WalletBuyCoinsDto } from './dto/wallet-buy-coins.dto';
 import { WalletReplenishBalanceDto } from './dto/wallet-replenish-balance.dto';
 
 export enum Currency {
@@ -67,61 +75,107 @@ export class WalletService {
     return wallet;
   }
 
-  async replenishBalance(
-    dto: WalletReplenishBalanceDto,
-  ): Promise<WalletTransaction> {
+  async buyCoins(dto: WalletBuyCoinsDto) {
     const client = await this.clientService.findOne(dto.payerUuid);
     if (!client) throw new NotFoundException('Пользователь не найден');
 
     const clientWallet = await this.getByClientId(client.id);
     const wallet = clientWallet ? clientWallet : await this.create(client.id);
 
-    const paymentData = {
-      currency: dto.currency,
-      email: dto.email,
-      invoiceUuid: dto.invoiceUuid,
-      payerUuid: client.id,
-      ipAddress: dto.ipAddress,
-      signature: dto.signature,
-    };
-
     try {
       const invoice = await firstValueFrom(
-        this.client.send<InvoiceDto, WalletReplenishBalanceDto>(
-          'pay',
-          paymentData,
-        ),
+        this.client.send<InvoiceDto>('get-invoice', {
+          uuid: dto.invoiceUuid,
+        }),
       );
 
-      if (invoice.status === InvoiceStatus.PAID) {
-        return this.addCoins(wallet.uuid, invoice.amount);
+      if (!invoice) {
+        throw new NotFoundException('Счет не найден');
       }
 
-      const tsxSignatureObj = {
-        newValue: wallet.value,
-        prevValue: wallet.value,
-        status: WalletTransactionStatus.rejected,
-        type: WalletTransactionType.income,
+      const replenishBalancePayload = {
+        walletUuid: wallet.uuid,
+        amount: invoice.amount,
+        signature: wallet.signature,
       };
 
-      const signature = this.signTsx(tsxSignatureObj);
+      const paymentData = {
+        currency: dto.currency,
+        email: dto.email,
+        invoiceUuid: dto.invoiceUuid,
+        payerUuid: client.id,
+        ipAddress: dto.ipAddress,
+        signature: dto.signature,
+        successUrl: `${process.env.REPLENISH_BALANCE_URL}?authToken=${encodeJwt(
+          replenishBalancePayload,
+          process.env.SIGNATURE_SECRET,
+          '5m',
+        )}`,
+        rejectUrl: process.env.REJECT_REDIRECT_URL_PAY,
+      };
 
-      return this.createWalletTransaction({
-        ...tsxSignatureObj,
-        wallet,
-        signature,
-        description: 'Ошибка оплаты',
-      });
+      const data = await firstValueFrom(
+        this.client.send<InvoiceDto, WalletBuyCoinsDto>('pay', paymentData),
+      );
+
+      if (data.redirectUri) {
+        return {
+          redirect: data.redirectUri,
+        };
+      }
+
+      return data;
     } catch (error) {
-      throw new InternalServerErrorException(
+      throw new HttpException(
         `Ошибка при оплате: ${error?.message || ''}`,
-        error,
+        error?.status,
       );
     }
   }
 
-  async createWalletTransaction(dto: createWalletTransactionDto) {
-    return this.transactionRepository.save(dto);
+  async replenishBalanceByToken(token: string): Promise<{ redirect: string }> {
+    const dto = decodeToken(token) as WalletReplenishBalanceDto;
+
+    const wallet = await this.getById(dto.walletUuid);
+
+    try {
+      if (!wallet) {
+        throw new BadRequestException('Кошелек не найден');
+      }
+
+      if (!verifyJwt(token, process.env.SIGNATURE_SECRET)) {
+        throw new ForbiddenException('Токен не действителен');
+      }
+
+      if (wallet.signature !== dto.signature) {
+        throw new ForbiddenException('Токен не действителен');
+      }
+
+      await this.addCoins(
+        dto.walletUuid,
+        +dto.amount,
+        'Пополнение баланса кошелька',
+      );
+
+      return {
+        redirect: `${process.env.SUCCESS_REDIRECT_URL_PAY}&amount=${dto.amount}`,
+      };
+    } catch (error) {
+      console.error(error);
+      return {
+        redirect: process.env.REJECT_REDIRECT_URL_PAY,
+      };
+    }
+  }
+
+  async createWalletTransaction(
+    dto: createWalletTransactionDto,
+    repository?: Repository<WalletTransaction>,
+  ) {
+    const transactionRepository = repository
+      ? repository
+      : this.transactionRepository;
+    return transactionRepository.save(dto);
   }
 
   async getWalletTransactionsByClientId(clientId: string) {
@@ -143,7 +197,11 @@ export class WalletService {
     return signTsx(signatureObject);
   }
 
-  async changeSum(uuid: string, value: number): Promise<WalletTransaction> {
+  async changeSum(
+    uuid: string,
+    value: number,
+    description: string,
+  ): Promise<WalletTransaction> {
     const wallet = await this.getById(uuid);
 
     if (!wallet) {
@@ -173,6 +231,7 @@ export class WalletService {
     return this.createWalletTransaction({
       ...signatureObject,
       wallet,
+      description,
       signature,
     });
   }
@@ -201,8 +260,22 @@ export class WalletService {
     });
   }
 
-  async useCoins(uuid: string, value: number): Promise<WalletTransaction> {
+  async useCoins(
+    uuid: string,
+    value: number,
+    description: string,
+    walletRepository?: Repository<Wallet>,
+    transactionRepository?: Repository<WalletTransaction>,
+  ): Promise<WalletTransaction> {
     const wallet = await this.getById(uuid);
+
+    const currentWalletRepository = walletRepository
+      ? walletRepository
+      : this.walletRepository;
+
+    const currentTransactionRepository = transactionRepository
+      ? transactionRepository
+      : this.transactionRepository;
 
     if (!wallet) throw new NotFoundException('Кошелёк не найден');
     if (wallet.value < value)
@@ -213,31 +286,38 @@ export class WalletService {
       throw new BadRequestException('Некорректный тип суммы');
     }
 
-    await this.walletRepository.save({
+    await currentWalletRepository.save({
       uuid,
       value: newValue,
+      signature: this.signTsx({ newValue, uuid: wallet.uuid }),
     });
-
-    const updatedWallet = await this.getById(uuid);
 
     const signatureObject = {
       prevValue: wallet.value,
-      newValue: updatedWallet.value,
+      newValue,
       status: WalletTransactionStatus.approved,
       type: WalletTransactionType.expense,
-      walletUuid: updatedWallet.uuid,
+      walletUuid: uuid,
     };
 
     const signature = this.signTsx(signatureObject);
 
-    return this.createWalletTransaction({
-      ...signatureObject,
-      wallet: updatedWallet,
-      signature,
-    });
+    return this.createWalletTransaction(
+      {
+        ...signatureObject,
+        wallet,
+        description,
+        signature,
+      },
+      currentTransactionRepository,
+    );
   }
 
-  async addCoins(uuid: string, value: number): Promise<WalletTransaction> {
+  async addCoins(
+    uuid: string,
+    value: number,
+    description: string,
+  ): Promise<WalletTransaction> {
     const wallet = await this.getById(uuid);
 
     if (!wallet) throw new NotFoundException('Кошелёк не найден');
@@ -251,24 +331,24 @@ export class WalletService {
     await this.walletRepository.save({
       uuid,
       value: newValue,
+      signature: this.signTsx({ newValue, uuid: wallet.uuid }),
     });
-
-    const updatedWallet = await this.getById(uuid);
 
     const signatureObject = {
       prevValue: wallet.value,
-      newValue: updatedWallet.value,
+      newValue,
       status: WalletTransactionStatus.approved,
       type: WalletTransactionType.income,
-      walletUuid: updatedWallet.uuid,
+      walletUuid: wallet.uuid,
     };
 
     const signature = this.signTsx(signatureObject);
 
     return this.createWalletTransaction({
       ...signatureObject,
-      wallet: updatedWallet,
+      wallet,
       signature,
+      description,
     });
   }
 }

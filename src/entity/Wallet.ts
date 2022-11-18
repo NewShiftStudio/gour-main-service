@@ -24,7 +24,7 @@ export class Wallet {
   @Column()
   value: number;
 
-  @Column({ select: false })
+  @Column()
   signature: string;
 
   @OneToMany(() => WalletTransaction, (wc) => wc.wallet)

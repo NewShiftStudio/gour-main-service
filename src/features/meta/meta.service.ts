@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -6,12 +6,28 @@ import { Meta } from '../../entity/Meta';
 
 @Injectable()
 export class MetaService {
+  metaAccessTokenKey = process.env.META_ACCESS_TOKEN_KEY;
+  metaRefreshTokenKey = process.env.META_REFRESH_TOKEN_KEY;
+
   constructor(
     @InjectRepository(Meta) readonly metaRepository: Repository<Meta>,
   ) {}
 
+  getTokenExpiration(key: string, updatedAt: Date) {
+    switch (key) {
+      case this.metaAccessTokenKey:
+        return new Date(updatedAt.setDate(updatedAt.getDate() + 1));
+
+      case this.metaRefreshTokenKey:
+        return new Date(updatedAt.setMonth(updatedAt.getMonth() + 3));
+
+      default:
+        throw new BadRequestException('Неверный ключ токена');
+    }
+  }
+
   setValue(key: string, value: string | number | object) {
-    this.metaRepository.save({
+    return this.metaRepository.save({
       key,
       value: JSON.stringify(value),
     });
@@ -22,10 +38,9 @@ export class MetaService {
       key,
     });
 
-    const value = JSON.parse(meta.value);
+    const metaValue = JSON.parse(meta.value);
 
-    if (value) return value;
-    throw new NotFoundException(`Значение meta с key = ${key} не найдено`);
+    return metaValue;
   }
 
   async getMeta(key: string): Promise<Meta> {
@@ -33,7 +48,6 @@ export class MetaService {
       key,
     });
 
-    if (meta) return JSON.parse(meta.value);
-    throw new NotFoundException(`Meta с key = ${key} не найдена`);
+    return meta;
   }
 }

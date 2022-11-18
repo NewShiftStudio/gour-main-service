@@ -1,15 +1,22 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import {
   CreateOrderMeta,
   MoyskladAgent,
   MoyskladAuth,
+  MoyskladMetadata,
   MoyskladModification,
   MoyskladOrder,
   MoyskladProduct,
+  MoyskladState,
   MoyskladStock,
   MoyskladStore,
+  MoyskladWebhook,
 } from './@types/Moysklad';
 import {
   AbstractAssortment,
@@ -18,9 +25,29 @@ import {
 } from './@types/WarehouseService';
 import { CreateWarehouseAgentDto } from './dto/create-agent.dto';
 
+const refreshStatusUpdateUrl = process.env.REFRESH_ORDER_STATUS_URL;
+
 @Injectable()
 export class MoyskladService implements AbstractService {
   constructor(private httpService: HttpService) {}
+
+  onModuleInit() {
+    this.subscribeOnOrderStatusUpdate();
+  }
+
+  async subscribeOnOrderStatusUpdate() {
+    const { data } = await firstValueFrom(
+      this.httpService.post<MoyskladWebhook>('/entity/webhook/', {
+        url: refreshStatusUpdateUrl,
+        action: 'UPDATE',
+        entityType: 'customerorder',
+      }),
+    );
+
+    console.log('ORDER STATUS UPDATE DATA:', data);
+
+    return data;
+  }
 
   async getModificationByProductIdAndGram(uuid: Uuid, gram: GramsInString) {
     const { data } = await firstValueFrom(
@@ -30,6 +57,12 @@ export class MoyskladService implements AbstractService {
         },
       }),
     );
+
+    if (!data)
+      throw new InternalServerErrorException(
+        'Не удалось получить модификацию продукта',
+      );
+
     return data.rows.find((r) => {
       const current = r.characteristics.find((c) => c.value === gram);
       if (current) {
@@ -95,6 +128,74 @@ export class MoyskladService implements AbstractService {
     return data;
   }
 
+  async getOrder(uuid: string) {
+    const { data } = await firstValueFrom(
+      this.httpService.get<MoyskladOrder>(`/entity/customerorder/${uuid}`),
+    );
+
+    if (!data)
+      throw new InternalServerErrorException(
+        'Не удалось получить заказ из МоегоСклада',
+      );
+
+    return data;
+  }
+
+  async getState(uuid: string) {
+    const { data } = await firstValueFrom(
+      this.httpService.get<MoyskladState>(
+        `/entity/customerorder/metadata/states/${uuid}`,
+      ),
+    );
+
+    if (!data)
+      throw new InternalServerErrorException(
+        'Не удалось получить состояние заказа из МоегоСклада',
+      );
+
+    return data;
+  }
+
+  async getStates() {
+    const { data } = await firstValueFrom(
+      this.httpService.get<MoyskladMetadata>(`/entity/customerorder/metadata`),
+    );
+
+    if (!data)
+      throw new InternalServerErrorException(
+        'Не удалось получить состояния заказа из МоегоСклада',
+      );
+
+    return data.states;
+  }
+
+  async getStateByName(name: string) {
+    const states = await this.getStates();
+    const state = states.find((it) => it.name === name);
+
+    if (!state)
+      throw new NotFoundException(
+        'Не удалось найти состояние заказа из МоегоСклада по имени',
+      );
+
+    return state;
+  }
+
+  async updateOrderState(uuid: string, state: MoyskladState) {
+    const { data } = await firstValueFrom(
+      this.httpService.put<MoyskladOrder>(`/entity/customerorder/${uuid}`, {
+        state,
+      }),
+    );
+
+    if (!data)
+      throw new InternalServerErrorException(
+        'Не удалось обновить состояние заказа в Моём складе',
+      );
+
+    return data;
+  }
+
   async createOrder(assortment: AbstractAssortment[], meta: CreateOrderMeta) {
     const { data } = await firstValueFrom(
       this.httpService.post<MoyskladOrder>('/entity/customerorder', {
@@ -139,6 +240,11 @@ export class MoyskladService implements AbstractService {
         })),
       }),
     );
+
+    if (!data)
+      throw new InternalServerErrorException(
+        'Не удалось создать заказ в Моём складе',
+      );
 
     return data;
   }

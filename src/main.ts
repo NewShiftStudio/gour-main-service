@@ -19,6 +19,8 @@ const envs = [
   'WAREHOUSE_PASSWORD',
   'WAREHOUSE_ORGANIZATION_ID',
   'SIGNATURE_SECRET',
+  'REJECT_REDIRECT_URL_PAY',
+  'SUCCESS_REDIRECT_URL_PAY',
 ];
 
 const requiredEnvs = getRequiredEnvsByNodeEnv(

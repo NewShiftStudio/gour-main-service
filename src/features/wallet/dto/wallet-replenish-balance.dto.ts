@@ -1,21 +1,9 @@
-import { IsEmail, IsEnum, IsIP, IsString, IsUUID } from 'class-validator';
-import { Currency } from '../wallet.service';
+import { IsString, IsUUID } from 'class-validator';
 export class WalletReplenishBalanceDto {
-  @IsEnum(Currency)
-  currency: Currency;
-
   @IsUUID()
-  payerUuid: string;
-
-  @IsEmail()
-  email: string;
-
-  @IsIP()
-  ipAddress: string;
+  walletUuid: string;
+  amount: string;
 
   @IsString()
   signature: string;
-
-  @IsUUID()
-  invoiceUuid: string;
 }
