@@ -36,17 +36,48 @@ export class MoyskladService implements AbstractService {
   }
 
   async subscribeOnOrderStatusUpdate() {
-    const { data } = await firstValueFrom(
-      this.httpService.post<MoyskladWebhook>('/entity/webhook/', {
-        url: refreshStatusUpdateUrl,
-        action: 'UPDATE',
-        entityType: 'customerorder',
-      }),
+    const action = 'UPDATE';
+    const entityType = 'customerorder';
+
+    const getWebhooksResponse = await firstValueFrom(
+      this.httpService.get('/entity/webhook/'),
     );
 
-    console.log('ORDER STATUS UPDATE DATA:', data);
+    const webhooks: MoyskladWebhook[] = getWebhooksResponse.data.rows;
 
-    return data;
+    const statusUpdateWebhook = webhooks.find(
+      ({
+        action: webhookAction,
+        entityType: webhookEntityType,
+        url: webhookUrl,
+      }) =>
+        webhookAction === action &&
+        webhookEntityType === entityType &&
+        webhookUrl === refreshStatusUpdateUrl,
+    );
+
+    if (!statusUpdateWebhook) {
+      const createWebhookResponse = await firstValueFrom(
+        this.httpService.post<MoyskladWebhook>('/entity/webhook/', {
+          url: refreshStatusUpdateUrl,
+          action,
+          entityType,
+        }),
+      );
+
+      const newStatusUpdateWebhook = createWebhookResponse.data;
+
+      if (!newStatusUpdateWebhook) {
+        console.log('ORDER STATUS UPDATE WEBHOOK: ERROR');
+        return;
+      }
+
+      return newStatusUpdateWebhook;
+    }
+
+    console.log('ORDER STATUS UPDATE WEBHOOK: RUNNING');
+
+    return statusUpdateWebhook;
   }
 
   async getModificationByProductIdAndGram(uuid: Uuid, gram: GramsInString) {
