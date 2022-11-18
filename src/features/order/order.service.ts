@@ -447,7 +447,13 @@ export class OrderService {
 
     const updateStatusUrlWithToken = `${updateStatusUrl}?updateToken=${updateToken}`;
 
-    return { redirect: updateStatusUrlWithToken };
+    const updateStatusResponse = this.updateOrderStatusByToken(
+      updateStatusUrlWithToken,
+    );
+
+    // return { redirect: updateStatusUrlWithToken };
+
+    return updateStatusResponse;
   }
 
   async updateOrderStatusByToken(token: string) {
