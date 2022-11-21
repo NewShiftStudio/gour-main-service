@@ -92,9 +92,9 @@ export class OrderController {
     const parsedDto: UpdateOrderStatusDto = JSON.parse(JSON.stringify(dto));
     const updateEvent = parsedDto.events[0];
     const splitedEventMeta = updateEvent.meta.href.split('/');
-    const orderUuid = splitedEventMeta[splitedEventMeta.length - 1];
+    const warehouseOrderUuid = splitedEventMeta[splitedEventMeta.length - 1];
 
-    return this.orderService.refreshOrderStatus(orderUuid);
+    return this.orderService.refreshOrderStatus(warehouseOrderUuid);
   }
 
   @MessagePattern('update-order-status-by-token')

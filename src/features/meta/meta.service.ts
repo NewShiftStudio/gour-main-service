@@ -44,10 +44,12 @@ export class MetaService {
   }
 
   async getMeta(key: string): Promise<Meta> {
-    const meta = await this.metaRepository.findOne({
+    const { value, ...meta } = await this.metaRepository.findOne({
       key,
     });
 
-    return meta;
+    const parsedValue = JSON.parse(value);
+
+    return { ...meta, value: parsedValue };
   }
 }

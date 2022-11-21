@@ -1,4 +1,3 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import {
   Inject,
   Injectable,
@@ -7,17 +6,11 @@ import {
 
 import { MetaService } from '../meta/meta.service';
 import { LeadCreateDto } from './dto/lead-create.dto';
-import {
-  AmoCrmAuthData,
-  AmoCrmInfo,
-  AmoCrmLead,
-  AmoCrmStatus,
-} from './@types/AmoCrm';
+import { AmoCrmInfo, AmoCrmLead, AmoCrmStatus } from './@types/AmoCrm';
 import { statuses } from '../warehouse/moysklad.helper';
-
-const amoCrmApi: AxiosInstance = axios.create({
-  baseURL: `${process.env.AMO_BASE_URL}`,
-});
+import { Meta } from 'src/entity/Meta';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 const pipelineId = process.env.PIPELINE_ID;
 const commentCustomFieldId = process.env.COMMENT_CUSTOM_FIELD_ID;
@@ -34,7 +27,11 @@ export class AmoCrmService {
 
   accessToken: string;
 
-  constructor(@Inject(MetaService) readonly metaService: MetaService) {
+  constructor(
+    @Inject(MetaService) readonly metaService: MetaService,
+
+    private httpService: HttpService,
+  ) {
     this.accessTokenKey = this.metaService.metaAccessTokenKey;
     this.refreshTokenKey = this.metaService.metaRefreshTokenKey;
 
@@ -49,10 +46,15 @@ export class AmoCrmService {
     return this.metaService.getMeta(key);
   }
 
-  checkTokenFreshness(key: string, updatedAt: Date) {
+  checkTokenFreshness(meta?: Meta) {
+    if (!meta) return false;
+
     const now = new Date();
 
-    const tokenExpiration = this.metaService.getTokenExpiration(key, updatedAt);
+    const tokenExpiration = this.metaService.getTokenExpiration(
+      meta.key,
+      meta.updatedAt,
+    );
 
     const isFresh = now < tokenExpiration;
 
@@ -62,16 +64,14 @@ export class AmoCrmService {
   async auth() {
     const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
 
-    const isFreshAccessToken =
-      accessTokenMeta &&
-      this.checkTokenFreshness(this.accessTokenKey, accessTokenMeta.updatedAt);
+    const isFreshAccessToken = this.checkTokenFreshness(accessTokenMeta);
 
     if (!isFreshAccessToken) {
       await this.refreshTokens();
       return;
     }
 
-    this.accessToken = JSON.parse(JSON.stringify(accessTokenMeta.value));
+    this.accessToken = accessTokenMeta.value;
   }
 
   async refreshTokens(): Promise<{
@@ -81,30 +81,23 @@ export class AmoCrmService {
     try {
       const refreshTokenMeta = await this.getTokenMeta(this.refreshTokenKey);
 
-      const isFreshRefreshToken =
-        refreshTokenMeta &&
-        this.checkTokenFreshness(
-          this.refreshTokenKey,
-          refreshTokenMeta.updatedAt,
-        );
+      const isFreshRefreshToken = this.checkTokenFreshness(refreshTokenMeta);
 
-      const refresh_token =
-        refreshTokenMeta && JSON.parse(refreshTokenMeta.value);
+      const refresh_token = refreshTokenMeta.value;
 
       const grant_type = isFreshRefreshToken
         ? 'refresh_token'
         : 'authorization_code';
 
-      const response: AxiosResponse<AmoCrmAuthData> = await amoCrmApi.post(
-        '/oauth2/access_token',
-        {
+      const response = await firstValueFrom(
+        this.httpService.post('/oauth2/access_token', {
           client_id,
           client_secret,
           grant_type,
           refresh_token,
           code: auth_code,
           redirect_uri,
-        },
+        }),
       );
 
       if (!response.data)
@@ -130,29 +123,31 @@ export class AmoCrmService {
     try {
       const status = await this.getStatusByName(stateName);
 
-      const response = await amoCrmApi.post(
-        `api/v4/leads`,
-        [
+      const response = await firstValueFrom(
+        this.httpService.post(
+          `api/v4/leads`,
+          [
+            {
+              name,
+              price,
+              status_id: status.id,
+              pipeline_id: +pipelineId,
+              custom_fields_values: [
+                {
+                  field_id: +commentCustomFieldId,
+                  values: [
+                    {
+                      value: description,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
           {
-            name,
-            price,
-            status_id: status.id,
-            pipeline_id: +pipelineId,
-            custom_fields_values: [
-              {
-                field_id: +commentCustomFieldId,
-                values: [
-                  {
-                    value: description,
-                  },
-                ],
-              },
-            ],
+            headers: { Authorization: `Bearer ${this.accessToken}` },
           },
-        ],
-        {
-          headers: { Authorization: `Bearer ${this.accessToken}` },
-        },
+        ),
       );
 
       const lead = response.data._embedded.leads[0];
@@ -170,11 +165,13 @@ export class AmoCrmService {
 
   async getLead(id: number | string): Promise<AmoCrmLead> {
     try {
-      const { data } = await amoCrmApi.get(`api/v4/leads/${id}`, {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-      });
+      const { data } = await firstValueFrom(
+        this.httpService.get(`api/v4/leads/${id}`, {
+          headers: {
+            Authorization: `Bearer ${this.accessToken}`,
+          },
+        }),
+      );
 
       const leads = data._embedded.leads[0];
 
@@ -191,13 +188,12 @@ export class AmoCrmService {
 
   async getAllLeads(): Promise<AmoCrmLead[]> {
     try {
-      const { data } = await amoCrmApi.get(
-        `api/v4/leads?filter[pipeline_id]=${pipelineId}`,
-        {
+      const { data } = await firstValueFrom(
+        this.httpService.get(`api/v4/leads?filter[pipeline_id]=${pipelineId}`, {
           headers: {
             Authorization: `Bearer ${this.accessToken}`,
           },
-        },
+        }),
       );
 
       const leads = data._embedded.leads;
@@ -215,18 +211,20 @@ export class AmoCrmService {
 
   async createStatus(name: string, sort: number, color?: string) {
     try {
-      const { data: result } = await amoCrmApi.post(
-        `api/v4/leads/pipelines/${pipelineId}/statuses`,
-        [
+      const { data: result } = await firstValueFrom(
+        this.httpService.post(
+          `api/v4/leads/pipelines/${pipelineId}/statuses`,
+          [
+            {
+              name,
+              sort,
+              color,
+            },
+          ],
           {
-            name,
-            sort,
-            color,
+            headers: { Authorization: `Bearer ${this.accessToken}` },
           },
-        ],
-        {
-          headers: { Authorization: `Bearer ${this.accessToken}` },
-        },
+        ),
       );
 
       const status = result._embedded.statuses[0];
@@ -246,14 +244,16 @@ export class AmoCrmService {
     try {
       const status = await this.getStatusByName(stateName);
 
-      const { data } = await amoCrmApi.patch(
-        `api/v4/leads/${leadId}`,
-        {
-          status_id: status.id,
-        },
-        {
-          headers: { Authorization: `Bearer ${this.accessToken}` },
-        },
+      const { data } = await firstValueFrom(
+        this.httpService.patch(
+          `api/v4/leads/${leadId}`,
+          {
+            status_id: status.id,
+          },
+          {
+            headers: { Authorization: `Bearer ${this.accessToken}` },
+          },
+        ),
       );
 
       if (!data)
@@ -272,11 +272,13 @@ export class AmoCrmService {
 
   async getStatus(statusId: number) {
     try {
-      const { data } = await amoCrmApi.get(
-        `api/v4/leads/pipelines/${pipelineId}/statuses/${statusId}`,
-        {
-          headers: { Authorization: `Bearer ${this.accessToken}` },
-        },
+      const { data } = await firstValueFrom(
+        this.httpService.get(
+          `api/v4/leads/pipelines/${pipelineId}/statuses/${statusId}`,
+          {
+            headers: { Authorization: `Bearer ${this.accessToken}` },
+          },
+        ),
       );
 
       const status = data._embedded.statuses[0];
@@ -297,11 +299,10 @@ export class AmoCrmService {
 
   async getAllStatuses(): Promise<AmoCrmStatus[]> {
     try {
-      const { data } = await amoCrmApi.get(
-        `api/v4/leads/pipelines/${pipelineId}/statuses`,
-        {
+      const { data } = await firstValueFrom(
+        this.httpService.get(`api/v4/leads/pipelines/${pipelineId}/statuses`, {
           headers: { Authorization: `Bearer ${this.accessToken}` },
-        },
+        }),
       );
 
       const statuses = data._embedded.statuses;
@@ -392,9 +393,11 @@ export class AmoCrmService {
 
   async getFields() {
     try {
-      const { data } = await amoCrmApi.get('/api/v4/leads/custom_fields', {
-        headers: { Authorization: `Bearer ${this.accessToken}` },
-      });
+      const { data } = await firstValueFrom(
+        this.httpService.get('/api/v4/leads/custom_fields', {
+          headers: { Authorization: `Bearer ${this.accessToken}` },
+        }),
+      );
 
       const fields = data._embedded;
 

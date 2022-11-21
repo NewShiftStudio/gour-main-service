@@ -445,11 +445,9 @@ export class OrderService {
       '5m',
     );
 
-    const updateStatusUrlWithToken = `${updateStatusUrl}?updateToken=${updateToken}`;
+    // const updateStatusUrlWithToken = `${updateStatusUrl}?updateToken=${updateToken}`;
 
-    const updateStatusResponse = this.updateOrderStatusByToken(
-      updateStatusUrlWithToken,
-    );
+    const updateStatusResponse = this.updateOrderStatusByToken(updateToken);
 
     // return { redirect: updateStatusUrlWithToken };
 

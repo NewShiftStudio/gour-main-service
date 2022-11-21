@@ -21,6 +21,10 @@ import { OrderProfileService } from '../order-profile/order-profile.service';
 import { CityModule } from '../city/city.module';
 import { City } from 'src/entity/City';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { HttpModule } from '@nestjs/axios';
+
+const amoBaseUrl = process.env.AMO_BASE_URL;
+
 @Module({
   imports: [
     ClientsModule.register([
@@ -33,6 +37,9 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         },
       },
     ]),
+    HttpModule.register({
+      baseURL: amoBaseUrl,
+    }),
     TypeOrmModule.forFeature([
       Client,
       Order,
