@@ -40,9 +40,6 @@ export class WalletTransaction {
   status: WalletTransactionStatus;
 
   @Column()
-  secretToken: string;
-
-  @Column()
   prevValue: number;
 
   @Column()
@@ -50,10 +47,11 @@ export class WalletTransaction {
 
   @Column({
     type: 'text',
+    nullable: true,
   })
   description: string;
 
-  @Column()
+  @Column({ select: false })
   signature: string;
 
   @CreateDateColumn()

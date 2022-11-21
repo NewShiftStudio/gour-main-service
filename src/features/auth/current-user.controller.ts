@@ -2,70 +2,63 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 
-import { AuthService } from './auth.service';
 import { ClientsService } from '../client/client.service';
 import { CurrentUserService } from './current-user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ChangePhoneDto } from './dto/change-phone.dto';
-import { SendCodeDto } from './dto/send-code.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { encodeSomeDataCode } from './jwt.service';
+import { ChangeEmailDto } from './dto/change-email.dto';
 
 @ApiTags('current-user')
 @Controller('client-auth/current-user')
 export class CurrentUserController {
   constructor(
-    private readonly authService: AuthService,
     private readonly clientsService: ClientsService,
     private readonly currentUserService: CurrentUserService,
   ) {}
 
   @MessagePattern('get-current-user')
-  getCurrentUser(@Payload() id: number) {
+  getCurrentUser(@Payload() id: string) {
     return this.currentUserService.getUser(id);
   }
 
   @MessagePattern('edit-current-user')
   updateCurrentUser(
-    @Payload('id') id: number,
+    @Payload('id') id: string,
     @Payload('dto') dto: UpdateUserDto,
   ) {
     return this.currentUserService.updateCurrentUser(id, dto);
   }
 
-  @MessagePattern('send-email-code')
-  async sendCode(@Payload() dto: SendCodeDto) {
-    const code = await this.authService.sendCode(dto.email);
-    const hashedCode = encodeSomeDataCode(dto.email, +code);
-
-    return hashedCode;
-  }
-
-  @MessagePattern('change-phone')
-  changePhone(
-    @Payload('id') id: number,
+  @MessagePattern('change-email')
+  changeEmail(
+    @Payload('id') id: string,
     @Payload('hashedCode') hashedCode: string,
-    @Payload('dto') dto: ChangePhoneDto,
+    @Payload('dto') dto: ChangeEmailDto,
   ) {
-    return this.currentUserService.changePhone(id, hashedCode, dto);
+    return this.currentUserService.changeEmail(id, hashedCode, dto);
   }
 
   @MessagePattern('change-password')
   changePassword(
-    @Payload('id') id: number,
+    @Payload('id') id: string,
     @Payload('dto') dto: ChangePasswordDto,
   ) {
     return this.currentUserService.changePassword(id, dto);
   }
 
+  @MessagePattern('reduce-game-live')
+  reduceGameLive(@Payload('id') id: string) {
+    return this.currentUserService.reduceGameLive(id);
+  }
+
   @MessagePattern('get-favorites')
-  getFavoritesProducts(@Payload() id: number) {
+  getFavoritesProducts(@Payload() id: string) {
     return this.clientsService.getFavorites(id);
   }
 
   @MessagePattern('add-to-favorites')
   addProductToFavorites(
-    @Payload('clientId') clientId: number,
+    @Payload('clientId') clientId: string,
     @Payload('productId') productId: number,
   ) {
     return this.clientsService.addToFavorites(clientId, productId);
@@ -73,7 +66,7 @@ export class CurrentUserController {
 
   @MessagePattern('remove-from-favorites')
   removeProductFromFavorites(
-    @Payload('clientId') clientId: number,
+    @Payload('clientId') clientId: string,
     @Payload('productId') productId: number,
   ) {
     return this.clientsService.removeFromFavorites(clientId, productId);
@@ -81,9 +74,25 @@ export class CurrentUserController {
 
   @MessagePattern('change-city')
   changeCity(
-    @Payload('clientId') clientId: number,
+    @Payload('clientId') clientId: string,
     @Payload('cityId') cityId: number,
   ) {
     return this.currentUserService.changeCityId(clientId, cityId);
+  }
+
+  @MessagePattern('change-avatar')
+  changeAvatar(
+    @Payload('clientId') clientId: string,
+    @Payload('avatarId') avatarId: number,
+  ) {
+    return this.currentUserService.changeAvatarId(clientId, avatarId);
+  }
+
+  @MessagePattern('change-main-address')
+  changeMainProfile(
+    @Payload('clientId') clientId: string,
+    @Payload('addressId') addressId: number | null,
+  ) {
+    return this.currentUserService.changeMainProfileId(clientId, addressId);
   }
 }

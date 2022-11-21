@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -7,12 +7,16 @@ import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { PageCreateDto } from './dto/page-create.dto';
 import { PageUpdateDto } from './dto/page-update.dto';
+import { Image } from 'src/entity/Image';
 
 @Injectable()
 export class PageService {
   constructor(
     @InjectRepository(Page)
     private pageRepository: Repository<Page>,
+
+    @InjectRepository(Image)
+    private imageRepository: Repository<Image>,
   ) {}
 
   findMany(params: BaseGetListDto) {
@@ -29,14 +33,37 @@ export class PageService {
     return this.pageRepository.findOne({ key });
   }
 
-  create(page: PageCreateDto) {
-    return this.pageRepository.save(page);
+  async create({ bannerImg: bannerImgId, ...dto }: PageCreateDto) {
+    let bannerImg: Image;
+
+    if (bannerImgId) {
+      bannerImg = await this.imageRepository.findOne(bannerImgId);
+
+      if (!bannerImg)
+        throw new NotFoundException(
+          `Изображение с id=${bannerImgId} не найдено`,
+        );
+    }
+
+    return this.pageRepository.save({ ...dto, bannerImg });
   }
 
-  update(id: number, page: PageUpdateDto) {
+  async update(id: number, { bannerImg: bannerImgId, ...dto }: PageUpdateDto) {
+    let bannerImg: Image = null;
+
+    if (bannerImgId) {
+      bannerImg = await this.imageRepository.findOne(bannerImgId);
+
+      if (!bannerImg)
+        throw new NotFoundException(
+          `Изображение с id=${bannerImgId} не найдено`,
+        );
+    }
+
     return this.pageRepository.save({
-      ...page,
       id,
+      bannerImg,
+      ...dto,
     });
   }
 

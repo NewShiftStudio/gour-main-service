@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import {
   Entity,
   Column,
@@ -7,6 +8,10 @@ import {
   OneToOne,
   JoinColumn,
   OneToMany,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 import { Base } from './Base';
@@ -15,16 +20,18 @@ import { Product } from './Product';
 import { City } from './City';
 import { ReferralCode } from './ReferralCode';
 import { Image } from './Image';
-import { OrderProfile } from './OrderProfile';
 import { Wallet } from './Wallet';
 import { Discount } from './Discount';
 
 @Entity()
-export class Client extends Base {
+export class Client {
   @ManyToOne(() => ClientRole, (role) => role.id, {
     eager: true,
   })
   role: number;
+
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({
     default: false,
@@ -79,23 +86,23 @@ export class Client extends Base {
   })
   referralCode: ReferralCode;
 
+  @Exclude()
   @Column({
     default: '',
   })
   password: string;
 
-  @OneToOne(() => Image, {
-    nullable: true,
+  @ManyToOne(() => Image, (image) => image.id, {
     eager: true,
-  })
-  @JoinColumn()
-  avatar: Image;
-
-  @OneToOne(() => OrderProfile, {
     nullable: true,
+    onDelete: 'SET NULL',
   })
-  @JoinColumn()
-  mainOrderProfile: OrderProfile;
+  avatar: number;
+
+  @Column({
+    default: null,
+  })
+  mainOrderProfileId: number;
 
   @OneToOne(() => Wallet, {
     nullable: true,
@@ -107,6 +114,18 @@ export class Client extends Base {
     default: 1,
   })
   lives: number;
+
+  @Column({ type: 'uuid', nullable: true })
+  warehouseClientId: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn({ default: null })
+  deletedAt?: Date;
 }
 
 export type IClient = Client;

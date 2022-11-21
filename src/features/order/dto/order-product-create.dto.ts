@@ -8,9 +8,9 @@ export class OrderProductCreateDto {
 
   @ApiProperty()
   @IsNumber()
-  weight: number;
+  amount: number;
 
   @ApiProperty()
   @IsNumber()
-  amount: number;
+  gram: number;
 }

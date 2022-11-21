@@ -31,8 +31,12 @@ export class OrderProfileService {
     });
   }
 
-  getOne(id: number) {
-    return this.orderProfileRepository.findOne({ id });
+  async getOne(id: number) {
+    const orderProfile = await this.orderProfileRepository.findOne({ id });
+
+    if (!orderProfile) throw new NotFoundException('Профиль заказа не найден');
+
+    return orderProfile;
   }
 
   async create(orderProfileDto: OrderProfileCreateDto, client: Client) {

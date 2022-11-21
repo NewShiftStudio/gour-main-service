@@ -5,13 +5,18 @@ config();
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET;
+const SIGNATURE_SECRET = process.env.SIGNATURE_SECRET;
 
 import { AES, enc } from 'crypto-js';
 
-export function encodeJwt(obj: object) {
-  return jwt.sign(instanceToPlain(obj), ACCESS_SECRET, {
-    expiresIn: '15m',
+export function encodeJwt(obj: object, token?: string, expires?: string) {
+  return jwt.sign(instanceToPlain(obj), token || ACCESS_SECRET, {
+    expiresIn: expires || '15m',
   });
+}
+
+export function signTsx(obj: object) {
+  return jwt.sign(instanceToPlain(obj), SIGNATURE_SECRET);
 }
 
 export function encodeRefreshJwt(obj: object) {

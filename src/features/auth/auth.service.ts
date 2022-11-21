@@ -17,17 +17,19 @@ import {
   decodeSomeDataCode,
   decodeToken,
   encodeJwt,
-  encodeSomeDataCode,
   encodeRefreshJwt,
+  encodeSomeDataCode,
   verifyJwt,
 } from './jwt.service';
 import { SignUpDto } from './dto/sign-up.dto';
 import { Client } from '../../entity/Client';
 import { SignInDto } from './dto/sign-in.dto';
 import { ReferralCode } from '../../entity/ReferralCode';
-import { generateSmsCode } from '../../utils/generateSmsCode';
+import { generateSmsCode } from 'src/utils/generateSmsCode';
+import { RecoverPasswordDto } from './dto/recover-password.dto';
 import { ClientRole } from '../../entity/ClientRole';
 import { City } from '../../entity/City';
+import { WalletService } from '../wallet/wallet.service';
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
@@ -47,6 +49,8 @@ export class AuthService {
     private referralCodeRepository: Repository<ReferralCode>,
 
     @Inject('MESSAGES_SERVICE') private client: ClientProxy,
+
+    private walletService: WalletService,
   ) {}
 
   async onModuleInit() {
@@ -54,13 +58,6 @@ export class AuthService {
   }
 
   async sendCode(email: string): Promise<string> {
-    const user = await this.clientRepository.findOne({
-      email,
-    });
-
-    if (user)
-      throw new BadRequestException('Такой пользователь уже существует');
-
     const code = generateSmsCode();
 
     try {
@@ -74,9 +71,9 @@ export class AuthService {
     return encodeSomeDataCode(email, code);
   }
 
-  checkCode(code: string, hash: string): boolean {
-    const result = decodeSomeDataCode(hash);
-    return code === result?.code;
+  checkCode(code: string, hash: string) {
+    const decodedHash = decodeSomeDataCode(hash);
+    return code === decodedHash?.code;
   }
 
   async sendSms(phone: string, code: number) {
@@ -89,25 +86,23 @@ export class AuthService {
     return firstValueFrom(
       this.client.send('send-email', {
         email,
-        subject: `Код для регистрации Gour Food ${code.toString()}`,
-        content: `Ваш код для регистрации: ${code.toString()}`,
+        subject: `Код подтверждения Gour Food ${code.toString()}`,
+        content: `Ваш код подтверждения: <b>${code.toString()}</b>`,
       }),
     );
   }
 
   async signup(dto: SignUpDto) {
-    const isValidCode = this.checkCode(dto.code, dto.codeHash);
+    const isValid = this.checkCode(dto.code, dto.hashedCode);
 
-    if (!isValidCode) throw new ForbiddenException('Неверный код');
+    if (!isValid) throw new BadRequestException('Неверный код');
 
-    const user = await this.clientRepository.findOne({
+    const candidateUser = await this.clientRepository.findOne({
       email: dto.email,
     });
 
-    if (user)
-      throw new BadRequestException(
-        'Пользователь с таким телефоном существует',
-      );
+    if (candidateUser)
+      throw new BadRequestException('Пользователь с таким Email существует');
 
     const role = await this.clientRoleRepository.findOne(dto.roleId);
 
@@ -127,13 +122,40 @@ export class AuthService {
 
     const password = await this.getPasswordHash(dto.password);
 
-    return this.clientRepository.save({
+    const user = await this.clientRepository.save({
       role: dto.roleId,
       firstName: dto.firstName,
       lastName: dto.lastName,
       email: dto.email,
       city: dto.cityId,
       referralCode,
+      password,
+    });
+
+    await this.walletService.create(user.id);
+
+    return user;
+  }
+
+  async recoverPassword(dto: RecoverPasswordDto) {
+    const isValid = this.checkCode(dto.code, dto.hashedCode);
+
+    if (!isValid) throw new BadRequestException('Неверный код');
+
+    const user = await this.clientRepository.findOne({
+      email: dto.email,
+    });
+
+    if (!user) throw new NotFoundException('Пользователь не найден');
+
+    if (dto.password !== dto.passwordConfirm)
+      throw new BadRequestException('Пароли не совпадают');
+
+    const password = await this.getPasswordHash(dto.password);
+
+    return this.clientRepository.save({
+      id: user.id,
+      email: dto.email,
       password,
     });
   }
@@ -160,8 +182,9 @@ export class AuthService {
     };
   }
 
-  async signinById(id: number): Promise<{
-    token: string;
+  async signinById(id: string): Promise<{
+    accessToken: string;
+    refreshToken: string;
     client: Client;
   }> {
     const user = await this.clientRepository.findOne({
@@ -171,7 +194,8 @@ export class AuthService {
     if (!user) throw new NotFoundException('Пользователь не найден');
 
     return {
-      token: encodeJwt(user),
+      accessToken: encodeJwt(user),
+      refreshToken: encodeRefreshJwt(user),
       client: user,
     };
   }

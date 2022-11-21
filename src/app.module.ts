@@ -45,14 +45,7 @@ import { SentryInterceptor } from './common/interceptors/sentry.interceptor';
 import { ProductCategory } from './entity/ProductCategory';
 import { Discount } from './entity/Discount';
 import { DiscountModule } from './features/discount/discount.module';
-
-const requiredEnvs = ['PORT', 'MESSAGES_SERVICE_PORT', 'MESSAGES_SERVICE_HOST'];
-
-requiredEnvs.forEach((envKey) => {
-  if (!process.env[envKey]) {
-    throw new Error(`Added ${envKey} to .env file !!`);
-  }
-});
+import { WarehouseModule } from './features/warehouse/warehouse.module';
 
 @Module({
   imports: [
@@ -118,6 +111,7 @@ requiredEnvs.forEach((envKey) => {
     ImageModule,
     MetaModule,
     WalletModule,
+    WarehouseModule,
   ],
   providers: [
     {

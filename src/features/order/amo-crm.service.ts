@@ -7,133 +7,143 @@ import {
 
 import { MetaService } from '../meta/meta.service';
 import { LeadCreateDto } from './dto/lead-create.dto';
-import { LeadDto } from './dto/lead.dto';
+import {
+  AmoCrmAuthData,
+  AmoCrmInfo,
+  AmoCrmLead,
+  AmoCrmStatus,
+} from './@types/AmoCrm';
+import { statuses } from '../warehouse/moysklad.helper';
 
 const amoCrmApi: AxiosInstance = axios.create({
   baseURL: `${process.env.AMO_BASE_URL}`,
 });
 
-const pipelineId = 4569880;
-const websiteTicketStatus = 45278836;
-const paymentSuccessStatus = 42092803;
-const COMMENT_CUSTOM_FIELD_ID = 1401695;
+const pipelineId = process.env.PIPELINE_ID;
+const commentCustomFieldId = process.env.COMMENT_CUSTOM_FIELD_ID;
 
-const META_REFRESH_TOKEN_KEY = 'AMO_REFRESH_TOKEN';
-const META_ACCESS_TOKEN_KEY = 'AMO_ACCESS_TOKEN';
+const client_id = process.env.AMO_CLIENT_ID;
+const client_secret = process.env.AMO_CLIENT_SECRET;
+const redirect_uri = process.env.AMO_REDIRECT_URI;
+const auth_code = process.env.AMO_AUTH_CODE;
 
 @Injectable()
 export class AmoCrmService {
-  access_token: string;
+  accessTokenKey: string;
+  refreshTokenKey: string;
+
+  accessToken: string;
 
   constructor(@Inject(MetaService) readonly metaService: MetaService) {
-    // this.metaService
-    //   .getMeta(META_ACCESS_TOKEN_KEY)
-    //   .then((accessTokenMeta) => {
-    //     const accessTokenIsExpired = this.checkTokenExpiration(
-    //       'access',
-    //       accessTokenMeta.updatedAt,
-    //     );
-    //     if (accessTokenIsExpired) this.auth();
-    //     else this.access_token = JSON.parse(accessTokenMeta.value);
-    //   })
-    //   .catch((error) => console.log('getAccessMeta error', error));
+    this.accessTokenKey = this.metaService.metaAccessTokenKey;
+    this.refreshTokenKey = this.metaService.metaRefreshTokenKey;
+
+    this.auth();
   }
 
-  checkTokenExpiration(type: 'access' | 'refresh', lastUpdate: Date) {
+  saveToken(key: string, value: string) {
+    return this.metaService.setValue(key, value);
+  }
+
+  getTokenMeta(key: string) {
+    return this.metaService.getMeta(key);
+  }
+
+  checkTokenFreshness(key: string, updatedAt: Date) {
     const now = new Date();
 
-    const tokenExpiresIn = new Date(
-      type === 'access'
-        ? lastUpdate.setDate(lastUpdate.getDate() + 1)
-        : lastUpdate.setMonth(lastUpdate.getMonth() + 3),
-    );
+    const tokenExpiration = this.metaService.getTokenExpiration(key, updatedAt);
 
-    const isExpired = now > tokenExpiresIn;
+    const isFresh = now < tokenExpiration;
 
-    return isExpired;
+    return isFresh;
   }
 
-  //todo Думаю в целом необходимо создать родительский класс типо Order который может в себя включать:
-  // - cвой id,status etc , массив товаров(id, weight, etc); пользователя(id, телефон etc),
+  async auth() {
+    const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
 
-  async auth(): Promise<object> {
-    try {
-      const refreshTokenMeta = await this.metaService.getMeta(
-        META_REFRESH_TOKEN_KEY,
-      );
+    const isFreshAccessToken =
+      accessTokenMeta &&
+      this.checkTokenFreshness(this.accessTokenKey, accessTokenMeta.updatedAt);
 
-      const refreshTokenIsExpired = this.checkTokenExpiration(
-        'refresh',
-        refreshTokenMeta.updatedAt,
-      );
-
-      const data = !refreshTokenIsExpired
-        ? {
-            client_id: process.env.AMO_CLIENT_ID,
-            client_secret: process.env.AMO_CLIENT_SECRECT,
-            grant_type: 'refresh_token',
-            refresh_token: JSON.parse(refreshTokenMeta.value),
-            redirect_uri: process.env.AMO_REDIRECT_URI,
-          }
-        : {
-            client_id: process.env.AMO_CLIENT_ID,
-            client_secret: process.env.AMO_CLIENT_SECRECT,
-            grant_type: 'authorization_code',
-            code: process.env.AMO_AUTH_CODE,
-            redirect_uri: process.env.AMO_REDIRECT_URI,
-          };
-
-      const response: AxiosResponse<{
-        refresh_token: string;
-        access_token: string;
-      }> = await amoCrmApi.post('/oauth2/access_token', data);
-
-      this.metaService.setValue(
-        META_REFRESH_TOKEN_KEY,
-        response.data.refresh_token,
-      );
-      this.metaService.setValue(
-        META_ACCESS_TOKEN_KEY,
-        response.data.access_token,
-      );
-
-      this.access_token = response.data.access_token;
-
-      if (response.status === 200 || response.status === 201) return response;
-    } catch (error) {
-      console.error('getAuthToken error', error);
+    if (!isFreshAccessToken) {
+      await this.refreshTokens();
+      return;
     }
+
+    this.accessToken = JSON.parse(JSON.stringify(accessTokenMeta.value));
   }
 
-  async getAllLeads() {
+  async refreshTokens(): Promise<{
+    refresh_token: string;
+    access_token: string;
+  }> {
     try {
-      const { data: leads } = await amoCrmApi.get('api/v4/leads', {
-        headers: {
-          Authorization: `Bearer ${this.access_token}`,
+      const refreshTokenMeta = await this.getTokenMeta(this.refreshTokenKey);
+
+      const isFreshRefreshToken =
+        refreshTokenMeta &&
+        this.checkTokenFreshness(
+          this.refreshTokenKey,
+          refreshTokenMeta.updatedAt,
+        );
+
+      const refresh_token =
+        refreshTokenMeta && JSON.parse(refreshTokenMeta.value);
+
+      const grant_type = isFreshRefreshToken
+        ? 'refresh_token'
+        : 'authorization_code';
+
+      const response: AxiosResponse<AmoCrmAuthData> = await amoCrmApi.post(
+        '/oauth2/access_token',
+        {
+          client_id,
+          client_secret,
+          grant_type,
+          refresh_token,
+          code: auth_code,
+          redirect_uri,
         },
-      });
+      );
 
-      return leads;
+      if (!response.data)
+        throw new InternalServerErrorException(
+          'Не удалось получить токены для amoCRM',
+        );
+
+      const newAccessToken = response.data.access_token;
+      const newRefreshToken = response.data.refresh_token;
+
+      await this.saveToken(this.accessTokenKey, newAccessToken);
+      await this.saveToken(this.refreshTokenKey, newRefreshToken);
+
+      this.accessToken = newAccessToken;
+
+      return response.data;
     } catch (error) {
-      console.error('getAllLeadsAMO error', error);
+      console.error('Ошибка получения токенов amoCRM:', error.response.data);
     }
   }
 
-  async createLead(createLeadDto: LeadCreateDto) {
+  async createLead({ name, price, description, stateName }: LeadCreateDto) {
     try {
-      const { data: result } = await amoCrmApi.post(
-        'api/v4/leads',
+      const status = await this.getStatusByName(stateName);
+
+      const response = await amoCrmApi.post(
+        `api/v4/leads`,
         [
           {
-            name: createLeadDto.name,
-            price: createLeadDto.price,
-            status_id: websiteTicketStatus,
+            name,
+            price,
+            status_id: status.id,
+            pipeline_id: +pipelineId,
             custom_fields_values: [
               {
-                field_id: COMMENT_CUSTOM_FIELD_ID,
+                field_id: +commentCustomFieldId,
                 values: [
                   {
-                    value: createLeadDto.description,
+                    value: description,
                   },
                 ],
               },
@@ -141,135 +151,256 @@ export class AmoCrmService {
           },
         ],
         {
-          headers: { Authorization: `Bearer ${this.access_token}` },
+          headers: { Authorization: `Bearer ${this.accessToken}` },
         },
       );
 
-      const lead = result._embedded.leads[0];
+      const lead = response.data._embedded.leads[0];
 
-      if (lead) return lead;
-      throw new InternalServerErrorException(
-        'Не удалось создать заголовок заказа',
-      );
+      if (!lead)
+        throw new InternalServerErrorException(
+          'Не удалось создать заголовок заказа',
+        );
+
+      return lead;
     } catch (error) {
-      console.error('createLeadAMO error', error);
+      console.error('Ошибка создания лида:', error.response.data);
     }
   }
 
-  // Может быть полезен для получения списка существующих статусов
-
-  async getAllOrderStatuses(): Promise<[]> {
+  async getLead(id: number | string): Promise<AmoCrmLead> {
     try {
-      const orders = await amoCrmApi.get(
-        `/api/v4/leads/pipelines/${pipelineId}`,
-        {
-          headers: { Authorization: `Bearer ${this.access_token}` },
+      const { data } = await amoCrmApi.get(`api/v4/leads/${id}`, {
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
         },
-      );
-      return orders.data;
-    } catch (error) {
-      console.error('getAllStatusesAMO error', error);
-    }
-  }
-
-  async getLeadList(): Promise<LeadDto[]> {
-    try {
-      const statusesResponse = await amoCrmApi.get(
-        `/api/v4/leads/pipelines/${pipelineId}/statuses`,
-        {
-          headers: { Authorization: `Bearer ${this.access_token}` },
-        },
-      );
-
-      const statuses = statusesResponse.data._embedded.statuses;
-
-      const statusesById = statuses.reduce((acc, item) => {
-        acc[item.id] = item;
-        return acc;
-      }, {});
-
-      const leadsResponse = await amoCrmApi.get(`/api/v4/leads`, {
-        headers: { Authorization: `Bearer ${this.access_token}` },
       });
 
-      const leads = leadsResponse.data._embedded.leads;
+      const leads = data._embedded.leads[0];
 
-      const leadList = leads.map((it) => ({
-        ...it,
-        status: statusesById[it.status_id],
-      }));
+      if (!leads)
+        throw new InternalServerErrorException(
+          'Не удалось получить заголовок заказа',
+        );
 
-      return leadList;
+      return leads;
     } catch (error) {
-      console.error('getAllStatusesAMO error', error);
+      console.error('Ошибка получения заголовка заказа:', error.response.data);
     }
   }
 
-  async getLead(id: number): Promise<LeadDto> {
+  async getAllLeads(): Promise<AmoCrmLead[]> {
     try {
-      const { data: lead } = await amoCrmApi.get(`/api/v4/leads/${id}`, {
-        headers: { Authorization: `Bearer ${this.access_token}` },
-      });
-
-      const { data: status } = await amoCrmApi.get(
-        `/api/v4/leads/pipelines/${pipelineId}/statuses/${lead.status_id}`,
+      const { data } = await amoCrmApi.get(
+        `api/v4/leads?filter[pipeline_id]=${pipelineId}`,
         {
-          headers: { Authorization: `Bearer ${this.access_token}` },
+          headers: {
+            Authorization: `Bearer ${this.accessToken}`,
+          },
         },
       );
 
-      const fullLead = {
-        ...lead,
-        status,
+      const leads = data._embedded.leads;
+
+      if (!leads)
+        throw new InternalServerErrorException(
+          'Не удалось получить список заголовков заказа',
+        );
+
+      return leads;
+    } catch (error) {
+      console.error('Ошибка получения лидов:', error.response.data);
+    }
+  }
+
+  async createStatus(name: string, sort: number, color?: string) {
+    try {
+      const { data: result } = await amoCrmApi.post(
+        `api/v4/leads/pipelines/${pipelineId}/statuses`,
+        [
+          {
+            name,
+            sort,
+            color,
+          },
+        ],
+        {
+          headers: { Authorization: `Bearer ${this.accessToken}` },
+        },
+      );
+
+      const status = result._embedded.statuses[0];
+
+      if (!status)
+        throw new InternalServerErrorException(
+          'Не удалось создать статус заказа',
+        );
+
+      return status;
+    } catch (error) {
+      console.error('Ошибка создания статуса:', error.response.data);
+    }
+  }
+
+  async updateLeadStatus(leadId: number, stateName: string): Promise<object> {
+    try {
+      const status = await this.getStatusByName(stateName);
+
+      const { data } = await amoCrmApi.patch(
+        `api/v4/leads/${leadId}`,
+        {
+          status_id: status.id,
+        },
+        {
+          headers: { Authorization: `Bearer ${this.accessToken}` },
+        },
+      );
+
+      if (!data)
+        throw new InternalServerErrorException(
+          'Не удалось обновить статус заголовка заказа',
+        );
+
+      return data;
+    } catch (error) {
+      console.error(
+        'Ошибка обновления статуса заголовка заказа:',
+        error.response.data,
+      );
+    }
+  }
+
+  async getStatus(statusId: number) {
+    try {
+      const { data } = await amoCrmApi.get(
+        `api/v4/leads/pipelines/${pipelineId}/statuses/${statusId}`,
+        {
+          headers: { Authorization: `Bearer ${this.accessToken}` },
+        },
+      );
+
+      const status = data._embedded.statuses[0];
+
+      if (!status)
+        throw new InternalServerErrorException(
+          'Не удалось получить статус заказа из amoCrm',
+        );
+
+      return status;
+    } catch (error) {
+      console.error(
+        'Ошибка получения статуса заказа из amoCrm:',
+        error.response.data,
+      );
+    }
+  }
+
+  async getAllStatuses(): Promise<AmoCrmStatus[]> {
+    try {
+      const { data } = await amoCrmApi.get(
+        `api/v4/leads/pipelines/${pipelineId}/statuses`,
+        {
+          headers: { Authorization: `Bearer ${this.accessToken}` },
+        },
+      );
+
+      const statuses = data._embedded.statuses;
+
+      if (!statuses)
+        throw new InternalServerErrorException(
+          'Не удалось получить статусы заказа из amoCrm',
+        );
+
+      return statuses;
+    } catch (error) {
+      console.error(
+        'Ошибка получения статусов заказа из amoCrm:',
+        error.response.data,
+      );
+    }
+  }
+
+  async getStatusByName(name: string): Promise<AmoCrmStatus> {
+    const amoStatuses: AmoCrmStatus[] = await this.getAllStatuses();
+
+    const existingStatus = amoStatuses.find((it) => it.name === name);
+
+    if (existingStatus) return existingStatus;
+
+    const { sort, color } = statuses.find((it) => it.name === name);
+
+    const newStatus = await this.createStatus(name, sort, color);
+
+    return newStatus;
+  }
+
+  async getCrmInfo(leadId: number) {
+    try {
+      const { id, name, status_id } = await this.getLead(leadId);
+
+      const status = await this.getStatus(status_id);
+
+      const crmInfo = {
+        id,
+        name,
+        status: {
+          id: status.id,
+          name: status.name,
+          color: status.color,
+        },
       };
 
-      return fullLead;
+      return crmInfo;
     } catch (error) {
-      console.error('getOneStatusAMO error', error);
+      console.error('Ошибка получения сrm информации:', error);
     }
   }
 
-  async updateStatusOrder({
-    id: id,
-    createdBy: createdBy,
-    createdAt: createdAt,
-    name: name,
-    price: price,
-  }): Promise<object> {
-    //todo связать на id и их их паплайн ид и наш чтобы это было частью продукта
-
+  async getCrmInfoList(): Promise<AmoCrmInfo[]> {
     try {
-      const response = await amoCrmApi.patch(`/api/v4/leads/${id}`, [
-        {
-          id: id, // int id товара
-          created_by: createdBy, // int ID пользователя, создающий сделку
-          created_at: createdAt, // int Дата создания сделки, передается в Unix Timestamp
-          name: name, // string имя - можно использовать под телефон
-          price: price, // int Бюджет сделки
-          status_id: paymentSuccessStatus || websiteTicketStatus, //todo здесь выбрать на какой статус необходимо изменить: при собранной корзине - website_ticket, при оплаченной корзине когда платежка отдала 200 или 201 - payment_success
-          pipeline_id: pipelineId,
+      const leads = await this.getAllLeads();
+
+      const statuses = await this.getAllStatuses();
+
+      const statusesById: Record<number, AmoCrmStatus> = statuses.reduce(
+        (acc, item) => {
+          acc[item.id] = item;
+          return acc;
         },
-      ]);
-      if (response.status === 200 || response.status === 201) {
-        return response.data;
-      }
+        {},
+      );
+
+      const crmInfoList = leads.map(({ id, name, status_id }) => {
+        const status = statusesById[status_id];
+
+        return {
+          id,
+          name,
+          status: {
+            id: status.id,
+            name: status.name,
+            color: status.color,
+          },
+        };
+      });
+
+      return crmInfoList;
     } catch (error) {
-      console.error('updateStatusAMO error', error);
+      console.error('Ошибка получения сrm информации:', error);
     }
   }
 
   async getFields() {
     try {
-      const { data: fields } = await amoCrmApi.get(
-        '/api/v4/leads/custom_fields',
-        {
-          headers: { Authorization: `Bearer ${this.access_token}` },
-        },
-      );
+      const { data } = await amoCrmApi.get('/api/v4/leads/custom_fields', {
+        headers: { Authorization: `Bearer ${this.accessToken}` },
+      });
+
+      const fields = data._embedded;
 
       return fields;
     } catch (error) {
-      console.error('getAllFieldsAMO error', error);
+      console.error('Ошибка получения полей лида:', error.response.data);
     }
   }
 }

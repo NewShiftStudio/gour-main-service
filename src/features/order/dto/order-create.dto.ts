@@ -25,7 +25,7 @@ export class OrderCreateDto {
   @IsOptional()
   @IsNumber()
   @ApiPropertyOptional()
-  orderProfileId: number;
+  deliveryProfileId: number;
 
   @IsOptional()
   @IsString()

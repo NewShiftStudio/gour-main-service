@@ -8,6 +8,8 @@ import { AmoCrmService } from './amo-crm.service';
 import { OrderService } from './order.service';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { OrderCreateDto } from './dto/order-create.dto';
+import { PayOrderDto } from './dto/pay-order.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 @ApiTags('orders')
 @Controller('orders')
@@ -27,14 +29,14 @@ export class OrderController {
       client,
     );
 
-    const leads = await this.amoCrmService.getLeadList();
+    const crmInfoList = await this.amoCrmService.getCrmInfoList();
 
     const fullOrders = orders.map((order) => {
-      const lead = leads?.find((it) => it.id === order.leadId);
+      const crmInfo = crmInfoList.find((it) => it.id === order.leadId);
 
       return {
         ...order,
-        crmInfo: lead,
+        crmInfo,
       };
     });
 
@@ -42,7 +44,7 @@ export class OrderController {
   }
 
   @MessagePattern('get-order')
-  async getOne(@Payload() id: number) {
+  async getOne(@Payload() id: string) {
     const order = await this.orderService.getOne(id);
 
     const lead = await this.amoCrmService.getLead(order.leadId);
@@ -56,43 +58,47 @@ export class OrderController {
   }
 
   @MessagePattern('create-order')
-  async post(
+  async create(
     @Payload('client') client: Client,
     @Payload('dto') dto: OrderCreateDto,
   ) {
-    const { id } = await this.orderService.create(dto, client);
+    return this.orderService.create(dto, client);
+  }
 
-    const order = await this.orderService.getOne(id);
-
-    const description = this.orderService.getDescription(order);
-
-    const lead = await this.amoCrmService.createLead({
-      name: `${order.lastName} ${order.firstName} ${order.createdAt}`,
-      description,
-      price: order.totalSum,
-    });
-
-    await this.orderService.update(id, {
-      leadId: lead.id,
-    });
-
-    const fullOrder = {
-      ...order,
-      crmInfo: lead,
-    };
-
-    return fullOrder;
+  @MessagePattern('pay-order')
+  async payOrder(@Payload() payload: PayOrderDto) {
+    return this.orderService.payOrder(payload);
   }
 
   @MessagePattern('edit-order')
-  put(@Payload('id') id: number, @Payload('dto') dto: Partial<Order>) {
+  put(@Payload('id') id: string, @Payload('dto') dto: Partial<Order>) {
     // TODO: если будут меняться товары, то изменить скидки
     return this.orderService.update(id, dto);
   }
 
   @MessagePattern('delete-order')
-  remove(@Payload() id: number) {
+  remove(@Payload() id: string) {
     // TODO: если будут меняться товары, то удалить скидки
     return this.orderService.remove(id);
+  }
+
+  @MessagePattern('confirm-payment-by-token')
+  changeOrderStatusByToken(@Payload() token: string) {
+    return this.orderService.confirmPaymentByToken(token);
+  }
+
+  @MessagePattern('refresh-order-status')
+  async refreshOrderStatus(@Payload() dto: UpdateOrderStatusDto) {
+    const parsedDto: UpdateOrderStatusDto = JSON.parse(JSON.stringify(dto));
+    const updateEvent = parsedDto.events[0];
+    const splitedEventMeta = updateEvent.meta.href.split('/');
+    const orderUuid = splitedEventMeta[splitedEventMeta.length - 1];
+
+    return this.orderService.refreshOrderStatus(orderUuid);
+  }
+
+  @MessagePattern('update-order-status-by-token')
+  async updateOrderStatusByToken(@Payload() token: string) {
+    return this.orderService.updateOrderStatusByToken(token);
   }
 }

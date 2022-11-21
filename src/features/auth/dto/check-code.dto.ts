@@ -8,5 +8,5 @@ export class CheckCodeDto {
 
   @ApiProperty()
   @IsString()
-  codeHash: string;
+  hashedCode: string;
 }

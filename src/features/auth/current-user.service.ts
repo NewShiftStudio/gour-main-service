@@ -4,7 +4,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { decodeSomeDataCode } from './jwt.service';
-import { ChangePhoneDto } from './dto/change-phone.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Client } from '../../entity/Client';
 import { Repository } from 'typeorm';
@@ -17,6 +16,7 @@ import { Image } from '../../entity/Image';
 import { OrderProfile } from '../../entity/OrderProfile';
 import { City } from '../../entity/City';
 import { ReferralCode } from 'src/entity/ReferralCode';
+import { ChangeEmailDto } from './dto/change-email.dto';
 
 @Injectable()
 export class CurrentUserService {
@@ -37,35 +37,39 @@ export class CurrentUserService {
     private referralCodeRepository: Repository<ReferralCode>,
   ) {}
 
-  getUser(id: number) {
+  getUser(id: string) {
     return this.clientRepository.findOne(id, {
       relations: ['role', 'city', 'referralCode', 'avatar'],
     });
   }
 
-  //FIXME: заменить этот метод на смену email
-  async changePhone(userId: number, hashedCode: string, dto: ChangePhoneDto) {
+  async changeEmail(userId: string, hashedCode: string, dto: ChangeEmailDto) {
     if (!hashedCode) throw new NotFoundException('Cookie не найден');
+
+    const user = await this.clientRepository.findOne({
+      where: { email: dto.email },
+    });
+
+    if (user) throw new BadRequestException('Email занят');
 
     const { code, someData } = decodeSomeDataCode(hashedCode || '');
 
-    if (someData !== dto.phone)
-      throw new BadRequestException('Неверный номер телефона');
+    if (code !== dto.code) throw new BadRequestException('Неверный код');
 
-    if (+code !== dto.code) throw new BadRequestException('Неверный код');
+    if (someData !== dto.email) throw new BadRequestException('Неверный email');
 
-    await this.clientRepository.save({
+    return this.clientRepository.save({
       id: userId,
-      phone: dto.phone,
+      email: dto.email,
     });
   }
 
-  async changePassword(currentUserId: number, dto: ChangePasswordDto) {
-    const prevPassHash = (
-      await this.clientRepository.findOne({
-        id: currentUserId,
-      })
-    )?.password;
+  async changePassword(currentUserId: string, dto: ChangePasswordDto) {
+    const user = await this.clientRepository.findOne(currentUserId);
+
+    if (!user) throw new NotFoundException('Пользователь не найден');
+
+    const prevPassHash = user.password;
 
     const isValidPrevPass = await bcrypt.compare(
       dto.prevPassword,
@@ -82,49 +86,92 @@ export class CurrentUserService {
     });
   }
 
-  async changeCityId(currentUserId: number, cityId: number) {
+  async reduceGameLive(currentUserId: string) {
+    const user = await this.clientRepository.findOne(currentUserId);
+
+    if (!user) throw new NotFoundException('Пользователь не найден');
+    if (user.lives <= 0)
+      throw new BadRequestException('Некорректное количество жизней');
+
+    return this.clientRepository.save({
+      id: currentUserId,
+      lives: user.lives - 1,
+    });
+  }
+
+  async changeCityId(currentUserId: string, cityId: number) {
     const city = await this.cityRepository.findOne(cityId);
 
     if (!city) throw new NotFoundException('Город не найден');
 
-    await this.clientRepository.save({
+    return this.clientRepository.save({
       id: currentUserId,
       city: city.id,
     });
   }
 
-  async updateCurrentUser(id: number, dto: UpdateUserDto) {
+  async changeAvatarId(currentUserId: string, avatarId: number) {
+    const avatar = await this.imageRepository.findOne(avatarId);
+
+    if (!avatar) throw new NotFoundException('Изображение не найдено');
+
+    return this.clientRepository.save({
+      id: currentUserId,
+      avatar: avatar.id,
+    });
+  }
+
+  async changeMainProfileId(
+    currentUserId: string,
+    orderProfileId: number | null,
+  ) {
+    if (orderProfileId !== null) {
+      const orderProfile = await this.orderProfileRepository.findOne(
+        orderProfileId,
+      );
+
+      if (!orderProfile)
+        throw new NotFoundException('Адрес доставки не найден');
+    }
+
+    return this.clientRepository.save({
+      id: currentUserId,
+      mainOrderProfileId: orderProfileId,
+    });
+  }
+
+  async updateCurrentUser(id: string, dto: UpdateUserDto) {
     const updatedObj: DeepPartial<Client> = {
       firstName: dto.firstName,
       lastName: dto.lastName,
-      email: dto.email,
       id,
     };
 
-    if ('avatarId' in dto) {
-      if (dto.avatarId === null) updatedObj.avatar = null;
-      else {
-        const avatar = await this.imageRepository.findOne(dto.avatarId);
+    if (dto.phone) {
+      const client = await this.clientRepository.findOne({
+        where: { phone: dto.phone },
+      });
 
-        if (!avatar) throw new NotFoundException('Аватар не найден');
+      if (client && client.id !== id)
+        throw new NotFoundException('Номер телефона занят');
 
-        updatedObj.avatar = avatar;
-      }
+      if (!client) updatedObj.phone = dto.phone;
     }
 
     if (dto.mainOrderProfileId) {
       const orderProfile = await this.orderProfileRepository.findOne(
         dto.mainOrderProfileId,
       );
-      if (!orderProfile) {
+
+      if (!orderProfile)
         throw new NotFoundException('Профиль заказа не найден');
-      }
-      updatedObj.mainOrderProfile = orderProfile;
+
+      updatedObj.mainOrderProfileId = orderProfile.id;
     }
 
     if (dto.referralCode) {
       const referralCode = await this.referralCodeRepository.findOne({
-        where: { code: dto.referralCode },
+        code: dto.referralCode,
       });
 
       if (referralCode) updatedObj.referralCode = referralCode;

@@ -2,6 +2,7 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 
+import { Client } from 'src/entity/Client';
 import { CategoryService } from './category.service';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { CategoryCreateDto } from './dto/category.create.dto';
@@ -17,17 +18,15 @@ export class CategoryController {
     return this.categoryService.findMany(params);
   }
 
-  @MessagePattern('get-common-categories')
-  getCommon(@Payload() params: BaseGetListDto) {
-    return this.categoryService.findCommon(params);
-  }
-
   @MessagePattern('get-category')
   getOne(@Payload() id: number) {
-    return this.categoryService.getOne(id);
+    return this.categoryService.getOneOrFail(id);
   }
 
-  // TODO update or delete on table "category" violates foreign key constraint on table "product"
+  @MessagePattern('get-categories-with-discount')
+  getCategoriesWithDiscounts(@Payload('client') client: Client) {
+    return this.categoryService.findCategoriesWithDiscounts(client);
+  }
 
   @MessagePattern('create-category')
   async post(@Payload() dto: CategoryCreateDto) {

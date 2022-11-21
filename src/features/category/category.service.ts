@@ -1,12 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, FindManyOptions, In, Repository } from 'typeorm';
+import { DeepPartial, FindManyOptions, Repository } from 'typeorm';
 
+import { Client } from 'src/entity/Client';
 import { Category } from '../../entity/Category';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { CategoryCreateDto } from './dto/category.create.dto';
 import { CategoryUpdateDto } from './dto/category.update.dto';
+import categoryQueryBuilder from './category.repository';
+import { getUniqueCategoriesWithDiscounts } from './category.helpers';
 
 @Injectable()
 export class CategoryService {
@@ -36,34 +39,16 @@ export class CategoryService {
       .getManyAndCount();
   }
 
-  async findCommon(params: BaseGetListDto) {
-    const options: FindManyOptions<Category> = {
-      ...getPaginationOptions(params.offset, params.length),
-    };
-
-    const parentCategoriesLength = await this.categoryRepository
-      .createQueryBuilder('top_categories')
-      .leftJoinAndSelect('top_categories.parentCategories', 'parent')
-      .where('parent.id IS NULL')
-      .getCount();
-
-    const midCategories = await this.categoryRepository
-      .createQueryBuilder('mid_categories')
-      .leftJoinAndSelect('mid_categories.parentCategories', 'top_categories')
-      .leftJoinAndSelect('mid_categories.subCategories', 'bot_categories')
-      .leftJoinAndSelect('mid_categories.title', 'mid_title')
-      .where('top_categories.id IS NOT NULL')
-      .where('bot_categories.id IS NOT NULL')
-      .getMany();
-
-    const commonMidCategories = midCategories.filter(
-      (category) => category.parentCategories.length === parentCategoriesLength,
+  async findCategoriesWithDiscounts(client: Client) {
+    const categoriesList = await categoryQueryBuilder.findCategoryWithDiscounts(
+      this.categoryRepository,
+      client.id,
     );
 
-    return commonMidCategories;
+    return getUniqueCategoriesWithDiscounts(categoriesList);
   }
 
-  async getOne(id: number) {
+  async getOneOrFail(id: number) {
     try {
       return await this.categoryRepository.findOneOrFail({ id });
     } catch {
@@ -72,12 +57,15 @@ export class CategoryService {
   }
 
   async create(dto: CategoryCreateDto) {
-    const category: DeepPartial<Category> = { title: dto.title };
+    const category: DeepPartial<Category> = {
+      title: dto.title,
+      hasDiscount: dto.hasDiscount ?? false,
+    };
 
     if (dto.subCategoriesIds) {
       category.subCategories = [];
       for (const subCategoryId of dto.subCategoriesIds) {
-        const subCategory = await this.getOne(subCategoryId);
+        const subCategory = await this.getOneOrFail(subCategoryId);
         category.subCategories.push(subCategory);
       }
     }
@@ -85,7 +73,7 @@ export class CategoryService {
     if (dto.parentCategoriesIds) {
       category.parentCategories = [];
       for (const parentCategoryId of dto.parentCategoriesIds) {
-        const parentCategory = await this.getOne(parentCategoryId);
+        const parentCategory = await this.getOneOrFail(parentCategoryId);
         category.parentCategories.push(parentCategory);
       }
     }
@@ -94,14 +82,17 @@ export class CategoryService {
   }
 
   async update(id: number, dto: CategoryUpdateDto) {
-    const _isExist = await this.getOne(id);
+    const categoryById = await this.getOneOrFail(id);
 
-    const category: DeepPartial<Category> = { title: dto.title };
+    const category: DeepPartial<Category> = {
+      title: dto.title,
+      hasDiscount: dto.hasDiscount ?? categoryById.hasDiscount,
+    };
 
     if (dto.subCategoriesIds) {
       category.subCategories = [];
       for (const subCategoryId of dto.subCategoriesIds) {
-        const subCategory = await this.getOne(subCategoryId);
+        const subCategory = await this.getOneOrFail(subCategoryId);
         category.subCategories.push(subCategory);
       }
     }
@@ -109,7 +100,7 @@ export class CategoryService {
     if (dto.parentCategoriesIds) {
       category.parentCategories = [];
       for (const parentCategoryId of dto.parentCategoriesIds) {
-        const parentCategory = await this.getOne(parentCategoryId);
+        const parentCategory = await this.getOneOrFail(parentCategoryId);
         category.parentCategories.push(parentCategory);
       }
     }

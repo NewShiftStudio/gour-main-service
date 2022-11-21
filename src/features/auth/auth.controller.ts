@@ -10,6 +10,7 @@ import { SignUpDto } from './dto/sign-up.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import { Client } from 'src/entity/Client';
 import { CheckCodeDto } from './dto/check-code.dto';
+import { RecoverPasswordDto } from './dto/recover-password.dto';
 
 export interface AppRequest extends Request {
   user?: Client;
@@ -21,19 +22,24 @@ export interface AppRequest extends Request {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @MessagePattern('send-code')
+  @MessagePattern('send-email-code')
   sendCode(@Payload() dto: SendCodeDto) {
     return this.authService.sendCode(dto.email);
   }
 
   @MessagePattern('check-code')
   checkCode(@Payload() dto: CheckCodeDto) {
-    return this.authService.checkCode(dto.code, dto.codeHash);
+    return this.authService.checkCode(dto.code, dto.hashedCode);
   }
 
   @MessagePattern('signup')
   signup(@Payload() dto: SignUpDto) {
     return this.authService.signup(dto);
+  }
+
+  @MessagePattern('recover-password')
+  recoverPassword(@Payload() dto: RecoverPasswordDto) {
+    return this.authService.recoverPassword(dto);
   }
 
   @MessagePattern('signin')
