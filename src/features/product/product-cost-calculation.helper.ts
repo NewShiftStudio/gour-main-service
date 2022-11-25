@@ -1,4 +1,5 @@
-import { OrderPromotion } from '../order/dto/order-with-total-sum.dto';
+import { ClientRole } from 'src/entity/ClientRole';
+import { RoleDiscount } from 'src/entity/RoleDiscount';
 
 interface MinimumProduct {
   id: number;
@@ -6,6 +7,7 @@ interface MinimumProduct {
     cheeseCoin: number;
   };
   discount: number;
+  roleDiscounts: RoleDiscount[];
 }
 
 interface MinimumPromotion {
@@ -13,68 +15,48 @@ interface MinimumPromotion {
   products: { id: number }[];
 }
 
-interface MinimumClient {
-  referralCode?: {
-    discount: number;
-  };
-}
-
-export type ProductWithFullCost<P> = P & {
-  promotions: OrderPromotion[];
+export type ProductWithTotalCost<P> = P & {
   totalCost: number;
 };
 
-export function getProductsWithFullCost<P extends MinimumProduct>(
+export function getProductsWithDiscount<P extends MinimumProduct>(
   products: P[],
   allPromotions: MinimumPromotion[],
-  client: MinimumClient,
-): ProductWithFullCost<P>[] {
+  role: ClientRole,
+): ProductWithTotalCost<P>[] {
   const promotionsByProductId = getPromotionsValueByProductId(
     products,
     allPromotions,
   );
 
-  const productsWithFullCost: ProductWithFullCost<P>[] = [];
+  const productsWithDiscount = products.map((product) => {
+    // для физ. лица действуют скидки акций, для прочих есть их ролевая цена
+    if (role.key === 'individual') {
+      const promotionDiscountPercent = promotionsByProductId[product.id];
 
-  const basePromotions: OrderPromotion[] = [];
+      product.discount = promotionDiscountPercent;
+    } else {
+      const roleDiscount = product.roleDiscounts.find(
+        (roleDiscount) => roleDiscount.role.id === role.id,
+      );
 
-  if (client.referralCode) {
-    basePromotions.push({
-      title: 'Скидка за реферальный код',
-      value: client.referralCode.discount,
-    });
-  }
+      if (roleDiscount) {
+        const priceWithRoleDiscount = Math.ceil(
+          product.price.cheeseCoin - roleDiscount.value,
+        );
 
-  for (const product of products) {
-    const promotions = [...basePromotions];
-
-    if (promotionsByProductId[product.id]) {
-      const promotionValue = promotionsByProductId[product.id];
-
-      promotions.push({
-        title: 'Скидка за акцию',
-        value: promotionValue,
-      });
-
-      product.discount = promotionValue;
+        product.price.cheeseCoin = priceWithRoleDiscount;
+      }
     }
 
-    const totalDiscount = Math.ceil(
-      promotions.reduce((acc, it) => acc + it.value, 0),
-    );
-
     const totalCost = Math.ceil(
-      product.price.cheeseCoin * (1 - totalDiscount / 100),
+      product.price.cheeseCoin * (1 - product.discount / 100),
     );
 
-    productsWithFullCost.push({
-      ...product,
-      promotions,
-      totalCost,
-    });
-  }
+    return { ...product, totalCost };
+  });
 
-  return productsWithFullCost;
+  return productsWithDiscount;
 }
 
 export function getPromotionsValueByProductId(

@@ -39,6 +39,7 @@ import { InvoiceDto } from '../wallet/dto/invoice.dto';
 import { InvoiceCreateDto } from './dto/create-invoice.dto';
 import { decodeToken, encodeJwt, verifyJwt } from '../auth/jwt.service';
 import { PayOrderDto } from './dto/pay-order.dto';
+import { ClientRole } from 'src/entity/ClientRole';
 
 const organizationId = process.env.WAREHOUSE_ORGANIZATION_ID;
 const tokenSecret = process.env.SIGNATURE_SECRET;
@@ -60,6 +61,9 @@ export class OrderService {
 
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+
+    @InjectRepository(ClientRole)
+    private clientRoleRepository: Repository<ClientRole>,
 
     private orderProfileService: OrderProfileService,
     private productService: ProductService,
@@ -498,48 +502,62 @@ export class OrderService {
         orderProduct.product,
       );
 
-      if (product)
-        fullOrderProducts.push({
+      if (product) {
+        const costByGram = product.totalCost / 1000;
+
+        const totalSumWithoutAmount = Math.ceil(costByGram * orderProduct.gram);
+
+        const totalSum = Math.ceil(totalSumWithoutAmount * orderProduct.amount);
+
+        const fullOrderProduct = {
           ...orderProduct,
           product,
-          totalSum: Math.ceil(
-            (product.totalCost / 1000) *
-              orderProduct.gram *
-              orderProduct.amount,
-          ),
-          totalSumWithoutAmount: Math.ceil(
-            (product.totalCost / 1000) * orderProduct.gram,
-          ),
-        });
+          totalSum,
+          totalSumWithoutAmount,
+        };
+
+        fullOrderProducts.push(fullOrderProduct);
+      }
     }
 
-    const totalSum = Math.ceil(
-      fullOrderProducts.reduce((acc, item) => acc + item.totalSum, 0),
-    );
+    const client = await this.clientService.findOne(order.client.id);
+
+    const isIndividual = client.role.key === 'individual';
 
     const promotions: OrderPromotion[] = [];
 
-    for (const orderProduct of fullOrderProducts) {
-      if (!orderProduct.product.promotions) return;
+    const referralCodeDiscount = client.referralCode?.discount || 0;
 
-      for (const promotion of orderProduct.product.promotions) {
-        let value =
-          (promotion.discount / 100) * orderProduct.product.price.cheeseCoin;
+    if (isIndividual) {
+      if (referralCodeDiscount) {
+        const referralDiscount: OrderPromotion = {
+          title: 'Скидка за реферальный код',
+          value: referralCodeDiscount,
+        };
 
-        value = value * orderProduct.gram;
+        promotions.push(referralDiscount);
+      }
 
-        const index = promotions.findIndex(
-          (it) => it.title === promotion.title.ru,
-        );
+      const promotionDiscountsSum = Math.ceil(
+        fullOrderProducts.reduce((acc, item) => acc + item.product.discount, 0),
+      );
 
-        if (index === -1)
-          promotions.push({
-            title: promotion.title.ru,
-            value,
-          });
-        else promotions[index].value += value;
+      if (promotionDiscountsSum) {
+        const promotionsDiscount: OrderPromotion = {
+          title: 'Скидка за акции',
+          value: promotionDiscountsSum,
+        };
+
+        promotions.push(promotionsDiscount);
       }
     }
+
+    const totalSumWithoutReferral = fullOrderProducts.reduce(
+      (acc, item) => acc + item.totalSum,
+      0,
+    );
+
+    const totalSum = totalSumWithoutReferral * (1 - referralCodeDiscount / 100);
 
     const fullOrder = {
       ...order,

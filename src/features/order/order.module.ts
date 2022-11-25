@@ -20,6 +20,7 @@ import { AmoCrmService } from './amo-crm.service';
 import { OrderProfileService } from '../order-profile/order-profile.service';
 import { CityModule } from '../city/city.module';
 import { City } from 'src/entity/City';
+import { ClientRole } from 'src/entity/ClientRole';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
       OrderProduct,
       City,
       Meta,
+      ClientRole,
     ]),
     CityModule,
     MetaModule,
