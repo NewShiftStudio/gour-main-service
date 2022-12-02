@@ -82,8 +82,9 @@ export class ProductController {
   createProductGrades(
     @Payload('id') id: number,
     @Payload('dto') dto: ProductGradeCreateDto,
+    @Payload('client') client: Client,
   ) {
-    return this.productGradeService.create(id, dto);
+    return this.productGradeService.create(id, dto, client);
   }
 
   @MessagePattern('get-grades')
