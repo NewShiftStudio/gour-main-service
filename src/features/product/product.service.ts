@@ -135,6 +135,7 @@ export class ProductService {
       {
         relations: [
           params.withSimilarProducts && 'similarProducts',
+          params.withSimilarProducts && 'similarProducts.categories',
           params.withMeta && 'meta',
           params.withRoleDiscounts && 'roleDiscounts',
           params.withGrades && 'productGrades',
