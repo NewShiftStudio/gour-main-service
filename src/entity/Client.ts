@@ -25,10 +25,10 @@ import { Discount } from './Discount';
 
 @Entity()
 export class Client {
-  @ManyToOne(() => ClientRole, (role) => role.id, {
+  @ManyToOne(() => ClientRole, {
     eager: true,
   })
-  role: number;
+  role: ClientRole;
 
   @PrimaryGeneratedColumn('uuid')
   id: string;

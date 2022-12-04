@@ -123,7 +123,7 @@ export class AuthService {
     const password = await this.getPasswordHash(dto.password);
 
     const user = await this.clientRepository.save({
-      role: dto.roleId,
+      role,
       firstName: dto.firstName,
       lastName: dto.lastName,
       email: dto.email,

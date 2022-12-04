@@ -1,6 +1,6 @@
 import { OrderProduct } from '../../../entity/OrderProduct';
-import { ProductWithFullCostDto } from '../../product/dto/product-with-full-cost.dto';
 import { Order } from '../../../entity/Order';
+import { Product } from 'src/entity/Product';
 
 export class OrderPromotion {
   title: string;
@@ -8,7 +8,7 @@ export class OrderPromotion {
 }
 
 export class OrderProductWithTotalSumDto extends OrderProduct {
-  product: ProductWithFullCostDto;
+  product: Product;
   totalSum: number;
   totalSumWithoutAmount: number;
 }

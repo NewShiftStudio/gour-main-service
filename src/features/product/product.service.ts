@@ -2,10 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, In, LessThan, MoreThan, Repository } from 'typeorm';
 
-import {
-  getProductsWithFullCost,
-  ProductWithFullCost,
-} from './product-cost-calculation.helper';
+import { getProductsWithDiscount } from './product-cost-calculation.helper';
 import { Product } from '../../entity/Product';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { ProductCreateDto } from './dto/product-create.dto';
@@ -36,6 +33,9 @@ export class ProductService {
 
     @InjectRepository(RoleDiscount)
     private roleDiscountRepository: Repository<RoleDiscount>,
+
+    @InjectRepository(Client)
+    private clientRepository: Repository<Client>,
 
     @InjectRepository(ClientRole)
     private clientRoleRepository: Repository<ClientRole>,
@@ -180,40 +180,48 @@ export class ProductService {
 
     if (dto.categoryIds) {
       saveParams.categories = [];
+
       for (const categoryId of dto.categoryIds) {
-        saveParams.categories.push(
-          await this.categoryRepository.findOne(categoryId),
-        );
+        const category = await this.categoryRepository.findOne(categoryId);
+
+        saveParams.categories.push(category);
       }
     }
 
     if (dto.similarProducts) {
-      const similarProducts: Product[] = [];
+      saveParams.similarProducts = [];
 
       for (const productId of dto.similarProducts) {
         const similarProduct = await this.productRepository.findOne(productId);
 
-        similarProducts.push(similarProduct);
+        saveParams.similarProducts.push(similarProduct);
       }
-
-      saveParams.similarProducts = similarProducts;
     }
 
     if (dto.roleDiscounts) {
-      const roleDiscounts: RoleDiscount[] = [];
+      saveParams.roleDiscounts = [];
 
-      for (const roleDiscount of dto.roleDiscounts) {
-        const role = await this.clientRoleRepository.findOne(roleDiscount.role);
+      for (const { role: roleId, value } of dto.roleDiscounts) {
+        const role = await this.clientRoleRepository.findOne(roleId);
 
-        roleDiscounts.push(
-          this.roleDiscountRepository.create({
+        const roleDiscount = await this.roleDiscountRepository.findOne({
+          role,
+          value,
+        });
+
+        if (!roleDiscount) {
+          const newRoleDiscount = await this.roleDiscountRepository.save({
             role,
-            value: roleDiscount.value,
-          }),
-        );
-      }
+            value,
+          });
 
-      saveParams.roleDiscounts = roleDiscounts;
+          saveParams.roleDiscounts.push(newRoleDiscount);
+
+          return;
+        }
+
+        saveParams.roleDiscounts.push(roleDiscount);
+      }
     }
 
     const images: Image[] = [];
@@ -232,11 +240,11 @@ export class ProductService {
     return this.productRepository.save(saveParams as DeepPartial<Product>);
   }
 
-  async update(id: number, product: ProductUpdateDto) {
+  async update(id: number, dto: ProductUpdateDto) {
     const images: Image[] = [];
 
-    if (product.images) {
-      for (const imageId of product.images) {
+    if (dto.images) {
+      for (const imageId of dto.images) {
         const image = await this.imageRepository.findOne(imageId);
 
         if (!image)
@@ -247,32 +255,59 @@ export class ProductService {
     }
 
     const saveParams: DeepPartial<Product> = {
-      title: product.title,
-      description: product.description,
-      moyskladId: product.moyskladId,
-      images,
-      price: product.price,
-      meta: product.meta,
       id,
+      title: dto.title,
+      description: dto.description,
+      moyskladId: dto.moyskladId,
+      images,
+      price: dto.price,
+      meta: dto.meta,
     };
 
-    if (product.categoryIds) {
+    if (dto.categoryIds) {
       saveParams.categories = [];
-      for (const categoryId of product.categoryIds) {
-        saveParams.categories.push(
-          await this.categoryRepository.findOne(categoryId),
-        );
+
+      for (const categoryId of dto.categoryIds) {
+        const category = await this.categoryRepository.findOne(categoryId);
+
+        saveParams.categories.push(category);
       }
     }
 
-    if (product.similarProducts) {
-      const similarProducts: Product[] = [];
+    if (dto.similarProducts) {
+      saveParams.similarProducts = [];
 
-      for (const productId of product.similarProducts) {
-        similarProducts.push(await this.productRepository.findOne(productId));
+      for (const productId of dto.similarProducts) {
+        const similarProduct = await this.productRepository.findOne(productId);
+
+        saveParams.similarProducts.push(similarProduct);
       }
+    }
 
-      saveParams.similarProducts = similarProducts;
+    if (dto.roleDiscounts) {
+      saveParams.roleDiscounts = [];
+
+      for (const { role: roleId, value } of dto.roleDiscounts) {
+        const role = await this.clientRoleRepository.findOne(roleId);
+
+        const roleDiscount = await this.roleDiscountRepository.findOne({
+          role,
+          value,
+        });
+
+        if (!roleDiscount) {
+          const newRoleDiscount = await this.roleDiscountRepository.save({
+            role,
+            value,
+          });
+
+          saveParams.roleDiscounts.push(newRoleDiscount);
+
+          return;
+        }
+
+        saveParams.roleDiscounts.push(roleDiscount);
+      }
     }
 
     return this.productRepository.save(saveParams);
@@ -295,10 +330,10 @@ export class ProductService {
   async prepareProducts<P extends Product = Product>(
     client: Client,
     products: P[],
-  ): Promise<ProductWithFullCost<P>[]> {
+  ) {
     const now = new Date();
 
-    const allPromotions = await this.promotionRepository.find({
+    const promotions = await this.promotionRepository.find({
       where: {
         start: LessThan(now),
         end: MoreThan(now),
@@ -306,19 +341,21 @@ export class ProductService {
       relations: ['products'],
     });
 
-    const productsWithFullCost = getProductsWithFullCost(
+    const fullClient = await this.clientRepository.findOne(client.id);
+
+    const productsWithDiscount = getProductsWithDiscount(
       products,
-      allPromotions,
-      client,
+      promotions,
+      fullClient.role,
     );
 
-    return productsWithFullCost;
+    return productsWithDiscount;
   }
 
   async prepareProduct<P extends Product = Product>(
     client: Client,
     product: P,
-  ): Promise<ProductWithFullCost<P>> {
+  ) {
     const preparedProducts = await this.prepareProducts(client, [product]);
 
     return preparedProducts[0];

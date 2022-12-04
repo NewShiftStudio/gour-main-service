@@ -154,7 +154,7 @@ export class ClientsService {
 
       if (!role) throw new NotFoundException('Роль не найдена');
 
-      updatedObj.role = dto.roleId;
+      updatedObj.role = role;
     }
 
     if (dto.countries) {
