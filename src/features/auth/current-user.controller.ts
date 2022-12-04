@@ -83,7 +83,7 @@ export class CurrentUserController {
   @MessagePattern('change-avatar')
   changeAvatar(
     @Payload('clientId') clientId: string,
-    @Payload('avatarId') avatarId: number,
+    @Payload('avatarId') avatarId?: number,
   ) {
     return this.currentUserService.changeAvatarId(clientId, avatarId);
   }

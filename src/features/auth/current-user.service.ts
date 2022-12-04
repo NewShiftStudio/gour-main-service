@@ -110,14 +110,20 @@ export class CurrentUserService {
     });
   }
 
-  async changeAvatarId(currentUserId: string, avatarId: number) {
-    const avatar = await this.imageRepository.findOne(avatarId);
+  async changeAvatarId(currentUserId: string, imageId?: number) {
+    let avatar: number = null;
 
-    if (!avatar) throw new NotFoundException('Изображение не найдено');
+    if (imageId) {
+      const image = await this.imageRepository.findOne(imageId);
+
+      if (!image) throw new NotFoundException('Изображение не найдено');
+
+      avatar = image.id;
+    }
 
     return this.clientRepository.save({
       id: currentUserId,
-      avatar: avatar.id,
+      avatar,
     });
   }
 
