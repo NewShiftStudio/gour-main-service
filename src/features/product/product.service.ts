@@ -153,6 +153,7 @@ export class ProductService {
     if (params.withMetrics) {
       const grades = await this.productGradeRepository.find({
         product: { id },
+        isApproved: true,
       });
 
       product = {
