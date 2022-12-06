@@ -22,10 +22,14 @@ export class OrderCreateDto {
   })
   orderProducts: OrderProductCreateDto[];
 
+  @IsNumber()
+  @ApiProperty()
+  deliveryProfileId: number;
+
   @IsOptional()
   @IsNumber()
   @ApiPropertyOptional()
-  deliveryProfileId: number;
+  promoCodeId?: number;
 
   @IsOptional()
   @IsString()
