@@ -18,10 +18,13 @@ import { Image } from '../../entity/Image';
 import { Client } from '../../entity/Client';
 import { Promotion } from '../../entity/Promotion';
 import { ProductGetSimilarDto } from './dto/product-get-similar.dto';
+import { CategoryService } from '../category/category.service';
 
 @Injectable()
 export class ProductService {
   constructor(
+    private categoryService: CategoryService,
+
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
 
@@ -60,8 +63,9 @@ export class ProductService {
       ].filter((it) => it),
     });
 
-    if (params.withDiscount)
+    if (params.withDiscount) {
       products = await this.prepareProducts(client, products);
+    }
 
     return [products, count];
   }
@@ -147,8 +151,9 @@ export class ProductService {
 
     if (!product) throw new NotFoundException('Товар не найден');
 
-    if (params.withDiscount)
+    if (params.withDiscount) {
       product = await this.prepareProduct(client, product);
+    }
 
     if (params.withMetrics) {
       const grades = await this.productGradeRepository.find({
@@ -327,10 +332,7 @@ export class ProductService {
     return this.productRepository.softDelete(id);
   }
 
-  async prepareProducts<P extends Product = Product>(
-    client: Client,
-    products: P[],
-  ) {
+  async prepareProducts<P extends Product>(client: Client, products: P[]) {
     const now = new Date();
 
     const promotions = await this.promotionRepository.find({
@@ -341,12 +343,16 @@ export class ProductService {
       relations: ['products'],
     });
 
+    const categoriesWithDiscounts =
+      await this.categoryService.findCategoriesWithDiscounts(client); // категории для системы наеденности
+
     const fullClient = await this.clientRepository.findOne(client.id);
 
     const productsWithDiscount = getProductsWithDiscount(
       products,
       promotions,
       fullClient.role,
+      categoriesWithDiscounts,
     );
 
     return productsWithDiscount;
