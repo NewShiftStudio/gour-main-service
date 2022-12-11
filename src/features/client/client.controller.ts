@@ -32,12 +32,12 @@ export class ClientController {
   }
 
   @MessagePattern('edit-client')
-  put(@Payload('id') id: number, @Payload('dto') dto: ClientUpdateDto) {
+  put(@Payload('id') id: string, @Payload('dto') dto: ClientUpdateDto) {
     return this.clientService.update(id, dto);
   }
 
   @MessagePattern('delete-client')
-  remove(@Payload() id: number) {
+  remove(@Payload() id: string) {
     return this.clientService.remove(id);
   }
 
