@@ -43,6 +43,7 @@ export function getProductsWithDiscount<P extends MinimumProduct>(
     const eatingDiscountInPercent = calcEatingDiscount(
       product,
       categoriesDictionary,
+      role,
     );
 
     // для физ. лица действуют скидки акций, для прочих есть их ролевая цена
@@ -113,10 +114,15 @@ function getCategoriesDictionary(categories: CategoryWithDiscounts[]) {
   return arrayToDictionary(flattedCategories);
 }
 
+const CLIENT_ROLE_KEY = 'individual';
+
 function calcEatingDiscount(
   product: MinimumProduct,
   categoriesDictionary: ReturnType<typeof getCategoriesDictionary>,
+  role: ClientRole,
 ) {
+  if (!product.categories || role.key !== CLIENT_ROLE_KEY) return 0;
+
   const productCategoriesIds = product.categories.map(({ id }) => id);
 
   const maxCategoryWithDiscount = productCategoriesIds.reduce(
