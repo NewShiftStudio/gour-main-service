@@ -3,10 +3,10 @@ import {
   Column,
   OneToMany,
   ManyToOne,
+  PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
-  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { OrderProduct } from './OrderProduct';
 import { Client } from './Client';

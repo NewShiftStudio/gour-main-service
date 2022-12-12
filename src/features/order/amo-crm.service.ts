@@ -71,7 +71,7 @@ export class AmoCrmService {
       return;
     }
 
-    this.accessToken = JSON.parse(JSON.stringify(accessTokenMeta.value));
+    this.accessToken = JSON.parse(accessTokenMeta.value);
   }
 
   async refreshTokens(): Promise<{
