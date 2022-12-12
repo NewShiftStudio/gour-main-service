@@ -1,5 +1,9 @@
 import { ClientRole } from 'src/entity/ClientRole';
-import { RoleDiscount } from 'src/entity/RoleDiscount';
+import { Product } from 'src/entity/Product';
+import { arrayToDictionary } from 'src/utils/common';
+import { CategoryWithDiscounts } from '../category/category.helpers';
+
+const MAXIMAL_EATING_DISCOUNT = 10;
 
 interface MinimumProduct {
   id: number;
@@ -7,7 +11,8 @@ interface MinimumProduct {
     cheeseCoin: number;
   };
   discount: number;
-  roleDiscounts: RoleDiscount[];
+  roleDiscounts: Product['roleDiscounts'];
+  categories: Product['categories'];
 }
 
 interface MinimumPromotion {
@@ -23,13 +28,23 @@ export function getProductsWithDiscount<P extends MinimumProduct>(
   products: P[],
   allPromotions: MinimumPromotion[],
   role: ClientRole,
+  allCategoriesWithDiscounts: CategoryWithDiscounts[],
 ): ProductWithTotalCost<P>[] {
   const promotionsByProductId = getPromotionsValueByProductId(
     products,
     allPromotions,
   );
 
+  const categoriesDictionary = getCategoriesDictionary(
+    allCategoriesWithDiscounts,
+  );
+
   const productsWithDiscount = products.map((product) => {
+    const eatingDiscountInPercent = calcEatingDiscount(
+      product,
+      categoriesDictionary,
+    );
+
     // для физ. лица действуют скидки акций, для прочих есть их ролевая цена
     if (role.key === 'individual') {
       const promotionDiscountPercent = promotionsByProductId[product.id];
@@ -49,6 +64,11 @@ export function getProductsWithDiscount<P extends MinimumProduct>(
       }
     }
 
+    product.discount += eatingDiscountInPercent;
+    if (product.discount > 1) {
+      // TODO: уточнить, может ли быть скидка около 0.9 по промоакции?
+      product.discount = 1;
+    }
     const totalCost = Math.ceil(
       product.price.cheeseCoin * (1 - product.discount / 100),
     );
@@ -83,4 +103,36 @@ export function getPromotionsValueByProductId(
   }
 
   return promotionsByProductId;
+}
+
+function getCategoriesDictionary(categories: CategoryWithDiscounts[]) {
+  const flattedCategories = categories.reduce(
+    (acc, midCategory) => [...acc, ...midCategory.subCategories],
+    [] as CategoryWithDiscounts['subCategories'],
+  );
+  return arrayToDictionary(flattedCategories);
+}
+
+function calcEatingDiscount(
+  product: MinimumProduct,
+  categoriesDictionary: ReturnType<typeof getCategoriesDictionary>,
+) {
+  const productCategoriesIds = product.categories.map(({ id }) => id);
+
+  const maxCategoryWithDiscount = productCategoriesIds.reduce(
+    (maxDiscount, categoryId) => {
+      const category = categoriesDictionary[categoryId];
+
+      if (!category || maxDiscount > category.discountPrice) return maxDiscount;
+      return category.discountPrice;
+    },
+    0,
+  );
+
+  const eatingDiscountInPercent = Math.floor(maxCategoryWithDiscount / 100_000);
+
+  if (eatingDiscountInPercent > MAXIMAL_EATING_DISCOUNT) {
+    return MAXIMAL_EATING_DISCOUNT;
+  }
+  return eatingDiscountInPercent;
 }

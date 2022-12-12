@@ -23,20 +23,10 @@ export class CategoryService {
       ...getPaginationOptions(params.offset, params.length),
     };
 
-    return this.categoryRepository
-      .createQueryBuilder('top_categories')
-      .leftJoinAndSelect('top_categories.parentCategories', 'top_parent')
-      .leftJoinAndSelect('top_categories.subCategories', 'mid_categories')
-      .leftJoinAndSelect('mid_categories.subCategories', 'bot_categories')
-
-      .leftJoinAndSelect('top_categories.title', 'top_title')
-      .leftJoinAndSelect('mid_categories.title', 'mid_title')
-      .leftJoinAndSelect('bot_categories.title', 'bot_title')
-
-      .where('top_parent.id IS NULL')
-      .skip(options.skip)
-      .take(options.take)
-      .getManyAndCount();
+    return categoryQueryBuilder.findAllCategories(
+      this.categoryRepository,
+      options,
+    );
   }
 
   async findCategoriesWithDiscounts(client: Client) {

@@ -1,6 +1,6 @@
 import { Category } from 'src/entity/Category';
 
-type CategoryWithDiscounts = {
+export type CategoryWithDiscounts = {
   id: number;
   title: { en: string; ru: string };
   subCategories: {

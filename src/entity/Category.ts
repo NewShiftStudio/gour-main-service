@@ -12,6 +12,7 @@ import {
 import { Base } from './Base';
 import { Discount } from './Discount';
 import { Product } from './Product';
+import { PromoCode } from './PromoCode';
 import { TranslatableString } from './TranslatableString';
 
 @Entity()
@@ -59,4 +60,9 @@ export class Category extends Base {
     onDelete: 'CASCADE',
   })
   discounts?: Discount[];
+
+  @ManyToMany(() => PromoCode, (p) => p.categories, {
+    onDelete: 'CASCADE',
+  })
+  promoCodes?: PromoCode[];
 }

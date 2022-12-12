@@ -46,6 +46,8 @@ import { ProductCategory } from './entity/ProductCategory';
 import { Discount } from './entity/Discount';
 import { DiscountModule } from './features/discount/discount.module';
 import { WarehouseModule } from './features/warehouse/warehouse.module';
+import { PromoCode } from './entity/PromoCode';
+import { PromoCodeModule } from './features/promo-code/promo-code.module';
 
 @Module({
   imports: [
@@ -78,6 +80,7 @@ import { WarehouseModule } from './features/warehouse/warehouse.module';
         ProductGrade,
         ProductModification,
         Promotion,
+        PromoCode,
         RoleDiscount,
         TranslatableString,
         TranslatableText,
@@ -103,6 +106,7 @@ import { WarehouseModule } from './features/warehouse/warehouse.module';
     DiscountModule,
     ProductModule,
     PromotionModule,
+    PromoCodeModule,
     PageModule,
     AuthModule,
     OrderModule,

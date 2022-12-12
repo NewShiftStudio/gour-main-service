@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 
 import { Category } from 'src/entity/Category';
 
@@ -19,7 +19,7 @@ const categoryQueryBuilder = {
 
       .where('client.id = :id', { id: clientId })
       .andWhere('discounts.price > :discount', { discount: MINIMUM_DISCOUNT })
-      .andWhere('discounts.hasDiscount = true')
+      .andWhere('category.hasDiscount = true')
       .select([
         'category.id',
         'categoryTitle.ru',
@@ -30,6 +30,25 @@ const categoryQueryBuilder = {
         'discounts.price',
       ])
       .getMany(),
+
+  findAllCategories: (
+    repository: Repository<Category>,
+    options: FindManyOptions<Category>,
+  ) =>
+    repository
+      .createQueryBuilder('top_categories')
+      .leftJoinAndSelect('top_categories.parentCategories', 'top_parent')
+      .leftJoinAndSelect('top_categories.subCategories', 'mid_categories')
+      .leftJoinAndSelect('mid_categories.subCategories', 'bot_categories')
+
+      .leftJoinAndSelect('top_categories.title', 'top_title')
+      .leftJoinAndSelect('mid_categories.title', 'mid_title')
+      .leftJoinAndSelect('bot_categories.title', 'bot_title')
+
+      .where('top_parent.id IS NULL')
+      .skip(options.skip)
+      .take(options.take)
+      .getManyAndCount(),
 };
 
 export default categoryQueryBuilder;

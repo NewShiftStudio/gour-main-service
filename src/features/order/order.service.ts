@@ -11,7 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import {
   OrderProductWithTotalSumDto,
-  OrderPromotion,
+  OrderDiscount,
   OrderWithTotalSumDto,
 } from './dto/order-with-total-sum.dto';
 import { Client } from '../../entity/Client';
@@ -40,6 +40,7 @@ import { InvoiceCreateDto } from './dto/create-invoice.dto';
 import { decodeToken, encodeJwt, verifyJwt } from '../auth/jwt.service';
 import { PayOrderDto } from './dto/pay-order.dto';
 import { ClientRole } from 'src/entity/ClientRole';
+import { PromoCode } from 'src/entity/PromoCode';
 
 const organizationId = process.env.WAREHOUSE_ORGANIZATION_ID;
 const tokenSecret = process.env.SIGNATURE_SECRET;
@@ -149,7 +150,7 @@ export class OrderService {
     return order;
   }
 
-  async create(order: OrderCreateDto, client: Client) {
+  async create(dto: OrderCreateDto, client: Client) {
     const queryRunner = this.connection.createQueryRunner();
 
     await queryRunner.connect();
@@ -161,15 +162,16 @@ export class OrderService {
     const walletRepository = queryRunner.manager.getRepository(Wallet);
     const transactionRepository =
       queryRunner.manager.getRepository(WalletTransaction);
+    const promoCodeRepository = queryRunner.manager.getRepository(PromoCode);
 
     try {
       const orderProfile = await this.orderProfileService.getOne(
-        order.deliveryProfileId,
+        dto.deliveryProfileId,
       );
 
       const orderProducts: OrderProduct[] = [];
 
-      for (const orderProductDto of order.orderProducts) {
+      for (const orderProductDto of dto.orderProducts) {
         const { productId, amount, gram } = orderProductDto;
 
         const product = await this.productRepository.findOne(productId, {
@@ -213,18 +215,22 @@ export class OrderService {
         orderProducts.push(orderProduct);
       }
 
-      const newOrder = await orderRepository.save({
-        firstName: order.firstName,
-        lastName: order.lastName,
-        phone: order.phone,
-        email: order.email,
+      const promoCode = await promoCodeRepository.findOne({
+        id: dto.promoCodeId,
+      });
+
+      const order = await orderRepository.save({
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        phone: dto.phone,
+        email: dto.email,
         orderProducts,
         client,
         orderProfile,
-        comment: order.comment || '',
+        comment: dto.comment || '',
       });
 
-      const orderWithTotalSum = await this.prepareOrder(newOrder);
+      const orderWithTotalSum = await this.prepareOrder(order, promoCode);
 
       //TODO: вернуть когда вернем оплату заказа чизкойнами (рублями)
       // const wallet = await this.walletService.getByClientId(client.id);
@@ -232,7 +238,7 @@ export class OrderService {
       // await this.walletService.useCoins(
       //   wallet.uuid,
       //   orderWithTotalSum.totalSum,
-      //   `Оплата заказа №${newOrder.id}`,
+      //   `Оплата заказа №${order.id}`,
       //   walletRepository,
       //   transactionRepository,
       // );
@@ -273,14 +279,14 @@ export class OrderService {
         assortment,
         {
           organizationId,
-          firstName: newOrder.firstName,
-          lastName: newOrder.lastName,
-          city: newOrder.orderProfile.city.name.ru,
-          street: newOrder.orderProfile.street,
-          house: newOrder.orderProfile.house,
-          apartment: newOrder.orderProfile.apartment,
-          comment: newOrder.orderProfile.comment,
-          addInfo: newOrder.comment,
+          firstName: order.firstName,
+          lastName: order.lastName,
+          city: order.orderProfile.city.name.ru,
+          street: order.orderProfile.street,
+          house: order.orderProfile.house,
+          apartment: order.orderProfile.apartment,
+          comment: order.orderProfile.comment,
+          addInfo: order.comment,
           postalCode: '000000', //FIXME: добавить в профиль создание постал кода
           counterpartyId: warehouseClientId,
         },
@@ -297,7 +303,7 @@ export class OrderService {
       const state = await this.warehouseService.getMoyskladState(stateUuid);
       const stateName = state.name;
 
-      const leadName = `${newOrder.lastName} ${newOrder.firstName} ${newOrder.createdAt}`;
+      const leadName = `${order.lastName} ${order.firstName} ${order.createdAt}`;
 
       const lead = await this.amoCrmService.createLead({
         name: leadName,
@@ -307,7 +313,7 @@ export class OrderService {
       });
 
       await orderRepository.save({
-        id: newOrder.id,
+        id: order.id,
         leadId: +lead.id,
         warehouseId: warehouseOrder.id,
       });
@@ -316,7 +322,7 @@ export class OrderService {
         currency: Currency.RUB,
         value: orderWithTotalSum.totalSum,
         meta: {
-          orderUuid: newOrder.id,
+          orderUuid: order.id,
           crmOrderId: +lead.id,
         },
         payerUuid: client.id,
@@ -330,13 +336,14 @@ export class OrderService {
       );
 
       await orderRepository.save({
-        id: newOrder.id,
+        id: order.id,
         invoiceUuid: newInvoice.uuid,
+        promoCode,
       });
 
       await queryRunner.commitTransaction();
 
-      return this.getOne(newOrder.id);
+      return this.getOne(order.id);
     } catch (error) {
       console.error(error);
       await queryRunner.rollbackTransaction();
@@ -491,7 +498,10 @@ export class OrderService {
     return this.orderRepository.softDelete(id);
   }
 
-  async prepareOrder(order: Order): Promise<OrderWithTotalSumDto> {
+  async prepareOrder(
+    order: Order,
+    promoCode?: PromoCode,
+  ): Promise<OrderWithTotalSumDto> {
     const fullOrderProducts: OrderProductWithTotalSumDto[] = [];
 
     for (const orderProduct of order.orderProducts) {
@@ -503,15 +513,25 @@ export class OrderService {
       );
 
       if (product) {
-        const costByGram = product.totalCost / 1000;
+        const discountByGram =
+          (product.price.cheeseCoin * (product.discount / 100)) / 1000;
+        const priceByGram = product.price.cheeseCoin / 1000;
 
-        const totalSumWithoutAmount = Math.ceil(costByGram * orderProduct.gram);
+        const totalDiscountWithoutAmount = discountByGram * orderProduct.gram;
+        const totalDiscount = totalDiscountWithoutAmount * orderProduct.amount;
 
-        const totalSum = Math.ceil(totalSumWithoutAmount * orderProduct.amount);
+        const totalCostWithoutAmount = priceByGram * orderProduct.gram;
+        const totalCost = totalCostWithoutAmount * orderProduct.amount;
+
+        const totalSumWithoutAmount =
+          totalCostWithoutAmount - totalDiscountWithoutAmount;
+        const totalSum = totalSumWithoutAmount * orderProduct.amount;
 
         const fullOrderProduct = {
           ...orderProduct,
           product,
+          totalDiscount,
+          totalCost,
           totalSum,
           totalSumWithoutAmount,
         };
@@ -524,46 +544,82 @@ export class OrderService {
 
     const isIndividual = client.role.key === 'individual';
 
-    const promotions: OrderPromotion[] = [];
+    const orderDiscounts: OrderDiscount[] = [];
 
-    const referralCodeDiscount = client.referralCode?.discount || 0;
+    const referralCodeDiscount = client.referralCode?.discount;
+    const promoCodeDiscount = promoCode?.discount;
 
     if (isIndividual) {
-      if (referralCodeDiscount) {
-        const referralDiscount: OrderPromotion = {
-          title: 'Скидка за реферальный код',
-          value: referralCodeDiscount,
-        };
-
-        promotions.push(referralDiscount);
-      }
-
-      const promotionDiscountsSum = Math.ceil(
-        fullOrderProducts.reduce((acc, item) => acc + item.product.discount, 0),
+      const promotionsDiscountValue = Math.ceil(
+        fullOrderProducts.reduce(
+          (acc, fullOrderProduct) => acc + fullOrderProduct.totalDiscount,
+          0,
+        ),
       );
 
-      if (promotionDiscountsSum) {
-        const promotionsDiscount: OrderPromotion = {
+      if (promotionsDiscountValue) {
+        const promotionsOrderDiscount: OrderDiscount = {
           title: 'Скидка за акции',
-          value: promotionDiscountsSum,
+          value: promotionsDiscountValue,
         };
 
-        promotions.push(promotionsDiscount);
+        orderDiscounts.push(promotionsOrderDiscount);
+      }
+
+      if (promoCodeDiscount) {
+        const promoCodeDiscountValue = Math.ceil(
+          fullOrderProducts.reduce(
+            (acc, fullOrderProduct) =>
+              acc + fullOrderProduct.totalSum * (promoCodeDiscount / 100),
+            0,
+          ),
+        );
+
+        const promoCodeOrderDiscount: OrderDiscount = {
+          title: 'Скидка за промокод',
+          value: promoCodeDiscountValue,
+        };
+
+        orderDiscounts.push(promoCodeOrderDiscount);
+      }
+
+      if (referralCodeDiscount && !promoCodeDiscount) {
+        const referralCodeDiscountValue = Math.ceil(
+          fullOrderProducts.reduce(
+            (acc, fullOrderProduct) =>
+              acc + fullOrderProduct.totalSum * (referralCodeDiscount / 100),
+            0,
+          ),
+        );
+
+        const referralCodeOrderDiscount: OrderDiscount = {
+          title: 'Скидка за реферальный код',
+          value: referralCodeDiscountValue,
+        };
+
+        orderDiscounts.push(referralCodeOrderDiscount);
       }
     }
 
-    const totalSumWithoutReferral = fullOrderProducts.reduce(
-      (acc, item) => acc + item.totalSum,
+    const totalSumWithoutDiscounts = fullOrderProducts.reduce(
+      (acc, { totalCost }) => acc + totalCost,
       0,
     );
 
-    const totalSum = totalSumWithoutReferral * (1 - referralCodeDiscount / 100);
+    // TODO добавить в редактирование города поле для стоимости доставки
+    const deliveryPrice = 500;
+
+    const totalSum =
+      orderDiscounts.reduce(
+        (acc, it) => acc - it.value,
+        totalSumWithoutDiscounts,
+      ) + deliveryPrice;
 
     const fullOrder = {
       ...order,
-      orderProducts: fullOrderProducts,
       totalSum,
-      promotions,
+      orderProducts: fullOrderProducts,
+      promotions: orderDiscounts,
     };
 
     return fullOrder;

@@ -11,6 +11,7 @@ import {
 import { OrderProduct } from './OrderProduct';
 import { Client } from './Client';
 import { OrderProfile } from './OrderProfile';
+import { PromoCode } from './PromoCode';
 
 @Entity()
 export class Order {
@@ -28,10 +29,16 @@ export class Order {
   @ManyToOne(() => OrderProfile)
   orderProfile: OrderProfile;
 
+  @ManyToOne(() => PromoCode, {
+    nullable: true,
+  })
+  promoCode?: PromoCode;
+
   @Column({
     type: 'text',
+    nullable: true,
   })
-  comment: string;
+  comment?: string;
 
   @Column()
   firstName: string;

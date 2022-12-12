@@ -1,20 +1,23 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { ProductService } from './product.service';
+import { Product } from 'src/entity/Product';
+import { Category } from 'src/entity/Category';
+import { RoleDiscount } from 'src/entity/RoleDiscount';
+import { ProductGrade } from 'src/entity/ProductGrade';
+import { ClientRole } from 'src/entity/ClientRole';
+import { Image } from 'src/entity/Image';
+import { Promotion } from 'src/entity/Promotion';
+import { Client } from 'src/entity/Client'; // [ВЛАЖНЫЕ МЕЧТЫ]: эх, щас бы barrel exports юзать...
+
+import { CategoryModule } from '../category/category.module';
 import { ProductController } from './product.controller';
-import { Product } from '../../entity/Product';
-import { Category } from '../../entity/Category';
-import { RoleDiscount } from '../../entity/RoleDiscount';
-import { ProductGrade } from '../../entity/ProductGrade';
+import { ProductService } from './product.service';
 import { ProductGradeService } from './product-grade.service';
-import { ClientRole } from '../../entity/ClientRole';
-import { Image } from '../../entity/Image';
-import { Promotion } from '../../entity/Promotion';
-import { Client } from 'src/entity/Client';
 
 @Module({
   imports: [
+    CategoryModule,
     TypeOrmModule.forFeature([
       Product,
       Category,
