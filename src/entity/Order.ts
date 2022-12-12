@@ -4,16 +4,17 @@ import {
   OneToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { OrderProduct } from './OrderProduct';
 import { Client } from './Client';
 import { OrderProfile } from './OrderProfile';
-import { OmitType, PartialType } from '@nestjs/swagger';
-import { Base } from './Base';
 import { PromoCode } from './PromoCode';
 
 @Entity()
-export class Order extends PartialType(OmitType(Base, ['id'] as const)) {
+export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -66,4 +67,13 @@ export class Order extends PartialType(OmitType(Base, ['id'] as const)) {
     type: 'uuid',
   })
   invoiceUuid: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn({ default: null })
+  deletedAt?: Date;
 }
