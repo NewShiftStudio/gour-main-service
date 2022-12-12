@@ -92,7 +92,7 @@ export class ClientsService {
     });
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.clientRepository.softDelete(id);
   }
 
@@ -126,7 +126,7 @@ export class ClientsService {
     });
   }
 
-  async update(id: number, dto: ClientUpdateDto) {
+  async update(id: string, dto: ClientUpdateDto) {
     const client = await this.clientRepository.findOne(id);
 
     if (!client) throw new NotFoundException('Пользователь не найден');
@@ -154,7 +154,7 @@ export class ClientsService {
 
       if (!role) throw new NotFoundException('Роль не найдена');
 
-      updatedObj.role = dto.roleId;
+      updatedObj.role = role;
     }
 
     if (dto.countries) {
