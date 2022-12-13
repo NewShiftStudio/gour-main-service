@@ -17,7 +17,6 @@ import {
 import { Client } from '../../entity/Client';
 import { Order } from '../../entity/Order';
 import { OrderProduct } from '../../entity/OrderProduct';
-import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { OrderCreateDto } from './dto/order-create.dto';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { ProductService } from '../product/product.service';
@@ -80,19 +79,33 @@ export class OrderService {
     await this.client.connect();
   }
 
-  async findUsersOrders(params: BaseGetListDto, client: Client) {
-    const [orders, count] = await this.orderRepository.findAndCount({
-      ...getPaginationOptions(params.offset, params.length),
-      relations: [
-        'orderProducts',
-        'orderProfile',
-        'orderProfile.city',
-        'client',
-      ],
-      where: {
-        client,
-      },
-    });
+  async findClientOrders(params: BaseGetListDto, client: Client) {
+    const skip = params.offset && +params.offset;
+    const take = params.length && +params.length;
+
+    const [orders, count] = await this.orderRepository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.promoCode', 'promoCode')
+      .leftJoinAndSelect('order.orderProfile', 'orderProfile')
+      .leftJoinAndSelect('orderProfile.city', 'orderCity')
+      .leftJoinAndSelect('orderCity.name', 'orderCityName')
+      .leftJoinAndSelect('order.client', 'client')
+      .leftJoinAndSelect('order.orderProducts', 'orderProducts')
+      .leftJoinAndSelect('orderProducts.product', 'product')
+      .leftJoinAndSelect('product.title', 'productTitle')
+      .leftJoinAndSelect('product.price', 'productPrice')
+      .leftJoinAndSelect('product.images', 'productImages')
+      .leftJoinAndSelect('product.categories', 'categories')
+      .leftJoinAndSelect('categories.title', 'categoryTitle')
+      .leftJoinAndSelect('categories.subCategories', 'categorySubCategories')
+      .leftJoinAndSelect(
+        'categories.parentCategories',
+        'category.parentCategories',
+      )
+      .skip(skip)
+      .take(take)
+      .where('order.client.id = :clientId', { clientId: client.id })
+      .getManyAndCount();
 
     const ordersWithTotalSum: OrderWithTotalSumDto[] = [];
 
@@ -106,10 +119,31 @@ export class OrderService {
   }
 
   async findMany(params: BaseGetListDto) {
-    const [orders, count] = await this.orderRepository.findAndCount({
-      ...getPaginationOptions(params.offset, params.length),
-      relations: ['orderProducts', 'orderProfile', 'orderProfile.city'],
-    });
+    const skip = params.offset && +params.offset;
+    const take = params.length && +params.length;
+
+    const [orders, count] = await this.orderRepository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.promoCode', 'promoCode')
+      .leftJoinAndSelect('order.orderProfile', 'orderProfile')
+      .leftJoinAndSelect('orderProfile.city', 'orderCity')
+      .leftJoinAndSelect('orderCity.name', 'orderCityName')
+      .leftJoinAndSelect('order.client', 'client')
+      .leftJoinAndSelect('order.orderProducts', 'orderProducts')
+      .leftJoinAndSelect('orderProducts.product', 'product')
+      .leftJoinAndSelect('product.title', 'productTitle')
+      .leftJoinAndSelect('product.price', 'productPrice')
+      .leftJoinAndSelect('product.images', 'productImages')
+      .leftJoinAndSelect('product.categories', 'categories')
+      .leftJoinAndSelect('categories.title', 'categoryTitle')
+      .leftJoinAndSelect('categories.subCategories', 'categorySubCategories')
+      .leftJoinAndSelect(
+        'categories.parentCategories',
+        'category.parentCategories',
+      )
+      .skip(skip)
+      .take(take)
+      .getManyAndCount();
 
     const ordersWithTotalSum: OrderWithTotalSumDto[] = [];
 
@@ -123,17 +157,27 @@ export class OrderService {
   }
 
   async getOne(id: string): Promise<OrderWithTotalSumDto> {
-    const order = await this.orderRepository.findOne(
-      { id },
-      {
-        relations: [
-          'orderProducts',
-          'orderProfile',
-          'orderProfile.city',
-          'client',
-        ],
-      },
-    );
+    const order = await this.orderRepository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.promoCode', 'promoCode')
+      .leftJoinAndSelect('order.orderProfile', 'orderProfile')
+      .leftJoinAndSelect('orderProfile.city', 'orderCity')
+      .leftJoinAndSelect('orderCity.name', 'orderCityName')
+      .leftJoinAndSelect('order.client', 'client')
+      .leftJoinAndSelect('order.orderProducts', 'orderProducts')
+      .leftJoinAndSelect('orderProducts.product', 'product')
+      .leftJoinAndSelect('product.title', 'productTitle')
+      .leftJoinAndSelect('product.price', 'productPrice')
+      .leftJoinAndSelect('product.images', 'productImages')
+      .leftJoinAndSelect('product.categories', 'categories')
+      .leftJoinAndSelect('categories.title', 'categoryTitle')
+      .leftJoinAndSelect('categories.subCategories', 'categorySubCategories')
+      .leftJoinAndSelect(
+        'categories.parentCategories',
+        'category.parentCategories',
+      )
+      .where('order.id = :id', { id })
+      .getOne();
 
     if (!order) throw new NotFoundException('Заказ не найден');
 

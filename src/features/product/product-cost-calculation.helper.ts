@@ -117,9 +117,9 @@ function calcEatingDiscount(
   product: MinimumProduct,
   categoriesDictionary: ReturnType<typeof getCategoriesDictionary>,
 ) {
-  const productCategoriesIds = product.categories?.map(({ id }) => id);
+  const productCategoriesIds = product.categories.map(({ id }) => id);
 
-  const maxCategoryWithDiscount = productCategoriesIds?.reduce(
+  const maxCategoryWithDiscount = productCategoriesIds.reduce(
     (maxDiscount, categoryId) => {
       const category = categoriesDictionary[categoryId];
 
