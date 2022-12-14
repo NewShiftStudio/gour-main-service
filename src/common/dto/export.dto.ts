@@ -1,8 +1,7 @@
-import { BaseGetListDto } from '../../../common/dto/base-get-list.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsDateString, IsOptional } from 'class-validator';
 
-export class ReferralCodeGetListDto extends BaseGetListDto {
+export class ExportDto {
   @ApiPropertyOptional()
   @IsDateString()
   @IsOptional()

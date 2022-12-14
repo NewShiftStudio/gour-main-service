@@ -1,10 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, In, LessThan, MoreThan, Repository } from 'typeorm';
+import {
+  DeepPartial,
+  FindManyOptions,
+  In,
+  LessThan,
+  MoreThan,
+  Repository,
+} from 'typeorm';
 
 import { getProductsWithDiscount } from './product-cost-calculation.helper';
 import { Product } from '../../entity/Product';
-import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { ProductCreateDto } from './dto/product-create.dto';
 import { Category } from '../../entity/Category';
 import { ProductUpdateDto } from './dto/product-update.dto';
@@ -19,6 +25,7 @@ import { Client } from '../../entity/Client';
 import { Promotion } from '../../entity/Promotion';
 import { ProductGetSimilarDto } from './dto/product-get-similar.dto';
 import { CategoryService } from '../category/category.service';
+import { ExportDto } from 'src/common/dto/export.dto';
 
 @Injectable()
 export class ProductService {
@@ -50,24 +57,54 @@ export class ProductService {
     private promotionRepository: Repository<Promotion>,
   ) {}
 
-  async findMany(params: ProductGetListDto, client: Client) {
-    // eslint-disable-next-line prefer-const
-    let [products, count] = await this.productRepository.findAndCount({
-      ...getPaginationOptions(params.offset, params.length),
+  async findMany(
+    params: ProductGetListDto,
+    client: Client,
+    dto?: ExportDto,
+  ): Promise<[Product[], number]> {
+    const options: FindManyOptions<Product> = {
       relations: [
         params.withSimilarProducts ? 'similarProducts' : undefined,
         params.withMeta ? 'meta' : undefined,
         params.withRoleDiscounts ? 'roleDiscounts' : undefined,
-        params.withCategories ? 'categories' : undefined,
+        params.withCategories || params.withDiscount ? 'categories' : undefined,
         'images',
       ].filter((it) => it),
-    });
+    };
+
+    let products = await this.productRepository.find(options);
+
+    if (!products) throw new NotFoundException('Товары не найдены');
+
+    const startDate = dto?.start && new Date(dto.start);
+    const endDate = dto?.end && new Date(dto.end);
+
+    const sliceStart = params?.offset && Number(params.offset);
+    const sliceEnd = params?.length && sliceStart + Number(params.length);
+
+    if (startDate || endDate) {
+      products = products.filter((product) => {
+        const isStartMatches = startDate
+          ? startDate <= product.createdAt
+          : true;
+        const isEndMatches = endDate ? endDate >= product.createdAt : true;
+
+        return isStartMatches && isEndMatches;
+      });
+
+      if (!products.length)
+        throw new NotFoundException('Товары за указанный период не найдены');
+    }
+
+    if (sliceStart || sliceEnd) {
+      products = products.slice(sliceStart, sliceEnd);
+    }
 
     if (params.withDiscount) {
       products = await this.prepareProducts(client, products);
     }
 
-    return [products, count];
+    return [products, products.length];
   }
 
   async findNovelties(params: ProductGetListDto, client: Client) {
@@ -79,7 +116,7 @@ export class ProductService {
       take: 10,
       relations: [
         params.withSimilarProducts && 'similarProducts',
-        params.withCategories && 'categories',
+        (params.withCategories || params.withDiscount) && 'categories',
         params.withMeta && 'meta',
         params.withRoleDiscounts && 'roleDiscounts',
       ].filter((it) => it),
