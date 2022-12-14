@@ -13,6 +13,7 @@ import { ProductUpdateDto } from './dto/product-update.dto';
 import { ProductGradeGetListDto } from './dto/product-grade-get-list.dto';
 import { ProductGradeUpdateDto } from './dto/product-grade-update.dto';
 import { ProductGetSimilarDto } from './dto/product-get-similar.dto';
+import { ExportDto } from 'src/common/dto/export.dto';
 
 @ApiTags('products')
 @Controller('products')
@@ -25,9 +26,10 @@ export class ProductController {
   @MessagePattern('get-products')
   getAll(
     @Payload('params') params: ProductGetListDto,
+    @Payload('dto') dto: ExportDto,
     @Payload('client') client: Client,
   ) {
-    return this.productService.findMany(params, client);
+    return this.productService.findMany(params, client, dto);
   }
 
   @MessagePattern('get-novelties')
