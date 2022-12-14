@@ -5,8 +5,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { ReferralCodeService } from './referral-code.service';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { ReferralCodeCreateDto } from './dto/referral-code-create.dto';
-import { ReferralCodeExportDto } from './dto/referral-code-export.dto';
 import { ReferralCodeEditDto } from './dto/referral-code-edit.dto';
+import { ExportDto } from 'src/common/dto/export.dto';
 
 @ApiTags('referral-codes')
 @Controller('referral-codes')
@@ -34,8 +34,11 @@ export class ReferralCodeController {
   }
 
   @MessagePattern('get-referrals')
-  export(@Payload() dto: ReferralCodeExportDto) {
-    return this.referralCodeService.getReferrals(dto);
+  export(
+    @Payload('params') params: BaseGetListDto,
+    @Payload('dto') dto: ExportDto,
+  ) {
+    return this.referralCodeService.getReferrals(params, dto);
   }
 
   @MessagePattern('get-referral-discount')

@@ -1,8 +1,9 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
-
 import { BaseGetListDto } from 'src/common/dto/base-get-list.dto';
+import { ExportDto } from 'src/common/dto/export.dto';
+
 import { PromoCodeCheckDto } from './dto/promo-code-check.dto';
 import { PromoCodeCreateDto } from './dto/promo-code-create.dto';
 import { PromoCodeUpdateDto } from './dto/promo-code-update.dto';
@@ -15,8 +16,11 @@ export class PromoCodeController {
   constructor(private readonly promoCodeService: PromoCodeService) {}
 
   @MessagePattern('get-promo-codes')
-  getAll(@Payload() params: BaseGetListDto) {
-    return this.promoCodeService.findMany(params);
+  getAll(
+    @Payload('params') params: BaseGetListDto,
+    @Payload('dto') dto: ExportDto,
+  ) {
+    return this.promoCodeService.findMany(params, dto);
   }
 
   @MessagePattern('get-promo-code')
