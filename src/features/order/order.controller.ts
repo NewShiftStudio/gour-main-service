@@ -24,7 +24,7 @@ export class OrderController {
     @Payload('client') client: Client,
     @Payload('params') params: BaseGetListDto,
   ) {
-    const { orders, count } = await this.orderService.findUsersOrders(
+    const { orders, count } = await this.orderService.findClientOrders(
       params,
       client,
     );
