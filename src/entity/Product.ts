@@ -87,6 +87,7 @@ export class Product extends Base {
   @OneToMany(() => RoleDiscount, (rd) => rd.product, {
     eager: true,
     cascade: true,
+    nullable: true,
   })
   roleDiscounts: RoleDiscount[];
 
