@@ -13,7 +13,6 @@ import { PromoCodeUpdateDto } from './dto/promo-code-update.dto';
 import { getPaginationOptions } from 'src/common/helpers/controllerHelpers';
 import { Category } from 'src/entity/Category';
 import { PromoCodeCheckDto } from './dto/promo-code-check.dto';
-import { Client } from 'src/entity/Client';
 
 @Injectable()
 export class PromoCodeService {
@@ -84,7 +83,13 @@ export class PromoCodeService {
   }
 
   async apply({ key }: PromoCodeCheckDto, clientId: string) {
-    const promoCode = await this.promoCodeRepository.findOne({ key });
+    const promoCode = await this.promoCodeRepository
+      .createQueryBuilder('promoCode')
+      .leftJoinAndSelect('promoCode.categories', 'categories')
+      .leftJoinAndSelect('promoCode.orders', 'orders')
+      .leftJoinAndSelect('orders.client', 'client')
+      .where('promoCode.key = :key', { key })
+      .getOne();
 
     if (!promoCode) throw new NotFoundException('Промокод не найден');
 
@@ -96,7 +101,7 @@ export class PromoCodeService {
     if (promoCode.orders.length >= promoCode.totalCount)
       throw new BadRequestException('Кол-во промокодов закончилось');
 
-    const clientOrders = promoCode.orders.filter(
+    const clientOrders = promoCode.orders?.filter(
       (order) => order.client.id === clientId,
     );
 

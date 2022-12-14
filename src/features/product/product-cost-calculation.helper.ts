@@ -52,7 +52,7 @@ export function getProductsWithDiscount<P extends MinimumProduct>(
 
       product.discount = promotionDiscountPercent;
     } else {
-      const roleDiscount = product.roleDiscounts.find(
+      const roleDiscount = product.roleDiscounts?.find(
         (roleDiscount) => roleDiscount.role.id === role.id,
       );
 
