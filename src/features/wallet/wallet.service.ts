@@ -24,7 +24,7 @@ import {
   signTsx,
   verifyJwt,
 } from '../auth/jwt.service';
-import { ClientsService } from '../client/client.service';
+import { ClientService } from '../client/client.service';
 import { createWalletTransactionDto } from './dto/create-transaction.dto';
 import { InvoiceDto, InvoiceStatus } from './dto/invoice.dto';
 import { WalletBuyCoinsDto } from './dto/wallet-buy-coins.dto';
@@ -44,7 +44,7 @@ export class WalletService {
     private walletRepository: Repository<Wallet>,
     @InjectRepository(WalletTransaction)
     private transactionRepository: Repository<WalletTransaction>,
-    private clientService: ClientsService,
+    private clientService: ClientService,
   ) {}
 
   async onModuleInit() {

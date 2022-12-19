@@ -14,6 +14,8 @@ import { CategoryModule } from '../category/category.module';
 import { ProductController } from './product.controller';
 import { ProductService } from './product.service';
 import { ProductGradeService } from './product-grade.service';
+import { ClientService } from '../client/client.service';
+import { City } from 'src/entity/City';
 
 @Module({
   imports: [
@@ -27,9 +29,10 @@ import { ProductGradeService } from './product-grade.service';
       Image,
       Promotion,
       Client,
+      City,
     ]),
   ],
-  providers: [ProductService, ProductGradeService],
+  providers: [ProductService, ProductGradeService, ClientService],
   controllers: [ProductController],
   exports: [ProductService, ProductGradeService],
 })

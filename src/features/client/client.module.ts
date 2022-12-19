@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Client } from '../../entity/Client';
 import { ClientController } from './client.controller';
-import { ClientsService } from './client.service';
+import { ClientService } from './client.service';
 import { ClientRole } from '../../entity/ClientRole';
 import { Product } from '../../entity/Product';
 import { AuthModule } from '../auth/auth.module';
@@ -16,7 +16,7 @@ import { City } from '../../entity/City';
     forwardRef(() => AuthModule),
   ],
   controllers: [ClientController],
-  providers: [ClientsService],
-  exports: [ClientsService],
+  providers: [ClientService],
+  exports: [ClientService],
 })
 export class ClientModule {}
