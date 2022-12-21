@@ -10,7 +10,7 @@ import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { OrderCreateDto } from './dto/order-create.dto';
 import { PayOrderDto } from './dto/pay-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
-import { ClientsService } from '../client/client.service';
+import { ClientService } from '../client/client.service';
 
 @ApiTags('orders')
 @Controller('orders')
@@ -18,7 +18,7 @@ export class OrderController {
   constructor(
     private readonly orderService: OrderService,
     private readonly amoCrmService: AmoCrmService,
-    private clientService: ClientsService,
+    private clientService: ClientService,
   ) {}
 
   @MessagePattern('get-orders')
