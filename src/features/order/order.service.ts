@@ -25,7 +25,7 @@ import { DiscountService } from '../discount/discount.service';
 import { Discount } from 'src/entity/Discount';
 import { WarehouseService } from '../warehouse/warehouse.service';
 import { ModificationDto } from '../warehouse/dto/modification.dto';
-import { ClientsService } from '../client/client.service';
+import { ClientService } from '../client/client.service';
 import { Currency, WalletService } from '../wallet/wallet.service';
 import { Wallet } from 'src/entity/Wallet';
 import { WalletTransaction } from 'src/entity/WalletTransaction';
@@ -67,7 +67,7 @@ export class OrderService {
 
     private orderProfileService: OrderProfileService,
     private productService: ProductService,
-    private clientService: ClientsService,
+    private clientService: ClientService,
     private warehouseService: WarehouseService,
     private discountService: DiscountService,
     private walletService: WalletService,

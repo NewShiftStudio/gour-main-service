@@ -169,7 +169,7 @@ export class ProductService {
   async getOne(
     id: number,
     params: ProductGetOneDto,
-    client: Client,
+    client?: Client,
   ): Promise<ProductWithMetricsDto> {
     let product: ProductWithMetricsDto = await this.productRepository.findOne(
       id,
@@ -188,7 +188,7 @@ export class ProductService {
 
     if (!product) throw new NotFoundException('Товар не найден');
 
-    if (params.withDiscount) {
+    if (params.withDiscount && client) {
       product = await this.prepareProduct(client, product);
     }
 
@@ -304,6 +304,7 @@ export class ProductService {
       images,
       price: dto.price,
       meta: dto.meta,
+      grade: dto.grade,
     };
 
     if (dto.categoryIds) {
