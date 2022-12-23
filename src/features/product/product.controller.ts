@@ -45,7 +45,7 @@ export class ProductController {
     @Payload('params') params: ProductGetSimilarDto,
     @Payload('client') client: Client,
   ) {
-    return this.productService.getSimilar(params, client);
+    return this.productService.getSimilar(params, client.id);
   }
 
   @MessagePattern('get-product')

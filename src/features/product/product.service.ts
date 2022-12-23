@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   DeepPartial,
   FindManyOptions,
-  In,
   LessThan,
   MoreThan,
   Repository,
@@ -129,21 +128,33 @@ export class ProductService {
     return products;
   }
 
-  async getSimilar(params: ProductGetSimilarDto, client: Client) {
-    const productIds = params.productIds.split(',');
+  async getSimilar(params: ProductGetSimilarDto, clientId: string) {
+    const client = await this.clientRepository.findOne(clientId);
 
-    // eslint-disable-next-line prefer-const
-    const products = await this.productRepository.find({
-      where: {
-        id: In(productIds),
-      },
-      relations: ['similarProducts'],
-    });
+    if (!client) throw new NotFoundException('Пользователь не найден');
+
+    const productIds = params.productIds.split(',').map((id) => +id);
+
+    const products = await this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.similarProducts', 'similarProducts')
+      .leftJoinAndSelect('similarProducts.title', 'similarProductsTitle')
+      .leftJoinAndSelect('similarProducts.price', 'similarProductsPrice')
+      .leftJoinAndSelect('similarProducts.images', 'similarProductsImages')
+      .leftJoinAndSelect('similarProducts.categories', 'categories')
+      .leftJoinAndSelect('categories.title', 'categoryTitle')
+      .leftJoinAndSelect('categories.subCategories', 'categorySubCategories')
+      .leftJoinAndSelect(
+        'categories.parentCategories',
+        'category.parentCategories',
+      )
+      .where('product.id IN (:...productIds)', { productIds })
+      .getMany();
 
     const similarProducts: Product[] = [];
 
     for (const product of products) {
-      if (!product.similarProducts) return;
+      if (!product.similarProducts) continue;
 
       for (const similar of product.similarProducts) {
         const isAlreadyHaveInBasket = products.find(
