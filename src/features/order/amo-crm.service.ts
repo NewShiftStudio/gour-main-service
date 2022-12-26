@@ -155,7 +155,7 @@ export class AmoCrmService {
         },
       );
 
-      const lead = response.data._embedded.leads[0];
+      const lead = response.data?._embedded.leads[0];
 
       if (!lead)
         throw new InternalServerErrorException(
@@ -176,7 +176,7 @@ export class AmoCrmService {
         },
       });
 
-      const leads = data._embedded.leads[0];
+      const leads = data?._embedded.leads[0];
 
       if (!leads)
         throw new InternalServerErrorException(
@@ -192,7 +192,7 @@ export class AmoCrmService {
   async getAllLeads(): Promise<AmoCrmLead[]> {
     try {
       const { data } = await amoCrmApi.get(
-        `api/v4/leads?filter[pipeline_id]=${pipelineId}`,
+        `api/v4/leads?filter[pipeline_id]=${pipelineId}&limit=250`,
         {
           headers: {
             Authorization: `Bearer ${this.accessToken}`,
@@ -200,7 +200,7 @@ export class AmoCrmService {
         },
       );
 
-      const leads = data._embedded.leads;
+      const leads = data?._embedded.leads;
 
       if (!leads)
         throw new InternalServerErrorException(
@@ -279,7 +279,7 @@ export class AmoCrmService {
         },
       );
 
-      const status = data._embedded.statuses[0];
+      const status = data?._embedded.statuses[0];
 
       if (!status)
         throw new InternalServerErrorException(
@@ -304,7 +304,7 @@ export class AmoCrmService {
         },
       );
 
-      const statuses = data._embedded.statuses;
+      const statuses = data?._embedded.statuses;
 
       if (!statuses)
         throw new InternalServerErrorException(
