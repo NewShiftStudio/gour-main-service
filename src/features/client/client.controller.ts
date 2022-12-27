@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 
-import { ClientsService } from './client.service';
+import { ClientService } from './client.service';
 import { AuthService } from '../auth/auth.service';
 import { ClientGetListDto } from './dto/client-get-list.dto';
 import { ClientCreateDto } from './dto/client-create.dto';
@@ -12,7 +12,7 @@ import { ClientUpdateDto } from './dto/client-update.dto';
 @Controller('clients')
 export class ClientController {
   constructor(
-    private readonly clientService: ClientsService,
+    private readonly clientService: ClientService,
     private readonly authService: AuthService,
   ) {}
 

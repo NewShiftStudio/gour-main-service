@@ -5,9 +5,9 @@ import { FindOneOptions, Not, Repository } from 'typeorm';
 import { ProductGrade } from '../../entity/ProductGrade';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { ProductGradeCreateDto } from './dto/product-grade-create.dto';
-import { Product } from '../../entity/Product';
 import { ProductGradeGetListDto } from './dto/product-grade-get-list.dto';
-import { Client } from 'src/entity/Client';
+import { ProductService } from './product.service';
+import { ClientService } from '../client/client.service';
 
 @Injectable()
 export class ProductGradeService {
@@ -15,16 +15,19 @@ export class ProductGradeService {
     @InjectRepository(ProductGrade)
     private productGradeRepository: Repository<ProductGrade>,
 
-    @InjectRepository(Product)
-    private productRepository: Repository<Product>,
+    private productService: ProductService,
+    private clientService: ClientService,
   ) {}
 
   findFromProduct(productId: number, params: ProductGradeGetListDto) {
     const where: FindOneOptions<ProductGrade>['where'] = {
-      productId,
+      product: { id: productId },
     };
     if (params.withComments) {
       where.comment = Not('');
+    }
+    if (params.isApproved !== undefined) {
+      where.isApproved = params.isApproved === 'true';
     }
     return this.productGradeRepository.find({
       ...getPaginationOptions(params.offset, params.length),
@@ -35,6 +38,7 @@ export class ProductGradeService {
 
   findMany(params: ProductGradeGetListDto) {
     const where: FindOneOptions<ProductGrade>['where'] = {};
+
     if (params.withComments) {
       where.comment = params.withComments === 'true' ? Not('') : '';
     }
@@ -61,30 +65,23 @@ export class ProductGradeService {
   }
 
   async create(
-    id: number,
-    productGrade: ProductGradeCreateDto,
-    client: Client,
+    productId: number,
+    dto: ProductGradeCreateDto,
+    clientId: string,
   ) {
-    const product = await this.productRepository.findOne(id);
+    const product = await this.productService.getOne(productId, {});
 
-    if (!product) throw new NotFoundException('Товар не найден');
-
-    const gradeCandidate =
-      (await this.productGradeRepository.findOne({
-        client,
-        product,
-      })) || {};
+    const client = await this.clientService.findOne(clientId);
 
     const grade = await this.productGradeRepository.save({
-      ...gradeCandidate,
-      ...productGrade,
-      isApproved: productGrade.comment ? null : true,
+      ...dto,
+      isApproved: dto.comment ? null : true,
       product,
       client,
     });
 
     const allProductGrades = await this.productGradeRepository.find({
-      product: { id },
+      product: { id: productId },
       isApproved: true,
     });
 
@@ -95,7 +92,7 @@ export class ProductGradeService {
           10,
       ) / 10;
 
-    await this.productRepository.update(id, {
+    await this.productService.update(productId, {
       grade: newProductGrade,
     });
 

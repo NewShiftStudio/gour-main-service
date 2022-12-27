@@ -1,4 +1,10 @@
-import { IsArray, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { TranslatableStringDto } from '../../../common/dto/translatable-string.dto';
 import { TranslatableTextDto } from '../../../common/dto/translatable-text.dto';
@@ -7,6 +13,7 @@ import { PageMetaDto } from '../../../common/dto/page-meta.dto';
 import { RoleDiscountDto } from '../../../common/dto/role-discount.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { ApiModelPropertyOptional } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
+import { ProductGradeCreateDto } from './product-grade-create.dto';
 
 export class ProductUpdateDto {
   @ValidateNested()
@@ -32,7 +39,7 @@ export class ProductUpdateDto {
     type: Number,
     isArray: true,
   })
-  images: number[];
+  images?: number[];
 
   @IsArray()
   @IsOptional()
@@ -66,4 +73,9 @@ export class ProductUpdateDto {
   @ValidateNested()
   @IsOptional()
   roleDiscounts?: RoleDiscountDto[];
+
+  @IsNumber()
+  @IsOptional()
+  @ApiPropertyOptional()
+  grade?: number;
 }

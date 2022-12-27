@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, NotFoundException } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -10,6 +10,7 @@ import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { OrderCreateDto } from './dto/order-create.dto';
 import { PayOrderDto } from './dto/pay-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { ClientService } from '../client/client.service';
 
 @ApiTags('orders')
 @Controller('orders')
@@ -17,6 +18,7 @@ export class OrderController {
   constructor(
     private readonly orderService: OrderService,
     private readonly amoCrmService: AmoCrmService,
+    private clientService: ClientService,
   ) {}
 
   @MessagePattern('get-orders')
@@ -24,6 +26,36 @@ export class OrderController {
     @Payload('client') client: Client,
     @Payload('params') params: BaseGetListDto,
   ) {
+    const { orders, count } = await this.orderService.findClientOrders(
+      params,
+      client,
+    );
+
+    const crmInfoList = await this.amoCrmService.getCrmInfoList();
+    // FIXME: Важно!!!
+    // При изменении логики этого метода дублируйте изменения в метод getAllByUser
+
+    const fullOrders = orders.map((order) => {
+      const crmInfo = crmInfoList?.find((it) => it.id === order.leadId);
+
+      return {
+        ...order,
+        crmInfo,
+      };
+    });
+
+    return [fullOrders, count];
+  }
+
+  @MessagePattern('get-orders-by-user')
+  async getAllByUser(
+    @Payload('clientId') clientId: Client['id'],
+    @Payload('params') params: BaseGetListDto,
+  ) {
+    const client = await this.clientService.findOne(clientId);
+
+    if (!client) throw new NotFoundException('Пользователь не найден');
+
     const { orders, count } = await this.orderService.findClientOrders(
       params,
       client,

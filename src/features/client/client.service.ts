@@ -19,7 +19,7 @@ import { Image } from '../../entity/Image';
 import { City } from '../../entity/City';
 
 @Injectable()
-export class ClientsService {
+export class ClientService {
   constructor(
     @InjectRepository(Client)
     private clientRepository: Repository<Client>,
@@ -56,10 +56,14 @@ export class ClientsService {
     return this.clientRepository.findAndCount(options);
   }
 
-  findOne(uuid: string): Promise<Client> {
-    return this.clientRepository.findOne(uuid, {
+  async findOne(uuid: string): Promise<Client> {
+    const client = await this.clientRepository.findOne(uuid, {
       relations: ['wallet'],
     });
+
+    if (!client) throw new NotFoundException('Пользователь не найден');
+
+    return client;
   }
 
   async getFavorites(id: string): Promise<Product[]> {

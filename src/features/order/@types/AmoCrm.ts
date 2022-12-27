@@ -14,6 +14,7 @@ export type AmoCrmLead = {
 
 export type AmoCrmInfo = {
   id: number;
+  name: string;
   status: AmoCrmStatus;
 };
 

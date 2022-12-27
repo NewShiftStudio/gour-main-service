@@ -25,7 +25,7 @@ import { DiscountService } from '../discount/discount.service';
 import { Discount } from 'src/entity/Discount';
 import { WarehouseService } from '../warehouse/warehouse.service';
 import { ModificationDto } from '../warehouse/dto/modification.dto';
-import { ClientsService } from '../client/client.service';
+import { ClientService } from '../client/client.service';
 import { Currency, WalletService } from '../wallet/wallet.service';
 import { Wallet } from 'src/entity/Wallet';
 import { WalletTransaction } from 'src/entity/WalletTransaction';
@@ -67,7 +67,7 @@ export class OrderService {
 
     private orderProfileService: OrderProfileService,
     private productService: ProductService,
-    private clientService: ClientsService,
+    private clientService: ClientService,
     private warehouseService: WarehouseService,
     private discountService: DiscountService,
     private walletService: WalletService,
@@ -653,12 +653,12 @@ export class OrderService {
     // TODO добавить в редактирование города поле для стоимости доставки
     const deliveryPrice = 500;
 
-    const totalSum =
+    const totalSum = Math.round(
       orderDiscounts.reduce(
         (acc, it) => acc - it.value,
         totalSumWithoutDiscounts,
-      ) + deliveryPrice;
-
+      ) + deliveryPrice,
+    );
     const fullOrder = {
       ...order,
       totalSum,

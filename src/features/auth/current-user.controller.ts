@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 
-import { ClientsService } from '../client/client.service';
+import { ClientService } from '../client/client.service';
 import { CurrentUserService } from './current-user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -12,7 +12,7 @@ import { ChangeEmailDto } from './dto/change-email.dto';
 @Controller('client-auth/current-user')
 export class CurrentUserController {
   constructor(
-    private readonly clientsService: ClientsService,
+    private readonly clientService: ClientService,
     private readonly currentUserService: CurrentUserService,
   ) {}
 
@@ -53,7 +53,7 @@ export class CurrentUserController {
 
   @MessagePattern('get-favorites')
   getFavoritesProducts(@Payload() id: string) {
-    return this.clientsService.getFavorites(id);
+    return this.clientService.getFavorites(id);
   }
 
   @MessagePattern('add-to-favorites')
@@ -61,7 +61,7 @@ export class CurrentUserController {
     @Payload('clientId') clientId: string,
     @Payload('productId') productId: number,
   ) {
-    return this.clientsService.addToFavorites(clientId, productId);
+    return this.clientService.addToFavorites(clientId, productId);
   }
 
   @MessagePattern('remove-from-favorites')
@@ -69,7 +69,7 @@ export class CurrentUserController {
     @Payload('clientId') clientId: string,
     @Payload('productId') productId: number,
   ) {
-    return this.clientsService.removeFromFavorites(clientId, productId);
+    return this.clientService.removeFromFavorites(clientId, productId);
   }
 
   @MessagePattern('change-city')
