@@ -653,12 +653,12 @@ export class OrderService {
     // TODO добавить в редактирование города поле для стоимости доставки
     const deliveryPrice = 500;
 
-    const totalSum =
+    const totalSum = Math.round(
       orderDiscounts.reduce(
         (acc, it) => acc - it.value,
         totalSumWithoutDiscounts,
-      ) + deliveryPrice;
-
+      ) + deliveryPrice,
+    );
     const fullOrder = {
       ...order,
       totalSum,

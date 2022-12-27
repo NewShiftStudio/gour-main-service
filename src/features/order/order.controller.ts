@@ -36,7 +36,7 @@ export class OrderController {
     // При изменении логики этого метода дублируйте изменения в метод getAllByUser
 
     const fullOrders = orders.map((order) => {
-      const crmInfo = crmInfoList.find((it) => it.id === order.leadId);
+      const crmInfo = crmInfoList?.find((it) => it.id === order.leadId);
 
       return {
         ...order,
