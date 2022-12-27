@@ -130,7 +130,7 @@ export class AmoCrmService {
     try {
       const status = await this.getStatusByName(stateName);
 
-      const response = await amoCrmApi.post(
+      const { data } = await amoCrmApi.post(
         `api/v4/leads`,
         [
           {
@@ -155,7 +155,7 @@ export class AmoCrmService {
         },
       );
 
-      const lead = response.data?._embedded.leads[0];
+      const lead = data?._embedded.leads[0];
 
       if (!lead)
         throw new InternalServerErrorException(
