@@ -189,10 +189,10 @@ export class AmoCrmService {
     }
   }
 
-  async getAllLeads(): Promise<AmoCrmLead[]> {
+  async getAllLeads(leadIds?: number[]): Promise<AmoCrmLead[]> {
     try {
       const { data } = await amoCrmApi.get(
-        `api/v4/leads?filter[pipeline_id]=${pipelineId}&limit=250`,
+        `api/v4/leads?filter[pipeline_id]=${pipelineId}&filter[id]=[${leadIds}]&limit=250`,
         {
           headers: {
             Authorization: `Bearer ${this.accessToken}`,
@@ -356,9 +356,9 @@ export class AmoCrmService {
     }
   }
 
-  async getCrmInfoList(): Promise<AmoCrmInfo[]> {
+  async getCrmInfoList(leadIds?: number[]): Promise<AmoCrmInfo[]> {
     try {
-      const leads = await this.getAllLeads();
+      const leads = await this.getAllLeads(leadIds);
 
       const statuses = await this.getAllStatuses();
 
