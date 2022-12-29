@@ -102,6 +102,7 @@ export class OrderService {
         'categories.parentCategories',
         'category.parentCategories',
       )
+      .orderBy('order.createdAt', 'DESC')
       .skip(skip)
       .take(take)
       .where('order.client.id = :clientId', { clientId: client.id })
@@ -141,6 +142,7 @@ export class OrderService {
         'categories.parentCategories',
         'category.parentCategories',
       )
+      .orderBy('order.createdAt', 'DESC')
       .skip(skip)
       .take(take)
       .getManyAndCount();
