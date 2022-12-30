@@ -41,7 +41,6 @@ export class MoyskladService implements AbstractService {
 
     const getWebhooksResponse = await firstValueFrom(
       this.httpService.get('/entity/webhook/'),
-
     );
 
     const webhooks: MoyskladWebhook[] = getWebhooksResponse.data.rows;

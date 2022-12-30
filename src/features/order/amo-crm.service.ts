@@ -59,19 +59,41 @@ export class AmoCrmService {
     return isFresh;
   }
 
+  // async checkAccessTokenValidity(token: string) {
+  //   return true;
+  // }
+
   async auth() {
     const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
+    const refreshTokenMeta = await this.getTokenMeta(this.refreshTokenKey);
 
     const isFreshAccessToken =
       accessTokenMeta &&
       this.checkTokenFreshness(this.accessTokenKey, accessTokenMeta.updatedAt);
+
+    const accessTokenValue = JSON.parse(accessTokenMeta.value);
+    const refreshTokenValue = JSON.parse(refreshTokenMeta.value);
+
+    // const isValidToken = await this.checkAccessTokenValidity(accessTokenValue);
 
     if (!isFreshAccessToken) {
       await this.refreshTokens();
       return;
     }
 
-    this.accessToken = JSON.parse(accessTokenMeta.value);
+    console.log('-------------');
+
+    console.log('KEY:', this.accessTokenKey);
+    console.log('TOKEN:', accessTokenValue);
+
+    console.log('-------------');
+
+    console.log('KEY:', this.refreshTokenKey);
+    console.log('TOKEN:', refreshTokenValue);
+
+    console.log('-------------');
+
+    this.accessToken = accessTokenValue;
   }
 
   async refreshTokens(): Promise<{
