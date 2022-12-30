@@ -59,9 +59,18 @@ export class AmoCrmService {
     return isFresh;
   }
 
-  // async checkAccessTokenValidity(token: string) {
-  //   return true;
-  // }
+  async checkAccessTokenValidity(accessToken: string) {
+    try {
+      const { data } = await amoCrmApi.get(`api/v4/account`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      return !!data;
+    } catch (error) {
+      console.error('Ошибка проверки токена:', error.response.data);
+      return false;
+    }
+  }
 
   async auth() {
     const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
@@ -71,12 +80,17 @@ export class AmoCrmService {
       accessTokenMeta &&
       this.checkTokenFreshness(this.accessTokenKey, accessTokenMeta.updatedAt);
 
+    if (!isFreshAccessToken) {
+      await this.refreshTokens();
+      return;
+    }
+
     const accessTokenValue = JSON.parse(accessTokenMeta.value);
     const refreshTokenValue = JSON.parse(refreshTokenMeta.value);
 
-    // const isValidToken = await this.checkAccessTokenValidity(accessTokenValue);
+    const isValidToken = await this.checkAccessTokenValidity(accessTokenValue);
 
-    if (!isFreshAccessToken) {
+    if (!isValidToken) {
       await this.refreshTokens();
       return;
     }
