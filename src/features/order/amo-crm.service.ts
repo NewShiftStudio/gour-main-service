@@ -59,7 +59,7 @@ export class AmoCrmService {
     return isFresh;
   }
 
-  async checkAccessTokenValidity(accessToken: string) {
+  async testAccessToken(accessToken: string) {
     try {
       const { data } = await amoCrmApi.get(`api/v4/account`, {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -84,9 +84,12 @@ export class AmoCrmService {
       return;
     }
 
+    // TODO один и тот же токен может работать локально, но не работать на стенде
+    // поэтому добавил тестовый запрос в амо, чтоб наверняка
+
     const accessTokenValue = JSON.parse(accessTokenMeta.value);
 
-    const isValidToken = await this.checkAccessTokenValidity(accessTokenValue);
+    const isValidToken = await this.testAccessToken(accessTokenValue);
 
     if (!isValidToken) {
       await this.refreshTokens();
