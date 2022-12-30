@@ -89,7 +89,7 @@ export class MoyskladService implements AbstractService {
       }),
     );
 
-    console.log(data.rows.length);
+    console.log(data?.rows.length);
     console.log(response);
 
     if (!data)
