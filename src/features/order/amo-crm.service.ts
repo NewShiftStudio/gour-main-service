@@ -74,7 +74,6 @@ export class AmoCrmService {
 
   async auth() {
     const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
-    const refreshTokenMeta = await this.getTokenMeta(this.refreshTokenKey);
 
     const isFreshAccessToken =
       accessTokenMeta &&
@@ -86,7 +85,6 @@ export class AmoCrmService {
     }
 
     const accessTokenValue = JSON.parse(accessTokenMeta.value);
-    const refreshTokenValue = JSON.parse(refreshTokenMeta.value);
 
     const isValidToken = await this.checkAccessTokenValidity(accessTokenValue);
 
@@ -94,18 +92,6 @@ export class AmoCrmService {
       await this.refreshTokens();
       return;
     }
-
-    console.log('-------------');
-
-    console.log('KEY:', this.accessTokenKey);
-    console.log('TOKEN:', accessTokenValue);
-
-    console.log('-------------');
-
-    console.log('KEY:', this.refreshTokenKey);
-    console.log('TOKEN:', refreshTokenValue);
-
-    console.log('-------------');
 
     this.accessToken = accessTokenValue;
   }
