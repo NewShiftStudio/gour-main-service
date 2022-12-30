@@ -59,6 +59,19 @@ export class AmoCrmService {
     return isFresh;
   }
 
+  async checkAccessTokenValidity(accessToken: string) {
+    try {
+      const { data } = await amoCrmApi.get(`api/v4/account`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      return !!data;
+    } catch (error) {
+      console.error('Ошибка проверки токена:', error.response.data);
+      return false;
+    }
+  }
+
   async auth() {
     const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
 
@@ -71,7 +84,16 @@ export class AmoCrmService {
       return;
     }
 
-    this.accessToken = JSON.parse(accessTokenMeta.value);
+    const accessTokenValue = JSON.parse(accessTokenMeta.value);
+
+    const isValidToken = await this.checkAccessTokenValidity(accessTokenValue);
+
+    if (!isValidToken) {
+      await this.refreshTokens();
+      return;
+    }
+
+    this.accessToken = accessTokenValue;
   }
 
   async refreshTokens(): Promise<{
@@ -189,10 +211,10 @@ export class AmoCrmService {
     }
   }
 
-  async getAllLeads(): Promise<AmoCrmLead[]> {
+  async getAllLeads(leadIds?: number[]): Promise<AmoCrmLead[]> {
     try {
       const { data } = await amoCrmApi.get(
-        `api/v4/leads?filter[pipeline_id]=${pipelineId}&limit=250`,
+        `api/v4/leads?filter[pipeline_id]=${pipelineId}&filter[id]=[${leadIds}]&limit=250`,
         {
           headers: {
             Authorization: `Bearer ${this.accessToken}`,
@@ -356,9 +378,9 @@ export class AmoCrmService {
     }
   }
 
-  async getCrmInfoList(): Promise<AmoCrmInfo[]> {
+  async getCrmInfoList(leadIds?: number[]): Promise<AmoCrmInfo[]> {
     try {
-      const leads = await this.getAllLeads();
+      const leads = await this.getAllLeads(leadIds);
 
       const statuses = await this.getAllStatuses();
 

@@ -31,7 +31,9 @@ export class OrderController {
       client,
     );
 
-    const crmInfoList = await this.amoCrmService.getCrmInfoList();
+    const leadIds = orders.map((order) => order.leadId);
+
+    const crmInfoList = await this.amoCrmService.getCrmInfoList(leadIds);
     // FIXME: Важно!!!
     // При изменении логики этого метода дублируйте изменения в метод getAllByUser
 
@@ -61,7 +63,9 @@ export class OrderController {
       client,
     );
 
-    const crmInfoList = await this.amoCrmService.getCrmInfoList();
+    const leadIds = orders.map((order) => order.leadId);
+
+    const crmInfoList = await this.amoCrmService.getCrmInfoList(leadIds);
 
     const fullOrders = orders.map((order) => {
       const crmInfo = crmInfoList.find((it) => it.id === order.leadId);

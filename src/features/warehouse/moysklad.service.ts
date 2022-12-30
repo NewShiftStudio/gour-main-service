@@ -41,7 +41,6 @@ export class MoyskladService implements AbstractService {
 
     const getWebhooksResponse = await firstValueFrom(
       this.httpService.get('/entity/webhook/'),
-
     );
 
     const webhooks: MoyskladWebhook[] = getWebhooksResponse.data.rows;
@@ -82,13 +81,16 @@ export class MoyskladService implements AbstractService {
   }
 
   async getModificationByProductIdAndGram(uuid: Uuid, gram: GramsInString) {
-    const { data } = await firstValueFrom(
+    const { data, ...response } = await firstValueFrom(
       this.httpService.get<MoyskladModification>(`/entity/variant/`, {
         params: {
           filter: `productid=${uuid}`,
         },
       }),
     );
+
+    console.log(data?.rows.length);
+    console.log(response);
 
     if (!data)
       throw new InternalServerErrorException(
