@@ -1,4 +1,4 @@
-import { Entity, JoinColumn, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { Base } from './Base';
 import { TranslatableString } from './TranslatableString';
 
@@ -10,4 +10,9 @@ export class City extends Base {
   })
   @JoinColumn()
   name: TranslatableString;
+
+  @Column({
+    default: 0,
+  })
+  deliveryCost: number;
 }

@@ -78,7 +78,7 @@ export class Client {
     nullable: true,
     onDelete: 'SET NULL',
   })
-  city: number;
+  city: City;
 
   @ManyToOne(() => ReferralCode, {
     nullable: true,
