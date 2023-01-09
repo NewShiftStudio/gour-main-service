@@ -80,8 +80,8 @@ export class OrderController {
   }
 
   @MessagePattern('get-order')
-  async getOne(@Payload() id: string) {
-    const order = await this.orderService.getOne(id);
+  async getOne(@Payload('id') id: string, @Payload('client') client: Client) {
+    const order = await this.orderService.getOne(id, client.city.deliveryCost);
 
     const lead = await this.amoCrmService.getLead(order.leadId);
 

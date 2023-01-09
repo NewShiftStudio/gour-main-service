@@ -111,7 +111,10 @@ export class OrderService {
     const ordersWithTotalSum: OrderWithTotalSumDto[] = [];
 
     for (const order of orders) {
-      const orderWithTotalSum = await this.prepareOrder(order);
+      const orderWithTotalSum = await this.prepareOrder(
+        order,
+        client.city.deliveryCost,
+      );
 
       if (orderWithTotalSum) ordersWithTotalSum.push(orderWithTotalSum);
     }
@@ -119,46 +122,52 @@ export class OrderService {
     return { orders: ordersWithTotalSum, count };
   }
 
-  async findMany(params: BaseGetListDto) {
-    const skip = params.offset && +params.offset;
-    const take = params.length && +params.length;
+  // async findMany(params: BaseGetListDto) {
+  //   const skip = params.offset && +params.offset;
+  //   const take = params.length && +params.length;
 
-    const [orders, count] = await this.orderRepository
-      .createQueryBuilder('order')
-      .leftJoinAndSelect('order.promoCode', 'promoCode')
-      .leftJoinAndSelect('order.orderProfile', 'orderProfile')
-      .leftJoinAndSelect('orderProfile.city', 'orderCity')
-      .leftJoinAndSelect('orderCity.name', 'orderCityName')
-      .leftJoinAndSelect('order.client', 'client')
-      .leftJoinAndSelect('order.orderProducts', 'orderProducts')
-      .leftJoinAndSelect('orderProducts.product', 'product')
-      .leftJoinAndSelect('product.title', 'productTitle')
-      .leftJoinAndSelect('product.price', 'productPrice')
-      .leftJoinAndSelect('product.images', 'productImages')
-      .leftJoinAndSelect('product.categories', 'categories')
-      .leftJoinAndSelect('categories.title', 'categoryTitle')
-      .leftJoinAndSelect('categories.subCategories', 'categorySubCategories')
-      .leftJoinAndSelect(
-        'categories.parentCategories',
-        'category.parentCategories',
-      )
-      .orderBy('order.createdAt', 'DESC')
-      .skip(skip)
-      .take(take)
-      .getManyAndCount();
+  //   const [orders, count] = await this.orderRepository
+  //     .createQueryBuilder('order')
+  //     .leftJoinAndSelect('order.promoCode', 'promoCode')
+  //     .leftJoinAndSelect('order.orderProfile', 'orderProfile')
+  //     .leftJoinAndSelect('orderProfile.city', 'orderCity')
+  //     .leftJoinAndSelect('orderCity.name', 'orderCityName')
+  //     .leftJoinAndSelect('order.client', 'client')
+  //     .leftJoinAndSelect('order.orderProducts', 'orderProducts')
+  //     .leftJoinAndSelect('orderProducts.product', 'product')
+  //     .leftJoinAndSelect('product.title', 'productTitle')
+  //     .leftJoinAndSelect('product.price', 'productPrice')
+  //     .leftJoinAndSelect('product.images', 'productImages')
+  //     .leftJoinAndSelect('product.categories', 'categories')
+  //     .leftJoinAndSelect('categories.title', 'categoryTitle')
+  //     .leftJoinAndSelect('categories.subCategories', 'categorySubCategories')
+  //     .leftJoinAndSelect(
+  //       'categories.parentCategories',
+  //       'category.parentCategories',
+  //     )
+  //     .orderBy('order.createdAt', 'DESC')
+  //     .skip(skip)
+  //     .take(take)
+  //     .getManyAndCount();
 
-    const ordersWithTotalSum: OrderWithTotalSumDto[] = [];
+  //   const ordersWithTotalSum: OrderWithTotalSumDto[] = [];
 
-    for (const order of orders) {
-      const orderWithTotalSum = await this.prepareOrder(order);
+  //   for (const order of orders) {
+  //     const orderWithTotalSum = await this.prepareOrder(
+  //       order,
+  //       client.city.deliveryCost,
+  //     );
 
-      ordersWithTotalSum.push(orderWithTotalSum);
-    }
+  //     ordersWithTotalSum.push(orderWithTotalSum);
+  //   }
 
-    return { orders: ordersWithTotalSum, count };
-  }
+  //   return { orders: ordersWithTotalSum, count };
+  // }
 
-  async getOne(id: string): Promise<OrderWithTotalSumDto> {
+  async getOne(
+    id: string,
+    deliveryCost: number,
+  ): Promise<OrderWithTotalSumDto> {
     const order = await this.orderRepository
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.promoCode', 'promoCode')
@@ -183,7 +192,7 @@ export class OrderService {
 
     if (!order) throw new NotFoundException('Заказ не найден');
 
-    const orderWithTotalSum = await this.prepareOrder(order);
+    const orderWithTotalSum = await this.prepareOrder(order, deliveryCost);
 
     return orderWithTotalSum;
   }
@@ -276,7 +285,11 @@ export class OrderService {
         comment: dto.comment || '',
       });
 
-      const orderWithTotalSum = await this.prepareOrder(order, promoCode);
+      const orderWithTotalSum = await this.prepareOrder(
+        order,
+        client.city.deliveryCost,
+        promoCode,
+      );
 
       //TODO: вернуть когда вернем оплату заказа чизкойнами (рублями)
       // const wallet = await this.walletService.getByClientId(client.id);
@@ -389,7 +402,7 @@ export class OrderService {
 
       await queryRunner.commitTransaction();
 
-      return this.getOne(order.id);
+      return this.getOne(order.id, client.city.deliveryCost);
     } catch (error) {
       console.error(error);
       await queryRunner.rollbackTransaction();
@@ -414,7 +427,10 @@ export class OrderService {
         throw new NotFoundException('Счет не найден');
       }
 
-      const order = await this.getOne(invoice.meta.orderUuid);
+      const order = await this.getOne(
+        invoice.meta.orderUuid,
+        client.city.deliveryCost,
+      );
 
       const paymentToken = encodeJwt(
         {
@@ -546,6 +562,7 @@ export class OrderService {
 
   async prepareOrder(
     order: Order,
+    deliveryPrice,
     promoCode?: PromoCode,
   ): Promise<OrderWithTotalSumDto> {
     const fullOrderProducts: OrderProductWithTotalSumDto[] = [];
@@ -652,15 +669,17 @@ export class OrderService {
       0,
     );
 
-    // TODO добавить в редактирование города поле для стоимости доставки
-    const deliveryPrice = 500;
-
-    const totalSum = Math.round(
+    let totalSum = Math.round(
       orderDiscounts.reduce(
         (acc, it) => acc - it.value,
         totalSumWithoutDiscounts,
-      ) + deliveryPrice,
+      ),
     );
+    const isNeedDelivery = totalSum > 2900;
+    if (isNeedDelivery) {
+      totalSum += deliveryPrice;
+    }
+
     const fullOrder = {
       ...order,
       totalSum,
