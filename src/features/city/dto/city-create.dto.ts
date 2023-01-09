@@ -1,6 +1,6 @@
 import { TranslatableStringDto } from '../../../common/dto/translatable-string.dto';
 import { Type } from 'class-transformer';
-import { ValidateNested } from 'class-validator';
+import { IsNumber, ValidateNested } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CityCreateDto {
@@ -8,4 +8,7 @@ export class CityCreateDto {
   @Type(() => TranslatableStringDto)
   @ApiProperty()
   name: TranslatableStringDto;
+
+  @IsNumber()
+  deliveryCost: number;
 }
