@@ -106,7 +106,7 @@ export class CurrentUserService {
 
     return this.clientRepository.save({
       id: currentUserId,
-      city: city.id,
+      city,
     });
   }
 

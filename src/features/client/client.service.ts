@@ -122,7 +122,7 @@ export class ClientService {
 
     return this.clientRepository.save({
       roleId: dto.roleId,
-      city: dto.cityId,
+      city,
       firstName: dto.firstName,
       lastName: dto.lastName,
       phone: dto.phone,

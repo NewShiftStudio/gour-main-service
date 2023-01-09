@@ -127,7 +127,7 @@ export class AuthService {
       firstName: dto.firstName,
       lastName: dto.lastName,
       email: dto.email,
-      city: dto.cityId,
+      city,
       referralCode,
       password,
     });
