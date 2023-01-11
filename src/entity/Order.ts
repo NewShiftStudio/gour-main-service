@@ -29,6 +29,9 @@ export class Order {
   @ManyToOne(() => OrderProfile)
   orderProfile: OrderProfile;
 
+  @Column({ default: 0 })
+  orderDeliveryCost: number;
+
   @ManyToOne(() => PromoCode, {
     nullable: true,
   })

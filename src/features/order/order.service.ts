@@ -111,10 +111,7 @@ export class OrderService {
     const ordersWithTotalSum: OrderWithTotalSumDto[] = [];
 
     for (const order of orders) {
-      const orderWithTotalSum = await this.prepareOrder(
-        order,
-        client.city.deliveryCost,
-      );
+      const orderWithTotalSum = await this.prepareOrder(order);
 
       if (orderWithTotalSum) ordersWithTotalSum.push(orderWithTotalSum);
     }
@@ -153,10 +150,7 @@ export class OrderService {
   //   const ordersWithTotalSum: OrderWithTotalSumDto[] = [];
 
   //   for (const order of orders) {
-  //     const orderWithTotalSum = await this.prepareOrder(
-  //       order,
-  //       client.city.deliveryCost,
-  //     );
+  //     const orderWithTotalSum = await this.prepareOrder(order);
 
   //     ordersWithTotalSum.push(orderWithTotalSum);
   //   }
@@ -164,10 +158,7 @@ export class OrderService {
   //   return { orders: ordersWithTotalSum, count };
   // }
 
-  async getOne(
-    id: string,
-    deliveryCost: number,
-  ): Promise<OrderWithTotalSumDto> {
+  async getOne(id: string): Promise<OrderWithTotalSumDto> {
     const order = await this.orderRepository
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.promoCode', 'promoCode')
@@ -192,7 +183,7 @@ export class OrderService {
 
     if (!order) throw new NotFoundException('Заказ не найден');
 
-    const orderWithTotalSum = await this.prepareOrder(order, deliveryCost);
+    const orderWithTotalSum = await this.prepareOrder(order);
 
     return orderWithTotalSum;
   }
@@ -283,13 +274,10 @@ export class OrderService {
         client,
         orderProfile,
         comment: dto.comment || '',
+        orderDeliveryCost: orderProfile.city.deliveryCost,
       });
 
-      const orderWithTotalSum = await this.prepareOrder(
-        order,
-        client.city.deliveryCost,
-        promoCode,
-      );
+      const orderWithTotalSum = await this.prepareOrder(order, promoCode);
 
       //TODO: вернуть когда вернем оплату заказа чизкойнами (рублями)
       // const wallet = await this.walletService.getByClientId(client.id);
@@ -402,7 +390,7 @@ export class OrderService {
 
       await queryRunner.commitTransaction();
 
-      return this.getOne(order.id, client.city.deliveryCost);
+      return this.getOne(order.id);
     } catch (error) {
       console.error(error);
       await queryRunner.rollbackTransaction();
@@ -427,10 +415,7 @@ export class OrderService {
         throw new NotFoundException('Счет не найден');
       }
 
-      const order = await this.getOne(
-        invoice.meta.orderUuid,
-        client.city.deliveryCost,
-      );
+      const order = await this.getOne(invoice.meta.orderUuid);
 
       const paymentToken = encodeJwt(
         {
@@ -562,7 +547,6 @@ export class OrderService {
 
   async prepareOrder(
     order: Order,
-    deliveryPrice,
     promoCode?: PromoCode,
   ): Promise<OrderWithTotalSumDto> {
     const fullOrderProducts: OrderProductWithTotalSumDto[] = [];
@@ -677,7 +661,7 @@ export class OrderService {
     );
     const isNeedDelivery = totalSum > 2900;
     if (isNeedDelivery) {
-      totalSum += deliveryPrice;
+      totalSum += order.orderDeliveryCost;
     }
 
     const fullOrder = {
