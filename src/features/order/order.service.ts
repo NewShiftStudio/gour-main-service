@@ -561,16 +561,14 @@ export class OrderService {
       );
 
       if (product) {
-        const additionalGrams = 50;
-
         const discountByGram =
           (product.price.cheeseCoin * (product.discount / 100)) / 1000;
         const priceByGram = product.price.cheeseCoin / 1000;
 
-        const totalDiscountWithoutAmount = discountByGram * (orderProduct.gram + additionalGrams);
+        const totalDiscountWithoutAmount = discountByGram * (orderProduct.gram);
         const totalDiscount = totalDiscountWithoutAmount * orderProduct.amount;
 
-        const totalCostWithoutAmount = priceByGram * (orderProduct.gram + additionalGrams);
+        const totalCostWithoutAmount = priceByGram * (orderProduct.gram);
         const totalCost = totalCostWithoutAmount * orderProduct.amount;
 
         const totalSumWithoutAmount =
