@@ -232,10 +232,9 @@ export class OrderService {
             category,
           );
 
-          const additionalGrams = 50;
 
           const price = Math.ceil(
-            (product.price.cheeseCoin / 1000) * (gram + additionalGrams) * amount,
+            (product.price.cheeseCoin / 1000) * gram * amount,
           );
 
           if (candidateDiscount) {
@@ -562,14 +561,16 @@ export class OrderService {
       );
 
       if (product) {
+        const additionalGrams = 50;
+
         const discountByGram =
           (product.price.cheeseCoin * (product.discount / 100)) / 1000;
         const priceByGram = product.price.cheeseCoin / 1000;
 
-        const totalDiscountWithoutAmount = discountByGram * orderProduct.gram;
+        const totalDiscountWithoutAmount = discountByGram * (orderProduct.gram + additionalGrams);
         const totalDiscount = totalDiscountWithoutAmount * orderProduct.amount;
 
-        const totalCostWithoutAmount = priceByGram * orderProduct.gram;
+        const totalCostWithoutAmount = priceByGram * (orderProduct.gram + additionalGrams);
         const totalCost = totalCostWithoutAmount * orderProduct.amount;
 
         const totalSumWithoutAmount =
