@@ -660,7 +660,7 @@ export class OrderService {
         totalSumWithoutDiscounts,
       ),
     );
-    const isNeedDelivery = totalSum < 2900;
+    const isNeedDelivery = totalSum < 3000;
     if (isNeedDelivery) {
       totalSum += order.orderDeliveryCost;
     }
