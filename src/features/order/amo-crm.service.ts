@@ -106,12 +106,12 @@ export class AmoCrmService {
     try {
       const refreshTokenMeta = await this.getTokenMeta(this.refreshTokenKey);
 
-      const isFreshRefreshToken =
-        refreshTokenMeta &&
-        this.checkTokenFreshness(
-          this.refreshTokenKey,
-          refreshTokenMeta.updatedAt,
-        );
+      const isFreshRefreshToken = refreshTokenMeta;
+      // &&
+      //   this.checkTokenFreshness(
+      //     this.refreshTokenKey,
+      //     refreshTokenMeta.updatedAt,
+      //   );
 
       const refresh_token =
         refreshTokenMeta && JSON.parse(refreshTokenMeta.value);
