@@ -232,9 +232,9 @@ export class OrderService {
             category,
           );
 
-
+          const extraGrams = 50;
           const price = Math.ceil(
-            (product.price.cheeseCoin / 1000) * gram * amount,
+            (product.price.cheeseCoin / 1000) * (gram + extraGrams) * amount,
           );
 
           if (candidateDiscount) {
