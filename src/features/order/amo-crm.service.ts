@@ -135,7 +135,6 @@ export class AmoCrmService {
         },
       );
 
-      console.log('RESPONSE', response);
       console.log('RESPONSE DATA', response?.data);
       if (!response.data)
         throw new InternalServerErrorException(
@@ -302,14 +301,23 @@ export class AmoCrmService {
 
   async getStatus(statusId: number) {
     try {
-      const { data } = await amoCrmApi.get(
+      const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
+      const accessTokenValue = JSON.parse(accessTokenMeta.value);
+
+      const isValidToken = await this.testAccessToken(accessTokenValue);
+
+      if (!isValidToken) {
+        await this.refreshTokens();
+      }
+
+      const response = await amoCrmApi.get(
         `api/v4/leads/pipelines/${pipelineId}/statuses/${statusId}`,
         {
           headers: { Authorization: `Bearer ${this.accessToken}` },
         },
       );
 
-      const status = data?._embedded.statuses[0];
+      const status = response.data?._embedded.statuses[0];
 
       if (!status)
         throw new InternalServerErrorException(
