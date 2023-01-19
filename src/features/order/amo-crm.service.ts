@@ -75,6 +75,7 @@ export class AmoCrmService {
   async auth() {
     const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
 
+    console.log('AUTH', accessTokenMeta);
     const isFreshAccessToken =
       accessTokenMeta &&
       this.checkTokenFreshness(this.accessTokenKey, accessTokenMeta.updatedAt);
@@ -113,9 +114,11 @@ export class AmoCrmService {
       //     refreshTokenMeta.updatedAt,
       //   );
 
+
       const refresh_token =
         refreshTokenMeta && JSON.parse(refreshTokenMeta.value);
 
+      console.log('REFRESH TOKEN', refresh_token);
       const grant_type = isFreshRefreshToken
         ? 'refresh_token'
         : 'authorization_code';
@@ -132,6 +135,8 @@ export class AmoCrmService {
         },
       );
 
+      console.log('RESPONSE', response);
+      console.log('RESPONSE DATA', response?.data);
       if (!response.data)
         throw new InternalServerErrorException(
           'Не удалось получить токены для amoCRM',
