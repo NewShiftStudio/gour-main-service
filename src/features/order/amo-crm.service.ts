@@ -107,12 +107,11 @@ export class AmoCrmService {
     try {
       const refreshTokenMeta = await this.getTokenMeta(this.refreshTokenKey);
 
-      const isFreshRefreshToken = refreshTokenMeta;
-      // &&
-      //   this.checkTokenFreshness(
-      //     this.refreshTokenKey,
-      //     refreshTokenMeta.updatedAt,
-      //   );
+      const isFreshRefreshToken = refreshTokenMeta
+        && this.checkTokenFreshness(
+            this.refreshTokenKey,
+            refreshTokenMeta.updatedAt,
+          );
 
 
       const refresh_token =
@@ -135,7 +134,6 @@ export class AmoCrmService {
         },
       );
 
-      console.log('RESPONSE DATA', response?.data);
       if (!response.data)
         throw new InternalServerErrorException(
           'Не удалось получить токены для amoCRM',
@@ -157,6 +155,14 @@ export class AmoCrmService {
 
   async createLead({ name, price, description, stateName }: LeadCreateDto) {
     try {
+      const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
+      const accessTokenValue = JSON.parse(accessTokenMeta.value);
+
+      const isValidToken = await this.testAccessToken(accessTokenValue);
+
+      if (!isValidToken) {
+        await this.refreshTokens();
+      }
       const status = await this.getStatusByName(stateName);
 
       const { data } = await amoCrmApi.post(
@@ -199,6 +205,14 @@ export class AmoCrmService {
 
   async getLead(id: number | string): Promise<AmoCrmLead> {
     try {
+      const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
+      const accessTokenValue = JSON.parse(accessTokenMeta.value);
+
+      const isValidToken = await this.testAccessToken(accessTokenValue);
+
+      if (!isValidToken) {
+        await this.refreshTokens();
+      }
       const { data } = await amoCrmApi.get(`api/v4/leads/${id}`, {
         headers: {
           Authorization: `Bearer ${this.accessToken}`,
@@ -220,6 +234,14 @@ export class AmoCrmService {
 
   async getAllLeads(leadIds?: number[]): Promise<AmoCrmLead[]> {
     try {
+      const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
+      const accessTokenValue = JSON.parse(accessTokenMeta.value);
+
+      const isValidToken = await this.testAccessToken(accessTokenValue);
+
+      if (!isValidToken) {
+        await this.refreshTokens();
+      }
       const { data } = await amoCrmApi.get(
         `api/v4/leads?filter[pipeline_id]=${pipelineId}&filter[id]=[${leadIds}]&limit=250`,
         {
@@ -244,6 +266,14 @@ export class AmoCrmService {
 
   async createStatus(name: string, sort: number, color?: string) {
     try {
+      const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
+      const accessTokenValue = JSON.parse(accessTokenMeta.value);
+
+      const isValidToken = await this.testAccessToken(accessTokenValue);
+
+      if (!isValidToken) {
+        await this.refreshTokens();
+      }
       const { data: result } = await amoCrmApi.post(
         `api/v4/leads/pipelines/${pipelineId}/statuses`,
         [
@@ -273,6 +303,14 @@ export class AmoCrmService {
 
   async updateLeadStatus(leadId: number, stateName: string): Promise<object> {
     try {
+      const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
+      const accessTokenValue = JSON.parse(accessTokenMeta.value);
+
+      const isValidToken = await this.testAccessToken(accessTokenValue);
+
+      if (!isValidToken) {
+        await this.refreshTokens();
+      }
       const status = await this.getStatusByName(stateName);
 
       const { data } = await amoCrmApi.patch(
@@ -335,6 +373,14 @@ export class AmoCrmService {
 
   async getAllStatuses(): Promise<AmoCrmStatus[]> {
     try {
+      const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
+      const accessTokenValue = JSON.parse(accessTokenMeta.value);
+
+      const isValidToken = await this.testAccessToken(accessTokenValue);
+
+      if (!isValidToken) {
+        await this.refreshTokens();
+      }
       const { data } = await amoCrmApi.get(
         `api/v4/leads/pipelines/${pipelineId}/statuses`,
         {
@@ -374,6 +420,14 @@ export class AmoCrmService {
 
   async getCrmInfo(leadId: number) {
     try {
+      const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
+      const accessTokenValue = JSON.parse(accessTokenMeta.value);
+
+      const isValidToken = await this.testAccessToken(accessTokenValue);
+
+      if (!isValidToken) {
+        await this.refreshTokens();
+      }
       const { id, name, status_id } = await this.getLead(leadId);
 
       const status = await this.getStatus(status_id);
@@ -396,6 +450,14 @@ export class AmoCrmService {
 
   async getCrmInfoList(leadIds?: number[]): Promise<AmoCrmInfo[]> {
     try {
+      const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
+      const accessTokenValue = JSON.parse(accessTokenMeta.value);
+
+      const isValidToken = await this.testAccessToken(accessTokenValue);
+
+      if (!isValidToken) {
+        await this.refreshTokens();
+      }
       const leads = await this.getAllLeads(leadIds);
 
       const statuses = await this.getAllStatuses();
@@ -430,6 +492,14 @@ export class AmoCrmService {
 
   async getFields() {
     try {
+      const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
+      const accessTokenValue = JSON.parse(accessTokenMeta.value);
+
+      const isValidToken = await this.testAccessToken(accessTokenValue);
+
+      if (!isValidToken) {
+        await this.refreshTokens();
+      }
       const { data } = await amoCrmApi.get('/api/v4/leads/custom_fields', {
         headers: { Authorization: `Bearer ${this.accessToken}` },
       });
