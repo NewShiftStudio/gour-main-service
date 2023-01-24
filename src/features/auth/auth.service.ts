@@ -93,6 +93,7 @@ export class AuthService {
   }
 
   async signup(dto: SignUpDto) {
+    console.log('dto', dto);
     const isValid = this.checkCode(dto.code, dto.hashedCode);
 
     if (!isValid) throw new BadRequestException('Неверный код');
@@ -118,6 +119,8 @@ export class AuthService {
       referralCode = await this.referralCodeRepository.findOne({
         code: dto.referralCode,
       });
+
+      console.log('REFERRAL', referralCode);
     }
 
     const password = await this.getPasswordHash(dto.password);
@@ -132,6 +135,7 @@ export class AuthService {
       password,
     });
 
+    console.log('USER', user);
     await this.walletService.create(user.id);
 
     return user;
