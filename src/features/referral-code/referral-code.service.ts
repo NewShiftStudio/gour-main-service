@@ -81,6 +81,8 @@ export class ReferralCodeService {
     const referralCode = await this.referralCodeRepository.save({
       discount,
       code: dto.code,
+      fullName: dto.fullName,
+      phone: dto.phone,
     });
 
     return referralCode;
