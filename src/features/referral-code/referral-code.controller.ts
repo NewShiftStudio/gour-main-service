@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -39,6 +39,14 @@ export class ReferralCodeController {
     @Payload('dto') dto: ExportDto,
   ) {
     return this.referralCodeService.getReferrals(params, dto);
+  }
+
+  @MessagePattern('get-volume')
+  // @Get('volume')
+  exportVolume(
+    @Payload('dto') dto: ExportDto,
+  ) {
+    return this.referralCodeService.getVolume(dto);
   }
 
   @MessagePattern('get-referral-discount')
