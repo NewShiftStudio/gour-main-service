@@ -436,6 +436,8 @@ export class OrderService {
         payerUuid: client.id,
         ipAddress: dto.ipAddress,
         signature: dto.signature,
+        fullName: dto.fullName,
+        code: dto.code,
         successUrl: successPaymentUrl,
         rejectUrl: rejectPaymentUrl,
       };

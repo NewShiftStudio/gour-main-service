@@ -27,4 +27,10 @@ export class PayOrderDto {
 
   @IsUUID()
   invoiceUuid: string;
+
+  @IsString()
+  fullName: string;
+
+  @IsString()
+  code: string;
 }

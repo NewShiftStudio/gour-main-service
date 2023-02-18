@@ -6,7 +6,6 @@ import { ReferralCodeController } from './referral-code.controller';
 import { ReferralCodeService } from './referral-code.service';
 import { ReferralCode } from '../../entity/ReferralCode';
 import { Client } from '../../entity/Client';
-import { Order } from '../../entity/Order';
 
 @Module({
   imports: [
@@ -20,7 +19,7 @@ import { Order } from '../../entity/Order';
         },
       },
     ]),
-    TypeOrmModule.forFeature([ReferralCode, Client, Order]),
+    TypeOrmModule.forFeature([ReferralCode, Client]),
   ],
   controllers: [ReferralCodeController],
   providers: [ReferralCodeService],
