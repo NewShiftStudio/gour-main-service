@@ -11,4 +11,10 @@ export class ReferralCode extends Base {
 
   @Column()
   discount: number;
+
+  @Column({ default: '', nullable: true })
+  fullName: string;
+
+  @Column({ default: '', nullable: true })
+  phone: string;
 }

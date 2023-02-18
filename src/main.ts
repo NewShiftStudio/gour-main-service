@@ -45,6 +45,8 @@ async function bootstrap() {
     },
   );
 
+  // const app = await NestFactory.create(AppModule);
+
   if (['production', 'development'].includes(process.env.NODE_ENV)) {
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
@@ -56,6 +58,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
 
   await app.listen();
+  // await app.listen(5002);
   console.log('MAIN SERVICE LISTEN: ' + process.env.PORT);
 }
 

@@ -1,18 +1,23 @@
 import {
   BadRequestException,
   Injectable,
+  Inject,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, IsNull, Not, Repository } from 'typeorm';
+import { ClientProxy } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
+import { ExportDto } from 'src/common/dto/export.dto';
+import { VolumeDto } from './dto/volume.dto';
 
 import { ReferralCode } from '../../entity/ReferralCode';
+import { Order } from '../../entity/Order';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { ReferralCodeCreateDto } from './dto/referral-code-create.dto';
 import { Client } from '../../entity/Client';
 import { ReferralCodeEditDto } from './dto/referral-code-edit.dto';
-import { ExportDto } from 'src/common/dto/export.dto';
 
 @Injectable()
 export class ReferralCodeService {
@@ -22,7 +27,15 @@ export class ReferralCodeService {
 
     @InjectRepository(Client)
     private clientRepository: Repository<Client>,
+
+    @InjectRepository(Order)
+    private orderRepository: Repository<Order>,
+    @Inject('PAYMENT_SERVICE') private client: ClientProxy,
   ) {}
+
+  async onModuleInit() {
+    await this.client.connect();
+  }
 
   findMany(params: BaseGetListDto) {
     return this.referralCodeRepository.find({
@@ -71,6 +84,40 @@ export class ReferralCodeService {
     return [referrals, referrals.length];
   }
 
+  async getVolume(dto?: ExportDto): Promise<[VolumeDto[], number]> {
+    const foundClients = await this.clientRepository
+      .createQueryBuilder('client')
+      .leftJoinAndSelect('client.referralCode', 'referralCode')
+      .where('client.referralCode IS NOT NULL')
+      .getMany();
+
+    if (!foundClients) throw new NotFoundException('Рефералы не найдены');
+
+    const successPayments = await firstValueFrom(
+      this.client.send('success-payments', dto.start || {}),
+    );
+
+    const normalizedClients = foundClients.reduce((acc, client) => ({ ...acc, [client.id]: client }), {});
+
+    const referralPayments = successPayments.reduce((acc, payment: { amount: number; payerUuid: string; }) => {
+      const { amount, payerUuid } = payment;
+      const client = normalizedClients[payerUuid];
+
+      if (client?.referralCode) {
+        acc.push({
+          clientName: `${client.firstName} ${client.lastName}`,
+          code: client.referralCode.code || 'Code has been deleted or not found',
+          amount,
+          clientId: payerUuid,
+        });
+      }
+
+      return acc;
+    }, []);
+
+    return [referralPayments, referralPayments.length];
+  }
+
   getOne(id: number) {
     return this.referralCodeRepository.findOne({ id });
   }
@@ -81,6 +128,8 @@ export class ReferralCodeService {
     const referralCode = await this.referralCodeRepository.save({
       discount,
       code: dto.code,
+      fullName: dto.fullName,
+      phone: dto.phone,
     });
 
     return referralCode;
