@@ -94,7 +94,7 @@ export class ReferralCodeService {
     if (!foundClients) throw new NotFoundException('Рефералы не найдены');
 
     const successPayments = await firstValueFrom(
-      this.client.send('success-payments', dto.start || {}),
+      this.client.send('success-payments', dto || {}),
     );
 
     const normalizedClients = foundClients.reduce((acc, client) => ({ ...acc, [client.id]: client }), {});
