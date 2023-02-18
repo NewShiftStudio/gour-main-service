@@ -12,7 +12,6 @@ import { ExportDto } from 'src/common/dto/export.dto';
 import { VolumeDto } from './dto/volume.dto';
 
 import { ReferralCode } from '../../entity/ReferralCode';
-import { Order } from '../../entity/Order';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { ReferralCodeCreateDto } from './dto/referral-code-create.dto';
@@ -28,8 +27,6 @@ export class ReferralCodeService {
     @InjectRepository(Client)
     private clientRepository: Repository<Client>,
 
-    @InjectRepository(Order)
-    private orderRepository: Repository<Order>,
     @Inject('PAYMENT_SERVICE') private client: ClientProxy,
   ) {}
 
@@ -85,28 +82,22 @@ export class ReferralCodeService {
   }
 
   async getVolume(dto?: ExportDto): Promise<[VolumeDto[], number]> {
-    const foundClients = await this.clientRepository
-      .createQueryBuilder('client')
-      .leftJoinAndSelect('client.referralCode', 'referralCode')
-      .where('client.referralCode IS NOT NULL')
-      .getMany();
-
-    if (!foundClients) throw new NotFoundException('Рефералы не найдены');
-
     const successPayments = await firstValueFrom(
       this.client.send('success-payments', dto.start || {}),
     );
 
-    const normalizedClients = foundClients.reduce((acc, client) => ({ ...acc, [client.id]: client }), {});
+    const referralPayments = successPayments.reduce((acc, payment: {
+      amount: number;
+      payerUuid: string;
+      fullName: string;
+      code: string;
+    }) => {
+      const { amount, payerUuid, fullName, code } = payment;
 
-    const referralPayments = successPayments.reduce((acc, payment: { amount: number; payerUuid: string; }) => {
-      const { amount, payerUuid } = payment;
-      const client = normalizedClients[payerUuid];
-
-      if (client?.referralCode) {
+      if (code) {
         acc.push({
-          clientName: `${client.firstName} ${client.lastName}`,
-          code: client.referralCode.code || 'Code has been deleted or not found',
+          clientName: fullName,
+          code,
           amount,
           clientId: payerUuid,
         });
