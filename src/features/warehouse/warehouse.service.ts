@@ -68,7 +68,11 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
 
       if (!product) {
         product = await getProduct();
+        console.log('once product');
+        console.log(product);
         if (!product) {
+          console.log('twice product');
+          console.log(product);
           product = await getProduct();
           if (!product) {
             throw new BadRequestException(
@@ -88,7 +92,11 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
 
       if (!modification) {
         modification = await getModifiaction();
+        console.log('once modification');
+        console.log(modification);
         if (!modification) {
+        console.log('twice modification');
+        console.log(modification);
           modification = await getModifiaction();
         } if (!modification) {
           throw new BadRequestException(
