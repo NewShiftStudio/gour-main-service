@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, Not, Repository } from 'typeorm';
 
 import { ProductGrade } from '../../entity/ProductGrade';
+import { Product } from '../../entity/Product';
 import { getPaginationOptions } from '../../common/helpers/controllerHelpers';
 import { ProductGradeCreateDto } from './dto/product-grade-create.dto';
 import { ProductGradeGetListDto } from './dto/product-grade-get-list.dto';
@@ -14,6 +15,8 @@ export class ProductGradeService {
   constructor(
     @InjectRepository(ProductGrade)
     private productGradeRepository: Repository<ProductGrade>,
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
 
     private productService: ProductService,
     private clientService: ClientService,
@@ -69,7 +72,9 @@ export class ProductGradeService {
     dto: ProductGradeCreateDto,
     clientId: string,
   ) {
-    const product = await this.productService.getOne(productId, {});
+    const product = await this.productRepository.findOne({
+      where: { id: productId },
+    });
 
     const client = await this.clientService.findOne(clientId);
 
@@ -92,7 +97,7 @@ export class ProductGradeService {
           10,
       ) / 10;
 
-    await this.productService.update(productId, {
+    await this.productRepository.update(productId, {
       grade: newProductGrade,
     });
 
