@@ -67,13 +67,13 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
       let product = await getProduct();
 
       if (!product) {
-        product = await getProduct();
+        setTimeout(async () => { product = await getProduct() }, 600);
         console.log('once product');
         console.log(product);
         if (!product) {
           console.log('twice product');
           console.log(product);
-          product = await getProduct();
+          setTimeout(async () => { product = await getProduct() }, 600);
           if (!product) {
             throw new BadRequestException(
               `Продукта с id ${uuid} не существует`,
@@ -91,13 +91,13 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
       let modification = await getModifiaction();
 
       if (!modification) {
-        modification = await getModifiaction();
+          setTimeout(async () => { modification = await getModifiaction() }, 600);
         console.log('once modification');
         console.log(modification);
         if (!modification) {
         console.log('twice modification');
         console.log(modification);
-          modification = await getModifiaction();
+          setTimeout(async () => { modification = await getModifiaction() }, 600);
         } if (!modification) {
           throw new BadRequestException(
             `Модификации с id продукта ${product.id} или кол-вом граммов ${gramInString} не существует`);
