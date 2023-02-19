@@ -62,38 +62,23 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
   ) {
     try {
       const gramInString = `${gram}гр`;
-      const getProduct = async () => await this.moyskladService.getProductById(uuid);
-
-      let product = await getProduct();
+      const product = await this.moyskladService.getProductById(uuid);
 
       if (!product) {
-        product = await getProduct();
-        if (!product) {
-          product = await getProduct();
-          if (!product) {
-            throw new BadRequestException(
-              `Продукта с id ${uuid} не существует`,
-            );
-          }
-        }
+        console.log('PRODUCT ERROR');
+        throw new BadRequestException(`Продукта с id ${uuid} не существует`);
       }
 
-      const getModifiaction = async () =>
-        await this.moyskladService.getModificationByProductIdAndGram(
-          product.id,
-          gramInString,
-        );
-
-      let modification = await getModifiaction();
+      const modification = await this.moyskladService.getModificationByProductIdAndGram(
+        product.id,
+        gramInString,
+      );
 
       if (!modification) {
-        modification = await getModifiaction();
-        if (!modification) {
-          modification = await getModifiaction();
-        } if (!modification) {
-          throw new BadRequestException(
-            `Модификации с id продукта ${product.id} или кол-вом граммов ${gramInString} не существует`);
-        }
+        console.log('MOD ERROR');
+        throw new BadRequestException(
+          `Модификации с id продукта ${product.id} или кол-вом граммов ${gramInString} не существует`,
+        );
       }
 
       const store = await this.moyskladService.getStoreByCityName(city);

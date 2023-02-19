@@ -35,6 +35,10 @@ export class MoyskladService implements AbstractService {
     this.subscribeOnOrderStatusUpdate();
   }
 
+  timeout(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   async subscribeOnOrderStatusUpdate() {
     const action = 'UPDATE';
     const entityType = 'customerorder';
@@ -81,7 +85,7 @@ export class MoyskladService implements AbstractService {
   }
 
   async getModificationByProductIdAndGram(uuid: Uuid, gram: GramsInString) {
-    const { data } = await firstValueFrom(
+    const getMod = async () => await firstValueFrom(
       this.httpService.get<MoyskladModification>(`/entity/variant/`, {
         params: {
           filter: `productid=${uuid}`,
@@ -89,12 +93,7 @@ export class MoyskladService implements AbstractService {
       }),
     );
 
-    if (!data)
-      throw new InternalServerErrorException(
-        'Не удалось получить модификацию продукта',
-      );
-
-    return data.rows.find((r) => {
+    const result = (data) => data.rows.find((r) => {
       const current = r.characteristics.find((c) => c.value === gram);
       if (current) {
         return {
@@ -102,6 +101,27 @@ export class MoyskladService implements AbstractService {
         };
       }
     });
+
+    const res = await getMod();
+
+    if (!res.data || !res.data.rows.length) {
+      ('mod tick 1');
+      await this.timeout(500);
+      const res1 = await getMod();
+      if (!res1.data || !res1.data.rows.length) {
+        ('mod tick 2');
+        await this.timeout(500);
+        const res2 = await getMod();
+        if (!res2.data || !res2.data.rows.length) {
+          throw new InternalServerErrorException(
+            'Не удалось получить модификацию продукта',
+          );
+        }
+        return result(res2.data);
+      }
+      return result(res1.data);
+    }
+    return result(res.data);
   }
 
   async getAuthorizationToken({ login, password }: StrategyData['BASIC_AUTH']) {
@@ -122,10 +142,23 @@ export class MoyskladService implements AbstractService {
   }
 
   async getProductById(uuid: Uuid) {
-    const { data } = await firstValueFrom(
+    const getData = async () => await firstValueFrom(
       this.httpService.get<MoyskladProduct>(`/entity/product/${uuid}`),
     );
-    return data;
+
+    const res = await getData();
+
+    if (!res.data) {
+      await this.timeout(500);
+      const res1 = await getData();
+      if (!res1.data) {
+        await this.timeout(500);
+        const res2 = await getData();
+        return res2.data;
+      }
+      return res1.data;
+    }
+    return res.data;
   }
 
   async getStockByAssortmentIdAndStoreId(
