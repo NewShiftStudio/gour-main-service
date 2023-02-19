@@ -104,16 +104,15 @@ export class MoyskladService implements AbstractService {
 
     const res = await getMod();
 
-    console.log('RES DATA', res.data);
-    if (!res.data) {
+    if (!res.data || !res.data.rows.length) {
       ('mod tick 1');
       await this.timeout(700);
       const res1 = await getMod();
-      if (!res1.data) {
+      if (!res1.data || !res1.data.rows.length) {
         ('mod tick 2');
         await this.timeout(700);
         const res2 = await getMod();
-        if (!res2.data) {
+        if (!res2.data || !res2.data.rows.length) {
           throw new InternalServerErrorException(
             'Не удалось получить модификацию продукта',
           );
