@@ -97,7 +97,7 @@ export class ProductGradeService {
           10,
       ) / 10;
 
-    await this.productService.update(productId, {
+    await this.productRepository.update(productId, {
       grade: newProductGrade,
     });
 
