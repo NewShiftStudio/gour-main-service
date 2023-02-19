@@ -106,11 +106,11 @@ export class MoyskladService implements AbstractService {
 
     if (!res.data || !res.data.rows.length) {
       ('mod tick 1');
-      await this.timeout(700);
+      await this.timeout(500);
       const res1 = await getMod();
       if (!res1.data || !res1.data.rows.length) {
         ('mod tick 2');
-        await this.timeout(700);
+        await this.timeout(500);
         const res2 = await getMod();
         if (!res2.data || !res2.data.rows.length) {
           throw new InternalServerErrorException(
@@ -149,10 +149,10 @@ export class MoyskladService implements AbstractService {
     const res = await getData();
 
     if (!res.data) {
-      await this.timeout(700);
+      await this.timeout(500);
       const res1 = await getData();
       if (!res1.data) {
-        await this.timeout(700);
+        await this.timeout(500);
         const res2 = await getData();
         return res2.data;
       }
