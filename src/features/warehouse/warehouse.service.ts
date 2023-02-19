@@ -67,14 +67,18 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
       let product = await getProduct();
 
       if (!product) {
-        setTimeout(async () => { product = await getProduct() }, 600);
+        const product1 = await getProduct();
+        console.log('product1', product1);
         console.log('once product');
         console.log(product);
-        if (!product) {
+        product = product1;
+        if (!product && !product1) {
+          const product2 = await getProduct();
+          console.log('product2', product2);
           console.log('twice product');
           console.log(product);
-          setTimeout(async () => { product = await getProduct() }, 600);
-          if (!product) {
+          product = product2;
+          if (!product && !product2) {
             throw new BadRequestException(
               `Продукта с id ${uuid} не существует`,
             );
