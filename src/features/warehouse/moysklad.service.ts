@@ -104,6 +104,7 @@ export class MoyskladService implements AbstractService {
 
     const res = await getMod();
 
+    console.log('RES DATA', res.data);
     if (!res.data) {
       ('mod tick 1');
       await this.timeout(700);
