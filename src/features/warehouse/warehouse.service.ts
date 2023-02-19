@@ -62,45 +62,23 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
   ) {
     try {
       const gramInString = `${gram}гр`;
-      const getProduct = async () => await this.moyskladService.getProductById(uuid);
-
-      let product = await getProduct();
+      const product = await this.moyskladService.getProductById(uuid);
 
       if (!product) {
-        const product1 = await getProduct();
-        product = product1;
-        if (!product && !product1) {
-          const product2 = await getProduct();
-          product = product2;
-          if (!product && !product2) {
-            console.log('PRODUCT ERROR');
-            throw new BadRequestException(
-              `Продукта с id ${uuid} не существует`,
-            );
-          }
-        }
+        console.log('PRODUCT ERROR');
+        throw new BadRequestException(`Продукта с id ${uuid} не существует`);
       }
 
-      const getModifiaction = async () =>
-        await this.moyskladService.getModificationByProductIdAndGram(
-          product.id,
-          gramInString,
-        );
-
-      let modification = await getModifiaction();
+      const modification = await this.moyskladService.getModificationByProductIdAndGram(
+        product.id,
+        gramInString,
+      );
 
       if (!modification) {
-        const modification1 = await getModifiaction();
-        modification = modification1;
-        if (!modification && !modification1) {
-          const modification2 = await getModifiaction();
-          modification = modification2;
-          if (!modification && !modification2) {
-            console.log('MOD ERROR');
-            throw new BadRequestException(
-              `Модификации с id продукта ${product.id} или кол-вом граммов ${gramInString} не существует`);
-          }
-        }
+        console.log('MOD ERROR');
+        throw new BadRequestException(
+          `Модификации с id продукта ${product.id} или кол-вом граммов ${gramInString} не существует`,
+        );
       }
 
       const store = await this.moyskladService.getStoreByCityName(city);
