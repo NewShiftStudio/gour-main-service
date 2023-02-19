@@ -68,17 +68,12 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
 
       if (!product) {
         const product1 = await getProduct();
-        console.log('product1', product1);
-        console.log('once product');
-        console.log(product);
         product = product1;
         if (!product && !product1) {
           const product2 = await getProduct();
-          console.log('product2', product2);
-          console.log('twice product');
-          console.log(product);
           product = product2;
           if (!product && !product2) {
+            console.log('PRODUCT ERROR');
             throw new BadRequestException(
               `Продукта с id ${uuid} не существует`,
             );
@@ -95,18 +90,16 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
       let modification = await getModifiaction();
 
       if (!modification) {
-          setTimeout(async () => { modification = await getModifiaction() }, 1200);
-        console.log('once modification');
-        console.log(new Date());
-        console.log(modification);
-        if (!modification) {
-        console.log('twice modification');
-        console.log(new Date());
-        console.log(modification);
-          setTimeout(async () => { modification = await getModifiaction() }, 1200);
-        } if (!modification) {
-          throw new BadRequestException(
-            `Модификации с id продукта ${product.id} или кол-вом граммов ${gramInString} не существует`);
+        const modification1 = await getModifiaction();
+        modification = modification1;
+        if (!modification && !modification1) {
+          const modification2 = await getModifiaction();
+          modification = modification2;
+          if (!modification && !modification2) {
+            console.log('MOD ERROR');
+            throw new BadRequestException(
+              `Модификации с id продукта ${product.id} или кол-вом граммов ${gramInString} не существует`);
+          }
         }
       }
 
