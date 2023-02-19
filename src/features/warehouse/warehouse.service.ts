@@ -91,13 +91,15 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
       let modification = await getModifiaction();
 
       if (!modification) {
-          setTimeout(async () => { modification = await getModifiaction() }, 600);
+          setTimeout(async () => { modification = await getModifiaction() }, 1200);
         console.log('once modification');
+        console.log(new Date());
         console.log(modification);
         if (!modification) {
         console.log('twice modification');
+        console.log(new Date());
         console.log(modification);
-          setTimeout(async () => { modification = await getModifiaction() }, 600);
+          setTimeout(async () => { modification = await getModifiaction() }, 1200);
         } if (!modification) {
           throw new BadRequestException(
             `Модификации с id продукта ${product.id} или кол-вом граммов ${gramInString} не существует`);
