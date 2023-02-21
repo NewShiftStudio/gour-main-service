@@ -170,7 +170,10 @@ export class MoyskladService implements AbstractService {
         `/report/stock/all/current?filter=assortmentId=${assortmentUuid}&filter=storeId=${storeUuid}`,
       ),
     );
-    return { id: data[0]?.assortmentId, value: data[0]?.stock };
+
+    const reserve = data[0]?.reserve || 0;
+
+    return { id: data[0]?.assortmentId, value: data[0]?.stock - reserve };
   }
 
   async getStoreByCityName(city: CityName) {
