@@ -39,7 +39,7 @@ export type MoyskladModification = {
 export type MoyskladStock = {
   assortmentId: Uuid;
   stock: StockInPiece;
-  reserve: number;
+  freeStock: StockInPiece;
 };
 
 export type MoyskladStore = {

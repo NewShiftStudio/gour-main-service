@@ -174,7 +174,7 @@ export class MoyskladService implements AbstractService {
     console.log('DATA STOCK', data);
     // const reserve = data[0]?.reserve || 0;
 
-    return { id: data[0]?.assortmentId, value: data[0]?.stock };
+    return { id: data[0]?.assortmentId, value: data[0]?.freeStock };
   }
 
   async getStoreByCityName(city: CityName) {
