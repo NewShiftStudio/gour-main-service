@@ -167,14 +167,14 @@ export class MoyskladService implements AbstractService {
   ) {
     const { data } = await firstValueFrom(
       this.httpService.get<MoyskladStock[]>(
-        `/report/stock/all/current?filter=assortmentId=${assortmentUuid}&filter=storeId=${storeUuid}`,
+        `/report/stock/all/current?filter=assortmentId=${assortmentUuid}&filter=storeId=${storeUuid}&stockType=freeStock`,
       ),
     );
 
     console.log('DATA STOCK', data);
-    const reserve = data[0]?.reserve || 0;
+    // const reserve = data[0]?.reserve || 0;
 
-    return { id: data[0]?.assortmentId, value: data[0]?.stock - reserve };
+    return { id: data[0]?.assortmentId, value: data[0]?.stock };
   }
 
   async getStoreByCityName(city: CityName) {
