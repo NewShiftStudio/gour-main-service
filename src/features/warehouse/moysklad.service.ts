@@ -165,6 +165,8 @@ export class MoyskladService implements AbstractService {
     assortmentUuid: Uuid,
     storeUuid: Uuid,
   ) {
+    console.log(`/report/stock/all/current?filter=assortmentId=${assortmentUuid}&filter=storeId=${storeUuid}&stockType=quantity`);
+
     const { data } = await firstValueFrom(
       this.httpService.get<MoyskladStock[]>(
         `/report/stock/all/current?filter=assortmentId=${assortmentUuid}&filter=storeId=${storeUuid}&stockType=quantity`,
