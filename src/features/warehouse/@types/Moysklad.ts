@@ -40,6 +40,7 @@ export type MoyskladStock = {
   assortmentId: Uuid;
   stock: StockInPiece;
   freeStock: StockInPiece;
+  quantity: StockInPiece;
 };
 
 export type MoyskladStore = {
