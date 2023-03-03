@@ -167,7 +167,7 @@ export class MoyskladService implements AbstractService {
   ) {
     const { data } = await firstValueFrom(
       this.httpService.get<MoyskladStock[]>(
-        `/report/stock/all/current?filter=assortmentId=${assortmentUuid}&filter=storeId=${storeUuid}&stockType=freeStock`,
+        `/report/stock/all/current?filter=assortmentId=${assortmentUuid}&filter=storeId=${storeUuid}&stockType=quantity`,
       ),
     );
 
