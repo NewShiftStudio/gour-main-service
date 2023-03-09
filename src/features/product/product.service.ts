@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {Inject, Injectable, NotFoundException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   DeepPartial,
@@ -25,6 +25,7 @@ import { Promotion } from '../../entity/Promotion';
 import { ProductGetSimilarDto } from './dto/product-get-similar.dto';
 import { CategoryService } from '../category/category.service';
 import { ExportDto } from 'src/common/dto/export.dto';
+import {WarehouseService} from "../warehouse/warehouse.service";
 
 @Injectable()
 export class ProductService {
@@ -33,6 +34,8 @@ export class ProductService {
 
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+
+    @Inject(WarehouseService) readonly warehouseService: WarehouseService,
 
     @InjectRepository(ProductGrade)
     private productGradeRepository: Repository<ProductGrade>,
@@ -58,7 +61,7 @@ export class ProductService {
 
   async findMany(
     params: ProductGetListDto,
-    client: Client,
+    client?: Client,
     dto?: ExportDto,
   ): Promise<[Product[], number]> {
     const options: FindManyOptions<Product> = {
@@ -74,6 +77,31 @@ export class ProductService {
     let products = await this.productRepository.find(options);
 
     if (!products) throw new NotFoundException('Товары не найдены');
+
+    const weightByProduct = {}
+    for (const product of products) {
+      const isMeat = product.categories?.find(productSubCategory => productSubCategory.id === 131);
+
+      const weight = isMeat ? 100 : 150;
+      weightByProduct[product.moyskladId] = weight + 'гр';
+      product.defaultWeight = weight;
+    }
+
+    const stocksByProduct = await this.warehouseService.getStockOfManyProductByWarehouseIdCityNameAndGram(
+        weightByProduct,
+        'Санкт-Петербург'
+    );
+
+    for (const product of products) {
+      const stock = stocksByProduct[product.moyskladId]
+      if (stock !== undefined) {
+        product.defaultStock = stock;
+      }
+    }
+
+    products = products.sort(
+        (a,b) =>  (a.defaultStock?.value ?? -1) - (b.defaultStock?.value ?? -1)
+    );
 
     const startDate = dto?.start && new Date(dto.start);
     const endDate = dto?.end && new Date(dto.end);
@@ -106,7 +134,7 @@ export class ProductService {
     return [products, products.length];
   }
 
-  async findNovelties(params: ProductGetListDto, client: Client) {
+  async findNovelties(params: ProductGetListDto, client?: Client) {
     // eslint-disable-next-line prefer-const
     let products = await this.productRepository.find({
       order: {
@@ -128,11 +156,7 @@ export class ProductService {
     return products;
   }
 
-  async getSimilar(params: ProductGetSimilarDto, clientId: string) {
-    const client = await this.clientRepository.findOne(clientId);
-
-    if (!client) throw new NotFoundException('Пользователь не найден');
-
+  async getSimilar(params: ProductGetSimilarDto, client: Client|undefined) {
     const productIds = params.productIds.split(',').map((id) => +id);
 
     const products = await this.productRepository
@@ -381,7 +405,7 @@ export class ProductService {
     return this.productRepository.softDelete(id);
   }
 
-  async prepareProducts<P extends Product>(client: Client, products: P[]) {
+  async prepareProducts<P extends Product>(client: Client|undefined, products: P[]) {
     const now = new Date();
 
     const promotions = await this.promotionRepository.find({
@@ -392,16 +416,23 @@ export class ProductService {
       relations: ['products'],
     });
 
-    const categoriesWithDiscounts =
-      await this.categoryService.findCategoriesWithDiscounts(client); // категории для системы наеденности
+    const categoriesWithDiscounts = client === undefined
+        ? []
+        : await this.categoryService.findCategoriesWithDiscounts(client); // категории для системы наеденности
 
-    const fullClient = await this.clientRepository.findOne(client.id);
+    let role;
+    if (client === undefined) {
+      role = undefined;
+    } else {
+      const fullClient = await this.clientRepository.findOne(client.id);
+      role = fullClient.role;
+    }
 
     const productsWithDiscount = getProductsWithDiscount(
-      products,
-      promotions,
-      fullClient.role,
-      categoriesWithDiscounts,
+        products,
+        promotions,
+        role,
+        categoriesWithDiscounts,
     );
 
     return productsWithDiscount;

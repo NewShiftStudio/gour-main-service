@@ -55,6 +55,43 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
     return token;
   }
 
+  async getStockOfManyProductByWarehouseIdCityNameAndGram(
+      gramByUuids,
+      city: CityName
+  ) {
+    try {
+      const modificationsByProducts = await this.moyskladService.getManyModificationByProductIdAndGram(
+          gramByUuids
+      );
+
+      const store = await this.moyskladService.getStoreByCityName(city);
+
+      if (!store.city) {
+        throw new BadRequestException(`Склада в городе ${city} не существует`);
+      }
+
+      const stockByModifications = await this.moyskladService.getStockByManyAssortmentIdsAndStoreId(
+        Object.values(modificationsByProducts),
+        store.id
+      );
+
+      let result = {};
+      for (const [product, modification] of Object.entries(modificationsByProducts)) {
+        result[product] = {
+          id: String(modification),
+          value: stockByModifications[String(modification)] ?? 0
+        };
+      }
+
+      return result;
+    } catch (error) {
+      throw new HttpException(
+          error?.message || 'Ошибка при получении остатков',
+          error?.status || error?.statusCode,
+      );
+    }
+  }
+
   async getStockOfProductByWarehouseIdCityNameAndGram(
     uuid: Uuid,
     city: CityName,

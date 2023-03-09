@@ -12,6 +12,6 @@ import { HttpModule } from '@nestjs/axios';
   ],
   providers: [WarehouseService, MoyskladService],
   controllers: [WarehouseController],
-  exports: [WarehouseService],
+  exports: [WarehouseService,MoyskladService,HttpModule],
 })
 export class WarehouseModule {}
