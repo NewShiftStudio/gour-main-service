@@ -248,7 +248,7 @@ export class ProductService {
 
     if (!product) throw new NotFoundException('Товар не найден');
 
-    if (params.withDiscount && client) {
+    if (params.withDiscount) {
       product = await this.prepareProduct(client, product);
     }
 
@@ -464,7 +464,7 @@ export class ProductService {
   }
 
   async prepareProduct<P extends Product = Product>(
-    client: Client,
+    client: Client|undefined,
     product: P,
   ) {
     const preparedProducts = await this.prepareProducts(client, [product]);
