@@ -149,6 +149,31 @@ export class ProductService {
       ].filter((it) => it),
     });
 
+    const weightByProduct = {}
+    for (const product of products) {
+      const isMeat = product.categories?.find(productSubCategory => productSubCategory.id === 131);
+
+      const weight = isMeat ? 100 : 150;
+      weightByProduct[product.moyskladId] = weight + 'гр';
+      product.defaultWeight = weight;
+    }
+
+    const stocksByProduct = await this.warehouseService.getStockOfManyProductByWarehouseIdCityNameAndGram(
+        weightByProduct,
+        'Санкт-Петербург'
+    );
+
+    for (const product of products) {
+      const stock = stocksByProduct[product.moyskladId]
+      if (stock !== undefined) {
+        product.defaultStock = stock;
+      }
+    }
+
+    products = products.sort(
+        (a:any,b: any) =>  (a.defaultStock?.value ?? -1) - (b.defaultStock?.value ?? -1)
+    );
+
     if (params.withDiscount) {
       products = await this.prepareProducts(client, products);
     }
