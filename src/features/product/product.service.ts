@@ -100,7 +100,7 @@ export class ProductService {
     }
 
     products = products.sort(
-        (a,b) =>  (a.defaultStock?.value ?? -1) - (b.defaultStock?.value ?? -1)
+        (a:any,b: any) =>  (a.defaultStock?.value ?? -1) - (b.defaultStock?.value ?? -1)
     );
 
     const startDate = dto?.start && new Date(dto.start);
