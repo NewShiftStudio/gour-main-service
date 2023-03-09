@@ -172,7 +172,7 @@ export class ProductService {
 
     products = products.sort(
         (a:any,b: any) =>  (a.defaultStock?.value ?? -1) - (b.defaultStock?.value ?? -1)
-    );
+    ).reverse();
 
     if (params.withDiscount) {
       products = await this.prepareProducts(client, products);
