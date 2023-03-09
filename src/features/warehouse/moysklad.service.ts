@@ -95,16 +95,13 @@ export class MoyskladService implements AbstractService {
 
     const response = await getMod();
     let modificationsByProduct = {};
-    console.log(response,response.data)
     for (const item of response.data.rows) {
-      item.find((r) => {
-        // здесь получить id продукта
-        const productId = r.product.meta.href.split('/').pop()
-        const current = r.characteristics.find((c) => c.value === gramsByUuids[productId]);
-        if (current) {
-          modificationsByProduct[productId] = r.id
-        }
-      });
+      // здесь получить id продукта
+      const productId = item.product.meta.href.split('/').pop()
+      const current = item.characteristics.find((c) => c.value === gramsByUuids[productId]);
+      if (current) {
+        modificationsByProduct[productId] = item.id
+      }
     }
 
     return modificationsByProduct;
@@ -214,9 +211,6 @@ export class MoyskladService implements AbstractService {
         `/report/stock/all/current?filter=assortmentId=${assortmentUuid}&stockType=quantity`,
       ),
     );
-
-    console.log('DATA STOCK', data);
-    // const reserve = data[0]?.reserve || 0;
 
     return { id: data[0]?.assortmentId, value: data[0]?.quantity };
   }
