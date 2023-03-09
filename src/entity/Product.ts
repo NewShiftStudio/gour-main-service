@@ -142,4 +142,10 @@ export class Product extends Base {
     default: 0,
   })
   discount: number;
+
+  @ApiProperty()
+  defaultWeight: number;
+
+  @ApiProperty()
+  defaultStock?: object;
 }

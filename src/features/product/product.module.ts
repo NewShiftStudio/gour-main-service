@@ -16,10 +16,13 @@ import { ProductService } from './product.service';
 import { ProductGradeService } from './product-grade.service';
 import { ClientService } from '../client/client.service';
 import { City } from 'src/entity/City';
+import {WarehouseService} from "../warehouse/warehouse.service";
+import {WarehouseModule} from "../warehouse/warehouse.module";
 
 @Module({
   imports: [
     CategoryModule,
+    WarehouseModule,
     TypeOrmModule.forFeature([
       Product,
       Category,
@@ -32,7 +35,7 @@ import { City } from 'src/entity/City';
       City,
     ]),
   ],
-  providers: [ProductService, ProductGradeService, ClientService],
+  providers: [ProductService, ProductGradeService, ClientService, WarehouseService],
   controllers: [ProductController],
   exports: [ProductService, ProductGradeService],
 })

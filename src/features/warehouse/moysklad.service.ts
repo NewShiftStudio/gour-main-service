@@ -84,6 +84,50 @@ export class MoyskladService implements AbstractService {
     return statusUpdateWebhook;
   }
 
+  async getManyModificationByProductIdAndGram(gramsByUuids) {
+    const getMod = async () => await firstValueFrom(
+        this.httpService.get(`/entity/variant/`, {
+          params: {
+            filter: `productid=` + Object.keys(gramsByUuids).join(';productid='),
+          },
+        }),
+    );
+
+    const response = await getMod();
+    let modificationsByProduct = {};
+    console.log(response,response.data)
+    for (const item of response.data.rows) {
+      item.find((r) => {
+        // здесь получить id продукта
+        const productId = r.product.meta.href.split('/').pop()
+        const current = r.characteristics.find((c) => c.value === gramsByUuids[productId]);
+        if (current) {
+          modificationsByProduct[productId] = r.id
+        }
+      });
+    }
+
+    return modificationsByProduct;
+  }
+
+
+  async getStockByManyAssortmentIdsAndStoreId(
+      assortmentUuids: Uuid[],
+      storeUuid: Uuid,
+  ) {
+    let url = `/report/stock/all/current?filter=storeId=${storeUuid}`;
+    url += `&filter=assortmentId=` + assortmentUuids.join(',');
+    const { data } = await firstValueFrom(
+        this.httpService.get<MoyskladStock[]>(url),
+    );
+    let stockByAssortmentId = {}
+    for (const item of data) {
+      stockByAssortmentId[item?.assortmentId] = item?.stock
+    }
+
+    return stockByAssortmentId;
+  }
+
   async getModificationByProductIdAndGram(uuid: Uuid, gram: GramsInString) {
     const getMod = async () => await firstValueFrom(
       this.httpService.get<MoyskladModification>(`/entity/variant/`, {

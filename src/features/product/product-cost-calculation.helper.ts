@@ -27,7 +27,7 @@ export type ProductWithTotalCost<P> = P & {
 export function getProductsWithDiscount<P extends MinimumProduct>(
   products: P[],
   allPromotions: MinimumPromotion[],
-  role: ClientRole,
+  role: ClientRole|undefined,
   allCategoriesWithDiscounts: CategoryWithDiscounts[],
 ): ProductWithTotalCost<P>[] {
   const promotionsByProductId = getPromotionsValueByProductId(
@@ -40,14 +40,14 @@ export function getProductsWithDiscount<P extends MinimumProduct>(
   );
 
   const productsWithDiscount = products.map((product) => {
-    const eatingDiscountInPercent = calcEatingDiscount(
+    const eatingDiscountInPercent = role === undefined ? 0 : calcEatingDiscount(
       product,
       categoriesDictionary,
       role,
     );
 
     // для физ. лица действуют скидки акций, для прочих есть их ролевая цена
-    if (role.key === 'individual') {
+    if (role === undefined || role.key === 'individual') {
       const promotionDiscountPercent = promotionsByProductId[product.id];
 
       product.discount = promotionDiscountPercent;
