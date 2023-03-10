@@ -287,25 +287,31 @@ export class ProductService {
       };
     }
 
-    const weightByProduct = {}
-    for (const similarProduct of product.similarProducts) {
-      const isMeat = similarProduct.categories?.find(productSubCategory => productSubCategory.id === 131);
+    if (product.similarProducts) {
+      const weightByProduct = {}
+      product.similarProducts = product.similarProducts.map((similarProduct) => {
+        const isMeat = similarProduct.categories?.find(productSubCategory => productSubCategory.id === 131);
 
-      const weight = isMeat ? 100 : 150;
-      weightByProduct[similarProduct.moyskladId] = weight + 'гр';
-      similarProduct.defaultWeight = weight;
-    }
+        const weight = isMeat ? 100 : 150;
+        weightByProduct[similarProduct.moyskladId] = weight + 'гр';
+        similarProduct.defaultWeight = weight;
 
-    const stocksByProduct = await this.warehouseService.getStockOfManyProductByWarehouseIdCityNameAndGram(
-        weightByProduct,
-        'Санкт-Петербург'
-    );
+        return similarProduct;
+      })
 
-    for (const similarProduct of product.similarProducts) {
-      const stock = stocksByProduct[similarProduct.moyskladId]
-      if (stock !== undefined) {
-        similarProduct.defaultStock = stock;
-      }
+      const stocksByProduct = await this.warehouseService.getStockOfManyProductByWarehouseIdCityNameAndGram(
+          weightByProduct,
+          'Санкт-Петербург'
+      );
+
+      product.similarProducts = product.similarProducts.map((similarProduct) => {
+        const stock = stocksByProduct[similarProduct.moyskladId]
+        if (stock !== undefined) {
+          similarProduct.defaultStock = stock;
+        }
+
+        return similarProduct;
+      });
     }
 
     return product;

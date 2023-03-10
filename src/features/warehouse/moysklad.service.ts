@@ -118,8 +118,10 @@ export class MoyskladService implements AbstractService {
         this.httpService.get<MoyskladStock[]>(url),
     );
     let stockByAssortmentId = {}
-    for (const item of data) {
-      stockByAssortmentId[item?.assortmentId] = item?.stock
+    if (data) {
+      for (const item of data) {
+        stockByAssortmentId[item?.assortmentId] = item?.stock
+      }
     }
 
     return stockByAssortmentId;
