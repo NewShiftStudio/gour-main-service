@@ -287,6 +287,27 @@ export class ProductService {
       };
     }
 
+    const weightByProduct = {}
+    for (const similarProduct of product.similarProducts) {
+      const isMeat = similarProduct.categories?.find(productSubCategory => productSubCategory.id === 131);
+
+      const weight = isMeat ? 100 : 150;
+      weightByProduct[similarProduct.moyskladId] = weight + 'гр';
+      similarProduct.defaultWeight = weight;
+    }
+
+    const stocksByProduct = await this.warehouseService.getStockOfManyProductByWarehouseIdCityNameAndGram(
+        weightByProduct,
+        'Санкт-Петербург'
+    );
+
+    for (const similarProduct of product.similarProducts) {
+      const stock = stocksByProduct[similarProduct.moyskladId]
+      if (stock !== undefined) {
+        similarProduct.defaultStock = stock;
+      }
+    }
+
     return product;
   }
 
