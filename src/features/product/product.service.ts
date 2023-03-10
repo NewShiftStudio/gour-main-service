@@ -223,6 +223,27 @@ export class ProductService {
       similarProducts,
     );
 
+    const weightByProduct = {}
+    for (const product of fullSimilarProducts) {
+      const isMeat = product.categories?.find(productSubCategory => productSubCategory.id === 131);
+
+      const weight = isMeat ? 100 : 150;
+      weightByProduct[product.moyskladId] = weight + 'гр';
+      product.defaultWeight = weight;
+    }
+
+    const stocksByProduct = await this.warehouseService.getStockOfManyProductByWarehouseIdCityNameAndGram(
+        weightByProduct,
+        'Санкт-Петербург'
+    );
+
+    for (const product of fullSimilarProducts) {
+      const stock = stocksByProduct[product.moyskladId]
+      if (stock !== undefined) {
+        product.defaultStock = stock;
+      }
+    }
+
     return fullSimilarProducts;
   }
 
