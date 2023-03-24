@@ -170,9 +170,11 @@ export class ProductService {
       }
     }
 
-    products = products.sort(
+    products = products
+        .filter((product:any) => (product.defaultStock))
+        .sort(
         (a:any,b: any) =>  (a.defaultStock?.value ?? -1) - (b.defaultStock?.value ?? -1)
-    ).reverse();
+        ).reverse();
 
     if (params.withDiscount) {
       products = await this.prepareProducts(client, products);
@@ -218,7 +220,7 @@ export class ProductService {
       }
     }
 
-    const fullSimilarProducts = await this.prepareProducts(
+    let fullSimilarProducts = await this.prepareProducts(
       client,
       similarProducts,
     );
@@ -243,6 +245,8 @@ export class ProductService {
         product.defaultStock = stock;
       }
     }
+
+    fullSimilarProducts = fullSimilarProducts.filter((product:any) => (product.defaultStock))
 
     return fullSimilarProducts;
   }
