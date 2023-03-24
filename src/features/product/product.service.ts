@@ -171,7 +171,7 @@ export class ProductService {
     }
 
     products = products
-        .filter((product:any) => (product.defaultStock))
+        .filter((product:any) => !product.defaultStock)
         .sort(
         (a:any,b: any) =>  (a.defaultStock?.value ?? -1) - (b.defaultStock?.value ?? -1)
         ).reverse();
@@ -246,7 +246,7 @@ export class ProductService {
       }
     }
 
-    fullSimilarProducts = fullSimilarProducts.filter((product:any) => (product.defaultStock))
+    fullSimilarProducts = fullSimilarProducts.filter((product:any) => !product.defaultStock)
 
     return fullSimilarProducts;
   }
