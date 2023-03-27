@@ -13,6 +13,11 @@ import { Client } from './Client';
 import { OrderProfile } from './OrderProfile';
 import { PromoCode } from './PromoCode';
 
+export enum OrderPaymentMethod {
+  cash = 'cash',
+  sbp = 'SBP',
+}
+
 @Entity()
 export class Order {
   @PrimaryGeneratedColumn('uuid')

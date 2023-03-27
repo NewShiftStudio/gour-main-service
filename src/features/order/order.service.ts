@@ -119,45 +119,6 @@ export class OrderService {
     return { orders: ordersWithTotalSum, count };
   }
 
-  // async findMany(params: BaseGetListDto) {
-  //   const skip = params.offset && +params.offset;
-  //   const take = params.length && +params.length;
-
-  //   const [orders, count] = await this.orderRepository
-  //     .createQueryBuilder('order')
-  //     .leftJoinAndSelect('order.promoCode', 'promoCode')
-  //     .leftJoinAndSelect('order.orderProfile', 'orderProfile')
-  //     .leftJoinAndSelect('orderProfile.city', 'orderCity')
-  //     .leftJoinAndSelect('orderCity.name', 'orderCityName')
-  //     .leftJoinAndSelect('order.client', 'client')
-  //     .leftJoinAndSelect('order.orderProducts', 'orderProducts')
-  //     .leftJoinAndSelect('orderProducts.product', 'product')
-  //     .leftJoinAndSelect('product.title', 'productTitle')
-  //     .leftJoinAndSelect('product.price', 'productPrice')
-  //     .leftJoinAndSelect('product.images', 'productImages')
-  //     .leftJoinAndSelect('product.categories', 'categories')
-  //     .leftJoinAndSelect('categories.title', 'categoryTitle')
-  //     .leftJoinAndSelect('categories.subCategories', 'categorySubCategories')
-  //     .leftJoinAndSelect(
-  //       'categories.parentCategories',
-  //       'category.parentCategories',
-  //     )
-  //     .orderBy('order.createdAt', 'DESC')
-  //     .skip(skip)
-  //     .take(take)
-  //     .getManyAndCount();
-
-  //   const ordersWithTotalSum: OrderWithTotalSumDto[] = [];
-
-  //   for (const order of orders) {
-  //     const orderWithTotalSum = await this.prepareOrder(order);
-
-  //     ordersWithTotalSum.push(orderWithTotalSum);
-  //   }
-
-  //   return { orders: ordersWithTotalSum, count };
-  // }
-
   async getOne(id: string): Promise<OrderWithTotalSumDto> {
     const order = await this.orderRepository
       .createQueryBuilder('order')
@@ -198,16 +159,11 @@ export class OrderService {
 
   async create(dto: OrderCreateDto, client: Client) {
     const queryRunner = this.connection.createQueryRunner();
-
     await queryRunner.connect();
-
     await queryRunner.startTransaction();
 
     const discountRepository = queryRunner.manager.getRepository(Discount);
     const orderRepository = queryRunner.manager.getRepository(Order);
-    const walletRepository = queryRunner.manager.getRepository(Wallet);
-    const transactionRepository =
-      queryRunner.manager.getRepository(WalletTransaction);
     const promoCodeRepository = queryRunner.manager.getRepository(PromoCode);
 
     try {
@@ -354,9 +310,10 @@ export class OrderService {
 
       const lead = await this.amoCrmService.createLead({
         name: leadName,
-        description,
         price: orderWithTotalSum.totalSum,
-        stateName,
+        description: description,
+        stateName: stateName,
+        paymentMethod: dto.paymentMethod,
       });
 
       await orderRepository.save({

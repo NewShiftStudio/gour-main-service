@@ -1,19 +1,11 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import axios, {AxiosInstance, AxiosResponse} from 'axios';
+import {Inject, Injectable, InternalServerErrorException,} from '@nestjs/common';
 
-import { MetaService } from '../meta/meta.service';
-import { LeadCreateDto } from './dto/lead-create.dto';
-import {
-  AmoCrmAuthData,
-  AmoCrmInfo,
-  AmoCrmLead,
-  AmoCrmStatus,
-} from './@types/AmoCrm';
-import { statuses } from '../warehouse/moysklad.helper';
+import {MetaService} from '../meta/meta.service';
+import {LeadCreateDto} from './dto/lead-create.dto';
+import {AmoCrmAuthData, AmoCrmInfo, AmoCrmLead, AmoCrmStatus,} from './@types/AmoCrm';
+import {statuses} from '../warehouse/moysklad.helper';
+import {OrderPaymentMethod} from "../../entity/Order";
 
 const amoCrmApi: AxiosInstance = axios.create({
   baseURL: `${process.env.AMO_BASE_URL}`,
@@ -21,6 +13,7 @@ const amoCrmApi: AxiosInstance = axios.create({
 
 const pipelineId = process.env.PIPELINE_ID;
 const commentCustomFieldId = process.env.COMMENT_CUSTOM_FIELD_ID;
+const paymentTypeCustomFieldId = 636393;
 
 const client_id = process.env.AMO_CLIENT_ID;
 const client_secret = process.env.AMO_CLIENT_SECRET;
@@ -153,7 +146,7 @@ export class AmoCrmService {
     }
   }
 
-  async createLead({ name, price, description, stateName }: LeadCreateDto) {
+  async createLead({ name, price, description, stateName, paymentMethod }: LeadCreateDto) {
     try {
       const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
       const accessTokenValue = JSON.parse(accessTokenMeta.value);
@@ -164,6 +157,23 @@ export class AmoCrmService {
         await this.refreshTokens();
       }
       const status = await this.getStatusByName(stateName);
+      let customFields = [
+        {
+          field_id: +commentCustomFieldId,
+          values: [
+            {
+              value: description,
+            },
+          ],
+        },
+      ];
+
+      if (paymentMethod === OrderPaymentMethod.cash) {
+        customFields.push({
+          field_id: paymentTypeCustomFieldId,
+          values: [{value: "Наличн"}],
+        });
+      }
 
       const { data } = await amoCrmApi.post(
         `api/v4/leads`,
@@ -173,16 +183,7 @@ export class AmoCrmService {
             price,
             status_id: status.id,
             pipeline_id: +pipelineId,
-            custom_fields_values: [
-              {
-                field_id: +commentCustomFieldId,
-                values: [
-                  {
-                    value: description,
-                  },
-                ],
-              },
-            ],
+            custom_fields_values: customFields
           },
         ],
         {
