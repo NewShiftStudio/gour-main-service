@@ -316,7 +316,7 @@ export class OrderService {
 
       await this.warehouseService.moyskladService.updateOrder(
           warehouseOrder.id,
-          {name: +lead.id}
+          {name: String(lead.id)}
       );
 
       await orderRepository.save({
