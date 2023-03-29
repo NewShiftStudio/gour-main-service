@@ -664,13 +664,13 @@ ${payMethodCash}
     if (order.comment) description += '\nКомментарий: ' + order.comment;
 
     /* eslint-disable prettier/prettier */
-    description += `\n\nАдрес: ${order.orderProfile.city.name.ru}` +
-        + (order.orderProfile.street ? `, ул.${order.orderProfile.street}` : '')
-        + (order.orderProfile.house ? `, д.${order.orderProfile.house}` : '')
-        + (order.orderProfile.entrance ? `,Подъезд ${order.orderProfile.entrance}` : '')
-        + (order.orderProfile.floor  ? `, этаж ${order.orderProfile.floor}` : '')
-        + (order.orderProfile.apartment ? `, кв ${order.orderProfile.apartment}` : '')
-        + (order.orderProfile.comment ? `\nКомментарий: ${order.orderProfile.comment}`: '');
+    description += `\n\nАдрес: ${order.orderProfile.city.name.ru}`;
+    if (order.orderProfile.street) description += `, ул.${order.orderProfile.street}`;
+    if (order.orderProfile.house) description += `, д.${order.orderProfile.house}`;
+    if (order.orderProfile.entrance) description += `, подъезд ${order.orderProfile.entrance}`;
+    if (order.orderProfile.floor) description += `, этаж ${order.orderProfile.floor}`;
+    if (order.orderProfile.apartment) description += `, кв ${order.orderProfile.apartment}`;
+    if (order.orderProfile.comment) description += `\nКомментарий: ${order.orderProfile.comment}`;
 
     return description;
   }
