@@ -305,7 +305,7 @@ export class OrderService {
       const stateName = state.name;
 
       const description = this.getDescription(orderWithTotalSum,dto.paymentMethod);
-      const leadName = `${order.lastName} ${order.firstName} ${order.createdAt}`;
+      const leadName = `${order.lastName} ${order.firstName} ${order.createdAt.toLocaleString().split(',').join()}`;
       const lead = await this.amoCrmService.createLead({
         name: leadName,
         price: orderWithTotalSum.totalSum,
@@ -653,8 +653,7 @@ export class OrderService {
       Email: ${email}
       ${payMethodCash}
     
-      Состав заказа:
-    `;
+Состав заказа:\n`;
 
     order.orderProducts.forEach((op) => {
       description += `${op.product.title.ru} `;
@@ -666,19 +665,13 @@ export class OrderService {
     if (order.comment) description += '\nКомментарий: ' + order.comment;
 
     /* eslint-disable prettier/prettier */
-    description += `
-      \nАдрес: ${order.orderProfile.city.name.ru}, ул.${
-      order.orderProfile.street
-    }, д.${order.orderProfile.house},
-      Подъезд ${order.orderProfile.entrance}, этаж ${
-      order.orderProfile.floor
-    }, кв ${order.orderProfile.apartment}
-      ${
-        order.orderProfile.comment
-          ? `Комментарий: ${order.orderProfile.comment}`
-          : ''
-      }
-    `;
+    description += `\n\nАдрес: ${order.orderProfile.city.name.ru}` +
+        + `${order.orderProfile.street ? `, ул.${order.orderProfile.street}` : ''}`
+        + `${order.orderProfile.house ? `, д.${order.orderProfile.house}` : ''}`
+        + `${order.orderProfile.entrance ? `,Подъезд ${order.orderProfile.entrance}` : ''}`
+        + `${order.orderProfile.floor  ? `, этаж ${order.orderProfile.floor}` : ''}`
+        + `${order.orderProfile.apartment ? `, кв ${order.orderProfile.apartment}` : ''}`
+        + `${order.orderProfile.comment ? `Комментарий: ${order.orderProfile.comment}`: ''}`;
 
     return description;
   }
