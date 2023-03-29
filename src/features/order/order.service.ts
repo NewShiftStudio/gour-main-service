@@ -292,7 +292,7 @@ export class OrderService {
           addInfo: order.comment,
           postalCode: '000000', //FIXME: добавить в профиль создание постал кода
           counterpartyId: warehouseClientId,
-          name: order.leadId
+          name: order.id
         },
       );
 
