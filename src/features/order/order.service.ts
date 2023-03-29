@@ -292,6 +292,7 @@ export class OrderService {
           addInfo: order.comment,
           postalCode: '000000', //FIXME: добавить в профиль создание постал кода
           counterpartyId: warehouseClientId,
+          name: order.leadId
         },
       );
 
@@ -641,12 +642,11 @@ export class OrderService {
 
     if (!order.orderProfile) throw new Error('Необходим профиль заказа');
 
-    const { firstName, lastName, phone, email,leadId } = order;
+    const { firstName, lastName, phone, email } = order;
     const payMethodCash = paymentMethod === OrderPaymentMethod.cash ? `Оплата: наличными\n` : '';
 
     let description = `
       Заказ от ${firstName} ${lastName}
-      Номер заказа: ${leadId}
       Тел: ${phone}
       Email: ${email}
       ${payMethodCash}

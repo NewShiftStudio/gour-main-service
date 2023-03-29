@@ -307,6 +307,7 @@ export class MoyskladService implements AbstractService {
   async createOrder(assortment: AbstractAssortment[], meta: CreateOrderMeta) {
     const { data } = await firstValueFrom(
       this.httpService.post<MoyskladOrder>('/entity/customerorder', {
+        name: meta.name,
         organization: {
           meta: {
             href: `${process.env.WAREHOUSE_API_URL}/entity/organization/${meta?.organizationId}`,
