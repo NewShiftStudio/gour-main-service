@@ -408,6 +408,12 @@ export class ProductService {
       }
     }
 
+    // Идентификаторы в браузере и апи отличаются,поэтому идём в апи чтобы получить актуальный
+    if (dto.moyskladId) {
+      const moyskladProduct = await this.warehouseService.moyskladService.getProductById(dto.moyskladId);
+      dto.moyskladId = moyskladProduct.id;
+    }
+
     const saveParams: DeepPartial<Product> = {
       id,
       title: dto.title,

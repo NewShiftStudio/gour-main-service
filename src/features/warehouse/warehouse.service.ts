@@ -19,7 +19,7 @@ import { cutUuidFromMoyskladHref } from './moysklad.helper';
 @Injectable()
 export class WarehouseService implements IWarehouseService<MoyskladService> {
   constructor(
-    private moyskladService: MoyskladService,
+    public moyskladService: MoyskladService,
     private httpService: HttpService,
   ) {}
 
