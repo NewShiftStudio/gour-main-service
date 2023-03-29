@@ -23,9 +23,6 @@ export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
-  idInt?: number;
-
   @OneToMany(() => OrderProduct, (op) => op.order, {
     onDelete: 'CASCADE',
   })
