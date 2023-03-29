@@ -304,10 +304,22 @@ export class MoyskladService implements AbstractService {
     return data;
   }
 
+  async updateOrder(uuid: string, changeData: any) {
+    const { data } = await firstValueFrom(
+      this.httpService.put<MoyskladOrder>(`/entity/customerorder/${uuid}`, changeData),
+    );
+
+    if (!data)
+      throw new InternalServerErrorException(
+        'Не удалось обновить заказ в Моём складе',
+      );
+
+    return data;
+  }
+
   async createOrder(assortment: AbstractAssortment[], meta: CreateOrderMeta) {
     const { data } = await firstValueFrom(
       this.httpService.post<MoyskladOrder>('/entity/customerorder', {
-        name: meta.name,
         organization: {
           meta: {
             href: `${process.env.WAREHOUSE_API_URL}/entity/organization/${meta?.organizationId}`,

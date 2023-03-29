@@ -292,7 +292,6 @@ export class OrderService {
           addInfo: order.comment,
           postalCode: '000000', //FIXME: добавить в профиль создание постал кода
           counterpartyId: warehouseClientId,
-          name: order.id
         },
       );
 
@@ -301,14 +300,12 @@ export class OrderService {
           'Ошибка при создании заказа в сервисе склада',
         );
 
-      const description = this.getDescription(orderWithTotalSum,dto.paymentMethod);
-
       const stateUuid = cutUuidFromMoyskladHref(warehouseOrder.state.meta.href);
       const state = await this.warehouseService.getMoyskladState(stateUuid);
       const stateName = state.name;
 
+      const description = this.getDescription(orderWithTotalSum,dto.paymentMethod);
       const leadName = `${order.lastName} ${order.firstName} ${order.createdAt}`;
-
       const lead = await this.amoCrmService.createLead({
         name: leadName,
         price: orderWithTotalSum.totalSum,
@@ -316,6 +313,11 @@ export class OrderService {
         stateName: stateName,
         paymentMethod: dto.paymentMethod,
       });
+
+      await this.warehouseService.moyskladService.updateOrder(
+          warehouseOrder.id,
+          {name: +lead.id}
+      );
 
       await orderRepository.save({
         id: order.id,
