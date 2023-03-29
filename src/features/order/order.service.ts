@@ -15,7 +15,7 @@ import {
   OrderWithTotalSumDto,
 } from './dto/order-with-total-sum.dto';
 import { Client } from '../../entity/Client';
-import { Order } from '../../entity/Order';
+import {Order, OrderPaymentMethod} from '../../entity/Order';
 import { OrderProduct } from '../../entity/OrderProduct';
 import { OrderCreateDto } from './dto/order-create.dto';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
@@ -300,7 +300,7 @@ export class OrderService {
           'Ошибка при создании заказа в сервисе склада',
         );
 
-      const description = this.getDescription(orderWithTotalSum);
+      const description = this.getDescription(orderWithTotalSum,dto.paymentMethod);
 
       const stateUuid = cutUuidFromMoyskladHref(warehouseOrder.state.meta.href);
       const state = await this.warehouseService.getMoyskladState(stateUuid);
@@ -635,36 +635,37 @@ export class OrderService {
     return fullOrder;
   }
 
-  getDescription(order: OrderWithTotalSumDto): string {
+  getDescription(order: OrderWithTotalSumDto,paymentMethod: OrderPaymentMethod): string {
     if (!order.orderProducts?.length)
       throw new Error('Необходимы товары из заказа');
 
     if (!order.orderProfile) throw new Error('Необходим профиль заказа');
 
-    const { firstName, lastName, phone, email } = order;
+    const { firstName, lastName, phone, email,leadId } = order;
+    const payMethodCash = paymentMethod === OrderPaymentMethod.cash ? `Оплата: наличными\n` : '';
 
     let description = `
       Заказ от ${firstName} ${lastName}
+      Номер заказа: ${leadId}
       Тел: ${phone}
       Email: ${email}
+      ${payMethodCash}
     
       Состав заказа:
     `;
 
     order.orderProducts.forEach((op) => {
       description += `${op.product.title.ru} `;
-      description += op.gram + 'гр';
-      description += ` ${op.totalSum}₡`;
       description += '\n';
     });
 
     description += `ИТОГО: ${order.totalSum}₡`;
 
-    if (order.comment) description += 'Комментарий: ' + order.comment;
+    if (order.comment) description += '\nКомментарий: ' + order.comment;
 
     /* eslint-disable prettier/prettier */
     description += `
-      Адрес: ${order.orderProfile.city.name.ru}, ул.${
+      \nАдрес: ${order.orderProfile.city.name.ru}, ул.${
       order.orderProfile.street
     }, д.${order.orderProfile.house},
       Подъезд ${order.orderProfile.entrance}, этаж ${
