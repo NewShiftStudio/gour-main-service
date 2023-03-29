@@ -647,11 +647,10 @@ export class OrderService {
     const { firstName, lastName, phone, email } = order;
     const payMethodCash = paymentMethod === OrderPaymentMethod.cash ? `Оплата: наличными\n` : '';
 
-    let description = `
-      Заказ от ${firstName} ${lastName}
-      Тел: ${phone}
-      Email: ${email}
-      ${payMethodCash}
+    let description = `Заказ от ${firstName} ${lastName}
+Тел: ${phone}
+Email: ${email}
+${payMethodCash}
     
 Состав заказа:\n`;
 
@@ -666,12 +665,12 @@ export class OrderService {
 
     /* eslint-disable prettier/prettier */
     description += `\n\nАдрес: ${order.orderProfile.city.name.ru}` +
-        + `${order.orderProfile.street ? `, ул.${order.orderProfile.street}` : ''}`
-        + `${order.orderProfile.house ? `, д.${order.orderProfile.house}` : ''}`
-        + `${order.orderProfile.entrance ? `,Подъезд ${order.orderProfile.entrance}` : ''}`
-        + `${order.orderProfile.floor  ? `, этаж ${order.orderProfile.floor}` : ''}`
-        + `${order.orderProfile.apartment ? `, кв ${order.orderProfile.apartment}` : ''}`
-        + `${order.orderProfile.comment ? `Комментарий: ${order.orderProfile.comment}`: ''}`;
+        + (order.orderProfile.street ? `, ул.${order.orderProfile.street}` : '')
+        + (order.orderProfile.house ? `, д.${order.orderProfile.house}` : '')
+        + (order.orderProfile.entrance ? `,Подъезд ${order.orderProfile.entrance}` : '')
+        + (order.orderProfile.floor  ? `, этаж ${order.orderProfile.floor}` : '')
+        + (order.orderProfile.apartment ? `, кв ${order.orderProfile.apartment}` : '')
+        + (order.orderProfile.comment ? `\nКомментарий: ${order.orderProfile.comment}`: '');
 
     return description;
   }
