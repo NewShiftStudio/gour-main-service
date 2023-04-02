@@ -1,7 +1,7 @@
-export class ModificationDto {
+export class AssortmentDto {
   productId: Uuid;
   price: AmountInCents;
-  gram: WeightInGrams;
+  gram?: WeightInGrams;
   quantity: Piece;
   discount: Percent;
   type: 'variant' | 'product';

@@ -4,6 +4,7 @@ export class MoyskladEvent {
   meta: MoyskladMeta;
   action: string;
   accountId: string;
+  updatedFields?: String[];
 }
 
 export class MoyskladMeta {
@@ -17,10 +18,12 @@ export type MoyskladWebhook = {
   url: string;
   method: string;
   action: string;
+  diffType?: string;
 };
 
 export type MoyskladProduct = {
   id: Uuid;
+  weighed?: boolean;
 };
 
 export type MoyskladAssortment = {

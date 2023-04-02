@@ -1,5 +1,5 @@
 import { CreateWarehouseAgentDto } from '../dto/create-agent.dto';
-import { ModificationDto } from '../dto/modification.dto';
+import { AssortmentDto } from '../dto/assortmentDto';
 
 export type AbstractService = {
   increaseAmountOfProductById?(
@@ -74,7 +74,7 @@ export type AbstractAssortment = {
   price: AmountInCents;
   quantity: Piece;
   discount: Percent;
-  gram: number;
+  gram?: number;
   type: 'variant' | 'product';
 };
 

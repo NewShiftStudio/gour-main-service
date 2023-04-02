@@ -1,5 +1,5 @@
 import { MoyskladEvent } from 'src/features/warehouse/@types/Moysklad';
 
-export class UpdateOrderStatusDto {
+export class UpdateMoyskladEntityDto {
   events: MoyskladEvent[];
 }

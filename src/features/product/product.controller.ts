@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller,Post } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -14,6 +14,8 @@ import { ProductGradeGetListDto } from './dto/product-grade-get-list.dto';
 import { ProductGradeUpdateDto } from './dto/product-grade-update.dto';
 import { ProductGetSimilarDto } from './dto/product-get-similar.dto';
 import { ExportDto } from 'src/common/dto/export.dto';
+import {UpdateMoyskladEntityDto} from "../order/dto/update-moysklad-entity.dto";
+import {ok} from "assert";
 
 @ApiTags('products')
 @Controller('products')
@@ -38,6 +40,22 @@ export class ProductController {
     @Payload('client') client: Client,
   ) {
     return this.productService.findNovelties(params, client);
+  }
+
+  @Post('/webhook-update')
+  async updateWebhook(@Payload() dto: UpdateMoyskladEntityDto) {
+    const parsedDto: UpdateMoyskladEntityDto = JSON.parse(JSON.stringify(dto));
+    console.log('RECEIVED PRODUCT UPDATE WEBHOOK', parsedDto);
+    const updateEvent = parsedDto.events[0];
+    const shouldContinue =  updateEvent.updatedFields && updateEvent.updatedFields.includes('weighed');
+    if (!shouldContinue) {
+      return 'Чекбокс веса не изменён, пропускаем';
+    }
+
+    const splitEventMeta = updateEvent.meta.href.split('/');
+    const productUuid = splitEventMeta[splitEventMeta.length - 1];
+
+    return this.productService.updateProductIsWeighed(productUuid);
   }
 
   @MessagePattern('get-product-similar')

@@ -11,7 +11,7 @@ import {
 } from './@types/WarehouseService';
 import { MoyskladService } from './moysklad.service';
 import { AxiosError, AxiosInstance } from 'axios';
-import { ModificationDto } from './dto/modification.dto';
+import { AssortmentDto } from './dto/assortmentDto';
 import { CreateOrderMeta, MoyskladState } from './@types/Moysklad';
 import { CreateWarehouseAgentDto } from './dto/create-agent.dto';
 import { cutUuidFromMoyskladHref } from './moysklad.helper';
@@ -70,7 +70,7 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
         throw new BadRequestException(`Склада в городе ${city} не существует`);
       }
 
-      const stockByModifications = await this.moyskladService.getStockByManyAssortmentIdsAndStoreId(
+      const stockByModifications = await this.moyskladService.getQuantityByManyAssortmentIdsAndStoreId(
         Object.values(modificationsByProducts),
         store.id
       );
@@ -84,6 +84,31 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
       }
 
       return result;
+    } catch (error) {
+      throw new HttpException(
+          error?.message || 'Ошибка при получении остатков',
+          error?.status || error?.statusCode,
+      );
+    }
+  }
+
+  async getQuantityByAssortmentIds(
+      assortmentUuids: Uuid[],
+      city: CityName
+  ) {
+    try {
+      const store = await this.moyskladService.getStoreByCityName(city);
+
+      if (!store.city) {
+        throw new BadRequestException(`Склада в городе ${city} не существует`);
+      }
+
+      const quantityByAssortment = await this.moyskladService.getQuantityByManyAssortmentIdsAndStoreId(
+          assortmentUuids,
+          store.id
+      );
+
+      return quantityByAssortment;
     } catch (error) {
       throw new HttpException(
           error?.message || 'Ошибка при получении остатков',
@@ -159,7 +184,7 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
     return this.moyskladService.updateOrderState(uuid, state);
   }
 
-  async createOrder(assortment: ModificationDto[], meta: CreateOrderMeta) {
+  async createOrder(assortment: AssortmentDto[], meta: CreateOrderMeta) {
     const modifications: AbstractAssortment[] = [];
     for (const ass of assortment) {
       const modification =

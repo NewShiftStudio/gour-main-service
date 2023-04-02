@@ -148,4 +148,10 @@ export class Product extends Base {
 
   @ApiProperty()
   defaultStock?: object;
+
+  @ApiProperty()
+  @Column({
+    default: false,
+  })
+  isWeighed: boolean;
 }

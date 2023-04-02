@@ -24,7 +24,7 @@ import { Product } from '../../entity/Product';
 import { DiscountService } from '../discount/discount.service';
 import { Discount } from 'src/entity/Discount';
 import { WarehouseService } from '../warehouse/warehouse.service';
-import { ModificationDto } from '../warehouse/dto/modification.dto';
+import { AssortmentDto } from '../warehouse/dto/assortmentDto';
 import { ClientService } from '../client/client.service';
 import { Currency, WalletService } from '../wallet/wallet.service';
 import { Wallet } from 'src/entity/Wallet';
@@ -246,7 +246,7 @@ export class OrderService {
       //   transactionRepository,
       // );
 
-      const assortment: ModificationDto[] = orderWithTotalSum.orderProducts.map(
+      const assortment: AssortmentDto[] = orderWithTotalSum.orderProducts.map(
         (p) => ({
           discount: 0,
           price: p.totalSumWithoutAmount * 100, // цена в копейках

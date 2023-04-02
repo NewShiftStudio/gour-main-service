@@ -54,7 +54,7 @@ export class AuthService {
   ) {}
 
   async onModuleInit() {
-    await this.client.connect();
+    // await this.client.connect();
   }
 
   async sendCode(email: string): Promise<string> {

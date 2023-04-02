@@ -78,6 +78,7 @@ export class ProductService {
 
     if (!products) throw new NotFoundException('Товары не найдены');
 
+    //todo:  это получается удалить - ОТ
     const weightByProduct = {}
     for (const product of products) {
       const isMeat = product.categories?.find(productSubCategory => productSubCategory.id === 131);
@@ -102,6 +103,21 @@ export class ProductService {
     products = products.sort(
         (a:any,b: any) =>  (a.defaultStock?.value ?? -1) - (b.defaultStock?.value ?? -1)
     );
+
+    //todo:  это получается удалить - ДО, изменить критерий сортировки
+    const quantityByProduct =  await this.warehouseService.getQuantityByAssortmentIds(
+        products.filter((p) => p.isWeighed).map((p) => p.moyskladId),
+        'Санкт-Петербург'
+    );
+
+    for (const product of products) {
+      const weight = quantityByProduct[product.moyskladId]
+      if (weight !== undefined) {
+        product.weight = weight * 1000;
+      }
+    }
+
+    //todo добавить сортировку
 
     const startDate = dto?.start && new Date(dto.start);
     const endDate = dto?.end && new Date(dto.end);
@@ -528,5 +544,26 @@ export class ProductService {
     const preparedProducts = await this.prepareProducts(client, [product]);
 
     return preparedProducts[0];
+  }
+
+  async updateProductIsWeighed(productUuid: string) {
+    let productDb = await this.productRepository.findOne(
+        {
+          where: {
+            moyskladId: productUuid
+          }
+        },
+    );
+
+    if (!productDb) {
+      console.log(`Продукта с uuid=${productUuid} нет в базе`);
+      return;
+    }
+
+    const productWarehouse = await this.warehouseService.moyskladService.getProductById(productUuid);
+    if (productWarehouse.weighed !== undefined){
+      productDb.isWeighed = productWarehouse.weighed;
+      await this.productRepository.save(productDb);
+    }
   }
 }

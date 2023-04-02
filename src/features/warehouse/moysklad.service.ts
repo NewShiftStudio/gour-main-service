@@ -25,7 +25,8 @@ import {
 } from './@types/WarehouseService';
 import { CreateWarehouseAgentDto } from './dto/create-agent.dto';
 
-const refreshStatusUpdateUrl = process.env.REFRESH_ORDER_STATUS_URL;
+const orderStatusUpdateUrl = process.env.REFRESH_ORDER_STATUS_URL;
+const productUpdateUrl = 'https://tastyoleg.ru/api/products/webhook-update';
 
 @Injectable()
 export class MoyskladService implements AbstractService {
@@ -33,6 +34,7 @@ export class MoyskladService implements AbstractService {
 
   onModuleInit() {
     this.subscribeOnOrderStatusUpdate();
+    this.subscribeOnProductUpdate();
   }
 
   timeout(ms: number) {
@@ -57,13 +59,13 @@ export class MoyskladService implements AbstractService {
       }) =>
         webhookAction === action &&
         webhookEntityType === entityType &&
-        webhookUrl === refreshStatusUpdateUrl,
+        webhookUrl === orderStatusUpdateUrl,
     );
 
     if (!statusUpdateWebhook) {
       const createWebhookResponse = await firstValueFrom(
         this.httpService.post<MoyskladWebhook>('/entity/webhook/', {
-          url: refreshStatusUpdateUrl,
+          url: orderStatusUpdateUrl,
           action,
           entityType,
         }),
@@ -82,6 +84,53 @@ export class MoyskladService implements AbstractService {
     console.log('ORDER STATUS UPDATE WEBHOOK: RUNNING');
 
     return statusUpdateWebhook;
+  }
+
+  async subscribeOnProductUpdate() {
+    const action = 'UPDATE';
+    const entityType = 'product';
+
+    const getWebhooksResponse = await firstValueFrom(
+        this.httpService.get('/entity/webhook/'),
+    );
+
+    const webhooks: MoyskladWebhook[] = getWebhooksResponse.data.rows;
+
+    const productUpdateWebhook = webhooks.find(
+        ({
+           action: webhookAction,
+           entityType: webhookEntityType,
+           url: webhookUrl,
+           diffType,
+         }) =>
+            webhookAction === action &&
+            webhookEntityType === entityType &&
+            webhookUrl === productUpdateUrl &&
+            diffType === 'FIELDS'
+    );
+
+    if (!productUpdateWebhook) {
+      const createWebhookResponse = await firstValueFrom(
+          this.httpService.post<MoyskladWebhook>('/entity/webhook/', {
+            url: productUpdateUrl,
+            action,
+            entityType,
+          }),
+      );
+
+      const newProductUpdateWebhook = createWebhookResponse.data;
+
+      if (!newProductUpdateWebhook) {
+        console.log('PRODUCT STATUS UPDATE WEBHOOK: ERROR');
+        return;
+      }
+
+      return newProductUpdateWebhook;
+    }
+
+    console.log('PRODUCT UPDATE WEBHOOK: RUNNING');
+
+    return productUpdateWebhook;
   }
 
   async getManyModificationByProductIdAndGram(gramsByUuids) {
@@ -107,20 +156,20 @@ export class MoyskladService implements AbstractService {
     return modificationsByProduct;
   }
 
-
-  async getStockByManyAssortmentIdsAndStoreId(
+  async getQuantityByManyAssortmentIdsAndStoreId(
       assortmentUuids: Uuid[],
       storeUuid: Uuid,
   ) {
-    let url = `/report/stock/all/current?filter=storeId=${storeUuid}`;
+    let url = `/report/stock/all/current?filter=storeId=${storeUuid}&stockType=quantity`;
     url += `&filter=assortmentId=` + assortmentUuids.join(',');
     const { data } = await firstValueFrom(
         this.httpService.get<MoyskladStock[]>(url),
     );
+
     let stockByAssortmentId = {}
     if (data) {
       for (const item of data) {
-        stockByAssortmentId[item?.assortmentId] = item?.stock
+        stockByAssortmentId[item?.assortmentId] = item?.quantity
       }
     }
 

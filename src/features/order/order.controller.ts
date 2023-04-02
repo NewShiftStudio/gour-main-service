@@ -9,7 +9,7 @@ import { OrderService } from './order.service';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { OrderCreateDto } from './dto/order-create.dto';
 import { PayOrderDto } from './dto/pay-order.dto';
-import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { UpdateMoyskladEntityDto } from './dto/update-moysklad-entity.dto';
 import { ClientService } from '../client/client.service';
 
 @ApiTags('orders')
@@ -124,8 +124,8 @@ export class OrderController {
   }
 
   @MessagePattern('refresh-order-status')
-  async refreshOrderStatus(@Payload() dto: UpdateOrderStatusDto) {
-    const parsedDto: UpdateOrderStatusDto = JSON.parse(JSON.stringify(dto));
+  async refreshOrderStatus(@Payload() dto: UpdateMoyskladEntityDto) {
+    const parsedDto: UpdateMoyskladEntityDto = JSON.parse(JSON.stringify(dto));
     const updateEvent = parsedDto.events[0];
     const splitedEventMeta = updateEvent.meta.href.split('/');
     const orderUuid = splitedEventMeta[splitedEventMeta.length - 1];
