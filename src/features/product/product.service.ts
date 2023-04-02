@@ -557,7 +557,7 @@ export class ProductService {
 
     if (!productDb) {
       console.log(`Продукта с uuid=${productUuid} нет в базе`);
-      return;
+      return {message: 'Успех'};
     }
 
     const productWarehouse = await this.warehouseService.moyskladService.getProductById(productUuid);
@@ -565,5 +565,7 @@ export class ProductService {
       productDb.isWeighed = productWarehouse.weighed;
       await this.productRepository.save(productDb);
     }
+
+    return {message: 'Успех'};
   }
 }
