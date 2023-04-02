@@ -42,7 +42,7 @@ export class ProductController {
     return this.productService.findNovelties(params, client);
   }
 
-  @Post('/webhook-update')
+  @MessagePattern('webhook-update')
   async updateWebhook(@Payload() dto: UpdateMoyskladEntityDto) {
     const parsedDto: UpdateMoyskladEntityDto = JSON.parse(JSON.stringify(dto));
     console.log('RECEIVED PRODUCT UPDATE WEBHOOK', parsedDto);
