@@ -115,6 +115,7 @@ export class MoyskladService implements AbstractService {
             url: productUpdateUrl,
             action,
             entityType,
+            diffType: 'FIELDS'
           }),
       );
 
