@@ -185,10 +185,23 @@ export class ProductService {
       }
     }
 
+    const quantityByProduct =  await this.warehouseService.getQuantityByAssortmentIds(
+        products.filter((p) => p.isWeighed).map((p) => p.moyskladId),
+        'Санкт-Петербург'
+    );
+
+    for (const product of products) {
+      const weight = quantityByProduct[product.moyskladId]
+      if (weight !== undefined) {
+        product.weight = weight * 1000;
+      }
+    }
+
     products = products
-        .filter((product:any) => product.defaultStock?.value)
+        .filter((product:any) => product.defaultStock?.value || product.weight)
         .sort(
-        (a:any,b: any) =>  (a.defaultStock?.value ?? -1) - (b.defaultStock?.value ?? -1)
+            (a:any,b: any) =>  (a.defaultStock?.value ?? Boolean(a.weight) ??  -1)
+                - (b.defaultStock?.value ?? Boolean(b.weight) ?? -1)
         ).reverse();
 
     if (params.withDiscount) {
@@ -254,14 +267,24 @@ export class ProductService {
         'Санкт-Петербург'
     );
 
+    const quantityByProduct =  await this.warehouseService.getQuantityByAssortmentIds(
+        fullSimilarProducts.filter((p) => p.isWeighed).map((p) => p.moyskladId),
+        'Санкт-Петербург'
+    );
+
     for (const product of fullSimilarProducts) {
       const stock = stocksByProduct[product.moyskladId]
       if (stock !== undefined) {
         product.defaultStock = stock;
       }
+
+      const weight = quantityByProduct[product.moyskladId]
+      if (weight !== undefined) {
+        product.weight = weight * 1000;
+      }
     }
 
-    fullSimilarProducts = fullSimilarProducts.filter((product:any) => product.defaultStock?.value)
+    fullSimilarProducts = fullSimilarProducts.filter((product:any) => product.defaultStock?.value || product.weight)
 
     return fullSimilarProducts;
   }
@@ -306,6 +329,14 @@ export class ProductService {
       };
     }
 
+    if (product.isWeighed) {
+      const quantityByProduct = await this.warehouseService.getQuantityByAssortmentIds(
+          [product.moyskladId],
+          'Санкт-Петербург'
+      );
+      product.weight = (quantityByProduct[product.moyskladId] ?? 0) * 1000;
+    }
+
     if (product.similarProducts) {
       const weightByProduct = {}
       product.similarProducts = product.similarProducts.map((similarProduct) => {
@@ -323,10 +354,20 @@ export class ProductService {
           'Санкт-Петербург'
       );
 
+      const quantityByProduct =  await this.warehouseService.getQuantityByAssortmentIds(
+          product.similarProducts.filter((p) => p.isWeighed).map((p) => p.moyskladId),
+          'Санкт-Петербург'
+      );
+
       product.similarProducts = product.similarProducts.map((similarProduct) => {
         const stock = stocksByProduct[similarProduct.moyskladId]
         if (stock !== undefined) {
           similarProduct.defaultStock = stock;
+        }
+
+        const weight = quantityByProduct[product.moyskladId]
+        if (weight !== undefined) {
+          product.weight = weight * 1000;
         }
 
         return similarProduct;
