@@ -187,12 +187,16 @@ export class WarehouseService implements IWarehouseService<MoyskladService> {
   async createOrder(assortment: AssortmentDto[], meta: CreateOrderMeta) {
     const modifications: AbstractAssortment[] = [];
     for (const ass of assortment) {
-      const modification =
-        await this.moyskladService.getModificationByProductIdAndGram(
-          ass.productId,
-          `${ass.gram}гр`,
-        );
-      modifications.push({ ...ass, id: modification.id });
+      if (ass.type === 'variant') {
+        const modification =
+            await this.moyskladService.getModificationByProductIdAndGram(
+                ass.productId,
+                `${ass.gram}гр`,
+            );
+        modifications.push({ ...ass, id: modification.id });
+      } else {
+        modifications.push({ ...ass, id: ass.productId });
+      }
     }
 
     return this.moyskladService.createOrder(modifications, meta);
