@@ -1,4 +1,4 @@
-import { Controller,Post } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -14,8 +14,7 @@ import { ProductGradeGetListDto } from './dto/product-grade-get-list.dto';
 import { ProductGradeUpdateDto } from './dto/product-grade-update.dto';
 import { ProductGetSimilarDto } from './dto/product-get-similar.dto';
 import { ExportDto } from 'src/common/dto/export.dto';
-import {UpdateMoyskladEntityDto} from "../order/dto/update-moysklad-entity.dto";
-import {ok} from "assert";
+import { UpdateMoyskladEntityDto } from "../order/dto/update-moysklad-entity.dto";
 
 @ApiTags('products')
 @Controller('products')

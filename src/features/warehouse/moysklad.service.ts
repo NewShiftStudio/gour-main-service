@@ -26,7 +26,7 @@ import {
 import { CreateWarehouseAgentDto } from './dto/create-agent.dto';
 
 const orderStatusUpdateUrl = process.env.REFRESH_ORDER_STATUS_URL;
-const productUpdateUrl = 'https://tastyoleg.ru/api/products/webhook-update';
+const productUpdateUrl = 'https://tastyoleg.com/api/products/webhook-update';
 
 @Injectable()
 export class MoyskladService implements AbstractService {

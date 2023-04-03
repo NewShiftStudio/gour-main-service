@@ -250,10 +250,9 @@ export class OrderService {
         (p) => ({
           discount: 0,
           price: p.totalSumWithoutAmount * 100, // цена в копейках
-          quantity: p.amount,
-          type: 'variant',
+          quantity: p.product.weight ? (p.amount * p.gram / 1000) : p.amount, // вес либо количество
+          type: p.product.weight ? 'product' : 'variant',
           productId: p.product?.moyskladId,
-          gram: p.gram,
         }),
       );
 

@@ -100,10 +100,6 @@ export class ProductService {
       }
     }
 
-    products = products.sort(
-        (a:any,b: any) =>  (a.defaultStock?.value ?? -1) - (b.defaultStock?.value ?? -1)
-    );
-
     //todo:  это получается удалить - ДО, изменить критерий сортировки
     const quantityByProduct =  await this.warehouseService.getQuantityByAssortmentIds(
         products.filter((p) => p.isWeighed).map((p) => p.moyskladId),
@@ -117,7 +113,10 @@ export class ProductService {
       }
     }
 
-    //todo добавить сортировку
+    products = products.sort(
+        (a:any,b: any) =>  (a.defaultStock?.value ?? Boolean(a.weight) ??  -1)
+            - (b.defaultStock?.value ?? Boolean(b.weight) ?? -1)
+    );
 
     const startDate = dto?.start && new Date(dto.start);
     const endDate = dto?.end && new Date(dto.end);
@@ -561,10 +560,10 @@ export class ProductService {
     }
 
     const productWarehouse = await this.warehouseService.moyskladService.getProductById(productUuid);
-    if (productWarehouse.weighed !== undefined){
-      productDb.isWeighed = productWarehouse.weighed;
-      await this.productRepository.save(productDb);
-    }
+    productDb.isWeighed = productWarehouse.weighed ?? false;
+    await this.productRepository.save(productDb);
+
+    console.log(`Обновили продукт продукт с uuid=${productUuid}`, productWarehouse.weighed ?? false);
 
     return {message: 'Успех'};
   }
