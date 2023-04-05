@@ -3,20 +3,22 @@ import {ApiPropertyOptional} from '@nestjs/swagger';
 
 export class PriceDto {
   @IsNumber()
-  @IsOptional
+  @IsOptional()
   @ApiPropertyOptional()
   cheeseCoin?: number;
 
   @IsNumber()
-  @IsOptional
+  @IsOptional()
   @ApiPropertyOptional()
   individual?: number;
 
   @IsNumber()
+  @IsOptional()
   @ApiPropertyOptional()
   company?: number;
 
   @IsNumber()
+  @IsOptional()
   @ApiPropertyOptional()
   companyByCash?: number;
 }
