@@ -1,20 +1,22 @@
-import { IsNumber } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import {IsNumber, IsOptional} from 'class-validator';
+import {ApiPropertyOptional} from '@nestjs/swagger';
 
 export class PriceDto {
   @IsNumber()
-  @ApiProperty()
-  cheeseCoin: number;
+  @IsOptional
+  @ApiPropertyOptional()
+  cheeseCoin?: number;
 
   @IsNumber()
-  @ApiProperty()
-  individual: number;
+  @IsOptional
+  @ApiPropertyOptional()
+  individual?: number;
 
   @IsNumber()
-  @ApiProperty()
-  company: number;
+  @ApiPropertyOptional()
+  company?: number;
 
   @IsNumber()
-  @ApiProperty()
-  companyByCash: number;
+  @ApiPropertyOptional()
+  companyByCash?: number;
 }

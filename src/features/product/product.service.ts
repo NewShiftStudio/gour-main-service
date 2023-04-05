@@ -591,7 +591,7 @@ export class ProductService {
         {
           where: {
             moyskladId: productUuid
-          }
+          },
         },
     );
 
@@ -602,9 +602,26 @@ export class ProductService {
 
     const productWarehouse = await this.warehouseService.moyskladService.getProductById(productUuid);
     productDb.isWeighed = productWarehouse.weighed ?? false;
+
+    const MAP_ROLE_PRICE_TYPE:any = {
+      'cbcf493b-55bc-11d9-848a-00112f43529a': 'individual',
+      '643f2204-655f-44d2-a70c-115df3163e0d': 'companyByCash',
+      '825b0462-6bc4-4825-8f77-0e31fa7ee311': 'company',
+    };
+
+    // Группируем цены
+    for (const priceObj of productWarehouse.salePrices) {
+      const type = MAP_ROLE_PRICE_TYPE[priceObj.priceType.externalCode];
+      if (type) {
+        productDb.price[type] = priceObj.value / 100; // делим на 100 т.к. копейки
+      } else {
+        console.log(`Неизвестный тип цены ${priceObj}`)
+      }
+    }
+
     await this.productRepository.save(productDb);
 
-    console.log(`Обновили продукт продукт с uuid=${productUuid}`, productWarehouse.weighed ?? false);
+    console.log(`Обновили продукт продукт с uuid=${productUuid}`);
 
     return {message: 'Успех'};
   }

@@ -24,6 +24,12 @@ export type MoyskladWebhook = {
 export type MoyskladProduct = {
   id: Uuid;
   weighed?: boolean;
+  salePrices: {
+    value: number,
+    priceType: {
+      externalCode: string
+    }
+  }[];
 };
 
 export type MoyskladAssortment = {

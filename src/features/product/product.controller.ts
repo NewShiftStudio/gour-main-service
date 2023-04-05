@@ -46,9 +46,15 @@ export class ProductController {
     const parsedDto: UpdateMoyskladEntityDto = JSON.parse(JSON.stringify(dto));
     console.log('RECEIVED PRODUCT UPDATE WEBHOOK', parsedDto);
     const updateEvent = parsedDto.events[0];
-    const shouldContinue =  updateEvent.updatedFields && updateEvent.updatedFields.includes('weighed');
+    const shouldContinue =  updateEvent.updatedFields && (
+        updateEvent.updatedFields.includes('weighed')
+        || updateEvent.updatedFields.includes('Цена продажи для юр. лиц безнал')
+        || updateEvent.updatedFields.includes('Цена продажи для юр. лиц нал')
+        || updateEvent.updatedFields.includes('Цена продажи для физ. лиц')
+    );
     if (!shouldContinue) {
-      return 'Чекбокс веса не изменён, пропускаем';
+      console.log('Чекбокс веса или цена не изменены, пропускаем');
+      return 'Чекбокс веса или цена не изменены, пропускаем';
     }
 
     const splitEventMeta = updateEvent.meta.href.split('/');
