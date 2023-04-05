@@ -247,13 +247,14 @@ export class OrderService {
       // );
 
       const assortment: AssortmentDto[] = orderWithTotalSum.orderProducts.map(
-        (p) => (Object.assign({
-          discount: 0,
-          price: p.totalSumWithoutAmount * 100, // цена в копейках
-          quantity: p.product.isWeighed ? (p.amount * p.gram / 1000) : p.amount, // вес либо количество
-          type: p.product.isWeighed ? 'product' : 'variant',
-          productId: p.product?.moyskladId,
-        },p.product.isWeighed ? {} : {gram: p.gram})),
+          (p) => ({
+            discount: 0,
+            price: p.totalSumWithoutAmount * 100, // цена в копейках
+            quantity: p.product.weight ? (p.amount * p.gram / 1000) : p.amount, // вес либо количество
+            type: p.product.weight ? 'product' : 'variant',
+            productId: p.product?.moyskladId,
+            gram: p.gram
+          }),
       );
 
       const fullClient = await this.clientService.findOne(client.id);
