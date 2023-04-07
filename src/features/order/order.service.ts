@@ -302,7 +302,7 @@ export class OrderService {
         stateName: stateName,
         paymentMethod: dto.paymentMethod,
         moyskladOrderId: warehouseOrder.id,
-        isClientIndividual: client.role.key === 'individual'
+        isClientIndividual: fullClient.role.key === 'individual'
       });
 
       await this.warehouseService.moyskladService.updateOrder(

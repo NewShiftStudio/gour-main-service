@@ -18,7 +18,7 @@ const moySkladOrderLinkCustomFieldId = 1435077;
 const moySkladOrderIdCustomFieldId = 1401675;
 const clientTypeCustomFieldId = 640125;
 
-const siteTagId = 2719;
+const siteTagId = 266861;
 
 const client_id = process.env.AMO_CLIENT_ID;
 const client_secret = process.env.AMO_CLIENT_SECRET;
@@ -180,10 +180,10 @@ export class AmoCrmService {
           ]
         },
         {
-          field_id: 1401675, // ID заказа
+          field_id: moySkladOrderIdCustomFieldId, // ID заказа
           values: [
             {
-              value: moySkladOrderIdCustomFieldId,
+              value: moyskladOrderId,
             }
           ]
         },
