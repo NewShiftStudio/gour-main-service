@@ -27,6 +27,12 @@ import { CategoryService } from '../category/category.service';
 import { ExportDto } from 'src/common/dto/export.dto';
 import {WarehouseService} from "../warehouse/warehouse.service";
 
+const MAP_ROLE_PRICE_TYPE: any = {
+  'cbcf493b-55bc-11d9-848a-00112f43529a': 'individual',
+  '643f2204-655f-44d2-a70c-115df3163e0d': 'companyByCash',
+  '825b0462-6bc4-4825-8f77-0e31fa7ee311': 'company',
+};
+
 @Injectable()
 export class ProductService {
   constructor(
@@ -408,32 +414,6 @@ export class ProductService {
       }
     }
 
-    if (dto.roleDiscounts) {
-      saveParams.roleDiscounts = [];
-
-      for (const { role: roleId, value } of dto.roleDiscounts) {
-        const role = await this.clientRoleRepository.findOne(roleId);
-
-        const roleDiscount = await this.roleDiscountRepository.findOne({
-          role,
-          value,
-        });
-
-        if (!roleDiscount) {
-          const newRoleDiscount = await this.roleDiscountRepository.save({
-            role,
-            value,
-          });
-
-          saveParams.roleDiscounts.push(newRoleDiscount);
-
-          return;
-        }
-
-        saveParams.roleDiscounts.push(roleDiscount);
-      }
-    }
-
     const images: Image[] = [];
 
     for (const imageId of dto.images) {
@@ -468,6 +448,36 @@ export class ProductService {
     if (dto.moyskladId) {
       const moyskladProduct = await this.warehouseService.moyskladService.getProductById(dto.moyskladId);
       dto.moyskladId = moyskladProduct.id;
+
+      let prices = [];
+      const priceTypesByExternalCode = {
+        'cbcf493b-55bc-11d9-848a-00112f43529a': '015ae8a2-f130-11eb-0a80-0235000e61cf',
+        '643f2204-655f-44d2-a70c-115df3163e0d': '85a8e750-b589-11ec-0a80-06d100086547',
+        '825b0462-6bc4-4825-8f77-0e31fa7ee311': 'b919d491-3598-11ed-0a80-0bbb00082dd9'
+      };
+      for (const [key, value] of Object.entries(dto.price)) {
+        if (value !== undefined && key !== 'cheeseCoin') {
+          prices[key] = value;
+          const priceExternalCode = Object.entries(MAP_ROLE_PRICE_TYPE).find(([priceKey, priceId]) => priceId === key)[0];
+          const priceId = priceTypesByExternalCode[priceExternalCode];
+          prices.push({
+            value: value * 100,
+            priceType: {
+              meta: {
+                href: `https://online.moysklad.ru/api/remap/1.2/context/companysettings/pricetype/${priceId}`,
+                type: 'pricetype',
+                mediaType: 'application/json'
+              }
+            }
+          })
+        }
+      }
+      if (prices.length) {
+        await this.warehouseService.moyskladService.updateProduct(
+            dto.moyskladId,
+            {salePrices: prices}
+        );
+      }
     }
 
     const saveParams: DeepPartial<Product> = {
@@ -498,32 +508,6 @@ export class ProductService {
         const similarProduct = await this.productRepository.findOne(productId);
 
         saveParams.similarProducts.push(similarProduct);
-      }
-    }
-
-    if (dto.roleDiscounts) {
-      saveParams.roleDiscounts = [];
-
-      for (const { role: roleId, value } of dto.roleDiscounts) {
-        const role = await this.clientRoleRepository.findOne(roleId);
-
-        const roleDiscount = await this.roleDiscountRepository.findOne({
-          role,
-          value,
-        });
-
-        if (!roleDiscount) {
-          const newRoleDiscount = await this.roleDiscountRepository.save({
-            role,
-            value,
-          });
-
-          saveParams.roleDiscounts.push(newRoleDiscount);
-
-          return;
-        }
-
-        saveParams.roleDiscounts.push(roleDiscount);
       }
     }
 
@@ -586,7 +570,7 @@ export class ProductService {
     return preparedProducts[0];
   }
 
-  async updateProductIsWeighed(productUuid: string) {
+  async updateProductByWebhook(productUuid: string) {
     let productDb = await this.productRepository.findOne(
         {
           where: {
@@ -602,12 +586,6 @@ export class ProductService {
 
     const productWarehouse = await this.warehouseService.moyskladService.getProductById(productUuid);
     productDb.isWeighed = productWarehouse.weighed ?? false;
-
-    const MAP_ROLE_PRICE_TYPE:any = {
-      'cbcf493b-55bc-11d9-848a-00112f43529a': 'individual',
-      '643f2204-655f-44d2-a70c-115df3163e0d': 'companyByCash',
-      '825b0462-6bc4-4825-8f77-0e31fa7ee311': 'company',
-    };
 
     // Группируем цены
     for (const priceObj of productWarehouse.salePrices) {

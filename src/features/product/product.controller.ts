@@ -60,7 +60,7 @@ export class ProductController {
     const splitEventMeta = updateEvent.meta.href.split('/');
     const productUuid = splitEventMeta[splitEventMeta.length - 1];
 
-    return this.productService.updateProductIsWeighed(productUuid);
+    return this.productService.updateProductByWebhook(productUuid);
   }
 
   @MessagePattern('get-product-similar')

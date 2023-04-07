@@ -419,4 +419,17 @@ export class MoyskladService implements AbstractService {
 
     return data;
   }
+
+  async updateProduct(moyskladId: string, updateBody: any) {
+    const { data } = await firstValueFrom(
+        this.httpService.put<MoyskladOrder>(`/entity/product/${moyskladId}`,
+          updateBody
+        ),
+    );
+
+    if (!data)
+      throw new InternalServerErrorException(
+          'Не удалось обновить продукт',
+      );
+  }
 }
