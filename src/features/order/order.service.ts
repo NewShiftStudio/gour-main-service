@@ -235,17 +235,6 @@ export class OrderService {
 
       const orderWithTotalSum = await this.prepareOrder(order, promoCode);
 
-      //TODO: вернуть когда вернем оплату заказа чизкойнами (рублями)
-      // const wallet = await this.walletService.getByClientId(client.id);
-
-      // await this.walletService.useCoins(
-      //   wallet.uuid,
-      //   orderWithTotalSum.totalSum,
-      //   `Оплата заказа №${order.id}`,
-      //   walletRepository,
-      //   transactionRepository,
-      // );
-
       const assortment: AssortmentDto[] = orderWithTotalSum.orderProducts.map(
           (p) => ({
             discount: 0,
@@ -312,6 +301,8 @@ export class OrderService {
         description: description,
         stateName: stateName,
         paymentMethod: dto.paymentMethod,
+        moyskladOrderId: warehouseOrder.id,
+        isClientIndividual: client.role.key === 'individual'
       });
 
       await this.warehouseService.moyskladService.updateOrder(
@@ -521,6 +512,7 @@ export class OrderService {
         orderProduct.product,
       );
 
+      //TODO здесь поправить расчёт цены,получается
       if (product) {
         const discountByGram =
           (product.price.cheeseCoin * (product.discount / 100)) / 1000;

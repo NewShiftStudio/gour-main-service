@@ -14,6 +14,11 @@ const amoCrmApi: AxiosInstance = axios.create({
 const pipelineId = process.env.PIPELINE_ID;
 const commentCustomFieldId = process.env.COMMENT_CUSTOM_FIELD_ID;
 const paymentTypeCustomFieldId = 636393;
+const moySkladOrderLinkCustomFieldId = 1435077;
+const moySkladOrderIdCustomFieldId = 1401675;
+const clientTypeCustomFieldId = 640125;
+
+const siteTagId = 2719;
 
 const client_id = process.env.AMO_CLIENT_ID;
 const client_secret = process.env.AMO_CLIENT_SECRET;
@@ -146,7 +151,7 @@ export class AmoCrmService {
     }
   }
 
-  async createLead({ name, price, description, stateName, paymentMethod }: LeadCreateDto) {
+  async createLead({ name, price, description, stateName, paymentMethod, moyskladOrderId, isClientIndividual }: LeadCreateDto) {
     try {
       const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
       const accessTokenValue = JSON.parse(accessTokenMeta.value);
@@ -166,6 +171,30 @@ export class AmoCrmService {
             },
           ],
         },
+        {
+          field_id: moySkladOrderLinkCustomFieldId, // ссылка
+          values: [
+            {
+              value: `https://online.moysklad.ru/app/#customerorder/edit?id=${moyskladOrderId}`,
+            }
+          ]
+        },
+        {
+          field_id: 1401675, // ID заказа
+          values: [
+            {
+              value: moySkladOrderIdCustomFieldId,
+            }
+          ]
+        },
+        {
+          field_id: clientTypeCustomFieldId, // тип клиента
+          values: [
+            {
+              value: isClientIndividual ? 'Физлицо' : 'Юрлицо',
+            }
+          ]
+        },
       ];
 
       if (paymentMethod === OrderPaymentMethod.cash) {
@@ -183,7 +212,14 @@ export class AmoCrmService {
             price,
             status_id: status.id,
             pipeline_id: +pipelineId,
-            custom_fields_values: customFields
+            custom_fields_values: customFields,
+            _embedded: {
+              tags: [
+                {
+                  id: siteTagId, // тег сайт
+                }
+              ]
+            }
           },
         ],
         {

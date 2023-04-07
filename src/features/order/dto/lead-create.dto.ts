@@ -6,4 +6,6 @@ export class LeadCreateDto {
   description: string;
   stateName: string;
   paymentMethod?: OrderPaymentMethod;
+  moyskladOrderId: Uuid;
+  isClientIndividual: boolean;
 }

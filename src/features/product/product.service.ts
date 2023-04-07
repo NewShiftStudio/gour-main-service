@@ -457,7 +457,6 @@ export class ProductService {
       };
       for (const [key, value] of Object.entries(dto.price)) {
         if (value !== undefined && key !== 'cheeseCoin') {
-          prices[key] = value;
           const priceExternalCode = Object.entries(MAP_ROLE_PRICE_TYPE).find(([priceKey, priceId]) => priceId === key)[0];
           const priceId = priceTypesByExternalCode[priceExternalCode];
           prices.push({
