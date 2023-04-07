@@ -2,14 +2,13 @@ import { ClientRole } from 'src/entity/ClientRole';
 import { Product } from 'src/entity/Product';
 import { arrayToDictionary } from 'src/utils/common';
 import { CategoryWithDiscounts } from '../category/category.helpers';
+import {Price} from "../../entity/Price";
 
 const MAXIMAL_EATING_DISCOUNT = 10;
 
 interface MinimumProduct {
   id: number;
-  price: {
-    cheeseCoin: number;
-  };
+  price: Price;
   discount: number;
   roleDiscounts: Product['roleDiscounts'];
   categories: Product['categories'];
@@ -23,6 +22,14 @@ interface MinimumPromotion {
 export type ProductWithTotalCost<P> = P & {
   totalCost: number;
 };
+
+export function getProductPriceByRole(price: Price,role?: ClientRole,isCash = false) {
+  if (!role || role.key === 'individual') {
+    return price.individual;
+  }
+
+  return isCash ? price.companyByCash : price.company;
+}
 
 export function getProductsWithDiscount<P extends MinimumProduct>(
   products: P[],
@@ -51,27 +58,15 @@ export function getProductsWithDiscount<P extends MinimumProduct>(
       const promotionDiscountPercent = promotionsByProductId[product.id];
 
       product.discount = promotionDiscountPercent;
-    } else {
-      const roleDiscount = product.roleDiscounts?.find(
-        (roleDiscount) => roleDiscount.role.id === role.id,
-      );
-
-      if (roleDiscount) {
-        const priceWithRoleDiscount = Math.ceil(
-          product.price.cheeseCoin - roleDiscount.value,
-        );
-
-        product.price.cheeseCoin = priceWithRoleDiscount;
-      }
     }
 
     product.discount += eatingDiscountInPercent;
     if (product.discount > 1) {
-      // TODO: уточнить, может ли быть скидка около 0.9 по промоакции?
       product.discount = 1;
     }
+
     const totalCost = Math.ceil(
-      product.price.cheeseCoin * (1 - product.discount / 100),
+        getProductPriceByRole(product.price,role)  * (1 - product.discount / 100),
     );
 
     return { ...product, totalCost };

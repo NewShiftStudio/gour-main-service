@@ -7,6 +7,9 @@ const testProduct1 = {
   id: 1,
   price: {
     cheeseCoin: 1000,
+    company: 1000,
+    companyByCash: 1000,
+    individual: 1000,
   },
   discount: 0,
   roleDiscounts: [],

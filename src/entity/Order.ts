@@ -84,4 +84,7 @@ export class Order {
 
   @DeleteDateColumn({ default: null })
   deletedAt?: Date;
+
+  @Column({ default: false })
+  payByCash: boolean;
 }

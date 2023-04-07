@@ -40,6 +40,7 @@ import { decodeToken, encodeJwt, verifyJwt } from '../auth/jwt.service';
 import { PayOrderDto } from './dto/pay-order.dto';
 import { ClientRole } from 'src/entity/ClientRole';
 import { PromoCode } from 'src/entity/PromoCode';
+import { getProductPriceByRole } from '../product/product-cost-calculation.helper';
 
 const organizationId = process.env.WAREHOUSE_ORGANIZATION_ID;
 const tokenSecret = process.env.SIGNATURE_SECRET;
@@ -167,6 +168,7 @@ export class OrderService {
     const promoCodeRepository = queryRunner.manager.getRepository(PromoCode);
 
     try {
+      const fullClient = await this.clientService.findOne(client.id);
       const orderProfile = await this.orderProfileService.getOne(
         dto.deliveryProfileId,
       );
@@ -188,8 +190,9 @@ export class OrderService {
             category,
           );
 
+          const priceByRole = getProductPriceByRole(product.price,fullClient.role, dto.paymentMethod==='cash');
           const price = Math.ceil(
-            (product.price.cheeseCoin / 1000) * gram * amount,
+              (priceByRole / 1000) * gram * amount,
           );
 
           if (candidateDiscount) {
@@ -229,6 +232,7 @@ export class OrderService {
         orderProducts,
         client,
         orderProfile,
+        payByCash: dto.paymentMethod === 'cash',
         comment: dto.comment || '',
         orderDeliveryCost: orderProfile.city.deliveryCost,
       });
@@ -245,8 +249,6 @@ export class OrderService {
             gram: p.gram
           }),
       );
-
-      const fullClient = await this.clientService.findOne(client.id);
 
       let warehouseClientId = fullClient.warehouseClientId;
 
@@ -503,6 +505,7 @@ export class OrderService {
     promoCode?: PromoCode,
   ): Promise<OrderWithTotalSumDto> {
     const fullOrderProducts: OrderProductWithTotalSumDto[] = [];
+    const fullClient = await this.clientService.findOne(order.client.id);
 
     for (const orderProduct of order.orderProducts) {
       if (!orderProduct.product) return;
@@ -514,9 +517,10 @@ export class OrderService {
 
       //TODO здесь поправить расчёт цены,получается
       if (product) {
+        const priceByRole = getProductPriceByRole(product.price,fullClient.role,order.payByCash)
         const discountByGram =
-          (product.price.cheeseCoin * (product.discount / 100)) / 1000;
-        const priceByGram = product.price.cheeseCoin / 1000;
+          (priceByRole * (product.discount / 100)) / 1000;
+        const priceByGram = priceByRole / 1000;
 
         const extraGrams = 50;
 
