@@ -242,9 +242,11 @@ export class OrderService {
       const assortment: AssortmentDto[] = orderWithTotalSum.orderProducts.map(
           (p) => ({
             discount: 0,
-            price: p.totalSumWithoutAmount * 100, // цена в копейках
-            quantity: p.product.weight ? (p.amount * p.gram / 1000) : p.amount, // вес либо количество
-            type: p.product.weight ? 'product' : 'variant',
+            price: p.product.isWeighed
+                ? (p.totalSum * 100 / (p.gram * p.amount / 1000))
+                : p.totalSumWithoutAmount * 100 , // цена в копейках
+            quantity: p.product.isWeighed ? (p.amount * p.gram / 1000) : p.amount, // вес либо количество
+            type: p.product.isWeighed ? 'product' : 'variant',
             productId: p.product?.moyskladId,
             gram: p.gram
           }),
@@ -517,7 +519,7 @@ export class OrderService {
 
       //TODO здесь поправить расчёт цены,получается
       if (product) {
-        const priceByRole = getProductPriceByRole(product.price,fullClient.role,order.payByCash)
+        const priceByRole = getProductPriceByRole(product.price,fullClient.role,order.payByCash);
         const discountByGram =
           (priceByRole * (product.discount / 100)) / 1000;
         const priceByGram = priceByRole / 1000;
@@ -533,6 +535,13 @@ export class OrderService {
         const totalSumWithoutAmount =
           totalCostWithoutAmount - totalDiscountWithoutAmount;
         const totalSum = totalSumWithoutAmount * orderProduct.amount;
+        if (product.id===65) {
+          console.log(priceByRole,discountByGram,
+              priceByGram,totalDiscountWithoutAmount,
+              totalDiscount,totalCostWithoutAmount,
+              totalCost,totalSumWithoutAmount,totalSum
+          );
+        }
 
         const fullOrderProduct = {
           ...orderProduct,
