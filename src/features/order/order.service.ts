@@ -524,7 +524,8 @@ export class OrderService {
           (priceByRole * (product.discount / 100)) / 1000;
         const priceByGram = priceByRole / 1000;
 
-        const extraGrams = 50;
+        const extraGrams = 0;
+        // const extraGrams = 50;
 
         const totalDiscountWithoutAmount = discountByGram * (orderProduct.gram + extraGrams);
         const totalDiscount = totalDiscountWithoutAmount * orderProduct.amount;
