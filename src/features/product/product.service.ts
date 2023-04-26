@@ -371,9 +371,9 @@ export class ProductService {
           similarProduct.defaultStock = stock;
         }
 
-        const weight = quantityByProduct[product.moyskladId]
+        const weight = quantityByProduct[similarProduct.moyskladId]
         if (weight !== undefined) {
-          product.weight = weight * 1000;
+          similarProduct.weight = weight * 1000;
         }
 
         return similarProduct;
