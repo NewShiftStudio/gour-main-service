@@ -54,6 +54,9 @@ export class ProductGradeService {
     return this.productGradeRepository.find({
       ...getPaginationOptions(params.offset, params.length),
       where,
+      order: {
+        'createdAt': 'DESC',
+      },
       relations: ['product', 'client'],
     });
   }
