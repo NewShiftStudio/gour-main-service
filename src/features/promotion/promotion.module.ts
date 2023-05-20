@@ -6,10 +6,12 @@ import { PromotionController } from './promotion.controller';
 import { Promotion } from '../../entity/Promotion';
 import { Image } from '../../entity/Image';
 import { Product } from '../../entity/Product';
+import { WarehouseService } from '../warehouse/warehouse.service';
+import { WarehouseModule } from '../warehouse/warehouse.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Promotion, Image, Product])],
-  providers: [PromotionService],
+  imports: [WarehouseModule, TypeOrmModule.forFeature([Promotion, Image, Product])],
+  providers: [PromotionService, WarehouseService],
   controllers: [PromotionController],
   exports: [PromotionService],
 })

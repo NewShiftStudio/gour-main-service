@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {Inject, Injectable, NotFoundException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -9,6 +9,7 @@ import { PromotionUpdateDto } from './dto/promotion-update.dto';
 import { BaseGetListDto } from '../../common/dto/base-get-list.dto';
 import { Image } from '../../entity/Image';
 import { Product } from '../../entity/Product';
+import { WarehouseService } from '../warehouse/warehouse.service';
 
 @Injectable()
 export class PromotionService {
@@ -21,6 +22,8 @@ export class PromotionService {
 
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+
+    @Inject(WarehouseService) readonly warehouseService: WarehouseService,
   ) {}
 
   findMany(params: BaseGetListDto) {
@@ -30,7 +33,7 @@ export class PromotionService {
   }
 
   async getOne(id: number) {
-    const promotion = this.promotionRepository
+    const promotion = await this.promotionRepository
       .createQueryBuilder('promotion')
       .leftJoinAndSelect('promotion.title', 'promotionTitle')
       .leftJoinAndSelect('promotion.description', 'description')
@@ -50,6 +53,18 @@ export class PromotionService {
       )
       .where('promotion.id = :id', { id })
       .getOne();
+
+    const quantityByProduct =  await this.warehouseService.getQuantityByAssortmentIds(
+        promotion.products.filter((p) => p.isWeighed).map((p) => p.moyskladId),
+        'Санкт-Петербург'
+    );
+
+    for (const product of promotion.products) {
+      const weight = quantityByProduct[product.moyskladId]
+      if (weight !== undefined) {
+        product.weight = weight * 1000;
+      }
+    }
 
     return promotion;
   }
