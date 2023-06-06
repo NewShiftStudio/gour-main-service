@@ -271,6 +271,7 @@ export class OrderService {
         );
       }
 
+      const description = this.getDescription(orderWithTotalSum,dto.paymentMethod);
       const warehouseOrder = await this.warehouseService.createOrder(
         assortment,
         {
@@ -285,6 +286,7 @@ export class OrderService {
           addInfo: order.comment,
           postalCode: '000000', //FIXME: добавить в профиль создание постал кода
           counterpartyId: warehouseClientId,
+          description
         },
       );
 
@@ -297,7 +299,6 @@ export class OrderService {
       const state = await this.warehouseService.getMoyskladState(stateUuid);
       const stateName = state.name;
 
-      const description = this.getDescription(orderWithTotalSum,dto.paymentMethod);
       const leadName = `${order.lastName} ${order.firstName} ${order.createdAt.toLocaleString().split(',').join()}`;
       const lead = await this.amoCrmService.createLead({
         name: leadName,

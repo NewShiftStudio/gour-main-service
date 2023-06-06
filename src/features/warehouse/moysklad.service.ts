@@ -394,6 +394,7 @@ export class MoyskladService implements AbstractService {
           addInfo: meta.addInfo || 'addInfo',
           comment: meta.comment || '',
         },
+        description: meta.description,
         positions: assortment.map((ass) => ({
           quantity: ass.quantity,
           price: ass.price,

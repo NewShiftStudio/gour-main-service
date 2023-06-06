@@ -17,6 +17,7 @@ const paymentTypeCustomFieldId = 636393;
 const moySkladOrderLinkCustomFieldId = 1435077;
 const moySkladOrderIdCustomFieldId = 1401675;
 const clientTypeCustomFieldId = 640125;
+const isOrderPaidCustomFieldId = 636389;
 
 const siteTagId = 266861;
 
@@ -201,6 +202,11 @@ export class AmoCrmService {
         customFields.push({
           field_id: paymentTypeCustomFieldId,
           values: [{value: "Наличн"}],
+        });
+      } else {
+        customFields.push({
+          field_id: paymentTypeCustomFieldId,
+          values: [{value: "Безналичн"}],
         });
       }
 

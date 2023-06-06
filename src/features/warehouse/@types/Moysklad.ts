@@ -98,4 +98,5 @@ export type CreateOrderMeta = {
   city: string;
   street: string;
   comment: string;
+  description: string;
 };
