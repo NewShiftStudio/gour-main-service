@@ -14,6 +14,9 @@ const amoCrmApi: AxiosInstance = axios.create({
 const pipelineId = process.env.PIPELINE_ID;
 const commentCustomFieldId = process.env.COMMENT_CUSTOM_FIELD_ID;
 const paymentTypeCustomFieldId = 636393;
+const emailContactCustomFieldId = 598589;
+const realAddressContactCustomFieldId = 1401705;
+const phoneContactCustomFieldId = 598587;
 const moySkladOrderLinkCustomFieldId = 1435077;
 const moySkladOrderIdCustomFieldId = 1401675;
 const clientTypeCustomFieldId = 640125;
@@ -152,7 +155,9 @@ export class AmoCrmService {
     }
   }
 
-  async createLead({ name, price, description, stateName, paymentMethod, moyskladOrderId, isClientIndividual }: LeadCreateDto) {
+  async createLead({
+    name, price, description, stateName, paymentMethod, moyskladOrderId, isClientIndividual, address, userName, phone, email
+  }: LeadCreateDto) {
     try {
       const accessTokenMeta = await this.getTokenMeta(this.accessTokenKey);
       const accessTokenValue = JSON.parse(accessTokenMeta.value);
@@ -223,6 +228,25 @@ export class AmoCrmService {
               tags: [
                 {
                   id: siteTagId, // тег сайт
+                }
+              ],
+              contacts: [
+                {
+                  name: userName,
+                  custom_fields_values: [
+                    {
+                      field_id: emailContactCustomFieldId,
+                      values: [{value: email}],
+                    },
+                    {
+                      field_id: realAddressContactCustomFieldId,
+                      values: [{value: address}],
+                    },
+                    {
+                      field_id: phoneContactCustomFieldId,
+                      values: [{value: phone}],
+                    }
+                  ],
                 }
               ]
             }

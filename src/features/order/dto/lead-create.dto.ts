@@ -8,4 +8,8 @@ export class LeadCreateDto {
   paymentMethod?: OrderPaymentMethod;
   moyskladOrderId: Uuid;
   isClientIndividual: boolean;
+  email: string;
+  address: string;
+  phone: string;
+  userName: string;
 }

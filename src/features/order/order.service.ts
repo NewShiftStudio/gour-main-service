@@ -41,6 +41,7 @@ import { PayOrderDto } from './dto/pay-order.dto';
 import { ClientRole } from 'src/entity/ClientRole';
 import { PromoCode } from 'src/entity/PromoCode';
 import { getProductPriceByRole } from '../product/product-cost-calculation.helper';
+import {OrderProfile} from "../../entity/OrderProfile";
 
 const organizationId = process.env.WAREHOUSE_ORGANIZATION_ID;
 const tokenSecret = process.env.SIGNATURE_SECRET;
@@ -307,7 +308,11 @@ export class OrderService {
         stateName: stateName,
         paymentMethod: dto.paymentMethod,
         moyskladOrderId: warehouseOrder.id,
-        isClientIndividual: fullClient.role.key === 'individual'
+        isClientIndividual: fullClient.role.key === 'individual',
+        email: order.email,
+        phone: order.phone,
+        address: this.getAddress(orderProfile),
+        userName: `${order.firstName} ${order.lastName}`
       });
 
       await this.warehouseService.moyskladService.updateOrder(
@@ -671,14 +676,20 @@ ${payMethodCash}
     if (order.comment) description += '\nКомментарий: ' + order.comment;
 
     /* eslint-disable prettier/prettier */
-    description += `\n\nАдрес: ${order.orderProfile.city.name.ru}`;
-    if (order.orderProfile.street) description += `, ул.${order.orderProfile.street}`;
-    if (order.orderProfile.house) description += `, д.${order.orderProfile.house}`;
-    if (order.orderProfile.entrance) description += `, подъезд ${order.orderProfile.entrance}`;
-    if (order.orderProfile.floor) description += `, этаж ${order.orderProfile.floor}`;
-    if (order.orderProfile.apartment) description += `, кв ${order.orderProfile.apartment}`;
-    if (order.orderProfile.comment) description += `\nКомментарий: ${order.orderProfile.comment}`;
+    description += this.getAddress(order.orderProfile);
 
     return description;
+  }
+
+  getAddress(orderProfile: OrderProfile): string {
+    let address = `\n\nАдрес: ${orderProfile.city.name.ru}`;
+    if (orderProfile.street) address += `, ул.${orderProfile.street}`;
+    if (orderProfile.house) address += `, д.${orderProfile.house}`;
+    if (orderProfile.entrance) address += `, подъезд ${orderProfile.entrance}`;
+    if (orderProfile.floor) address += `, этаж ${orderProfile.floor}`;
+    if (orderProfile.apartment) address += `, кв ${orderProfile.apartment}`;
+    if (orderProfile.comment) address += `\nКомментарий: ${orderProfile.comment}`;
+
+    return address;
   }
 }
