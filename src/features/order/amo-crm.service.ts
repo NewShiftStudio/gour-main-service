@@ -216,48 +216,48 @@ export class AmoCrmService {
       }
 
       const { data } = await amoCrmApi.post(
-        `api/v4/leads`,
-        [
+          `api/v4/leads/complex`,
+          [
+            {
+              name,
+              price,
+              status_id: status.id,
+              pipeline_id: +pipelineId,
+              custom_fields_values: customFields,
+              _embedded: {
+                tags: [
+                  {
+                    id: siteTagId, // тег сайт
+                  }
+                ],
+                contacts: [
+                  {
+                    name: userName,
+                    custom_fields_values: [
+                      {
+                        field_id: emailContactCustomFieldId,
+                        values: [{value: email, enum_code: "WORK"}],
+                      },
+                      {
+                        field_id: realAddressContactCustomFieldId,
+                        values: [{value: address}],
+                      },
+                      {
+                        field_id: phoneContactCustomFieldId,
+                        values: [{value: phone, enum_code: "WORK"}],
+                      }
+                    ],
+                  }
+                ]
+              }
+            },
+          ],
           {
-            name,
-            price,
-            status_id: status.id,
-            pipeline_id: +pipelineId,
-            custom_fields_values: customFields,
-            _embedded: {
-              tags: [
-                {
-                  id: siteTagId, // тег сайт
-                }
-              ],
-              contacts: [
-                {
-                  name: userName,
-                  custom_fields_values: [
-                    {
-                      field_id: emailContactCustomFieldId,
-                      values: [{value: email}],
-                    },
-                    {
-                      field_id: realAddressContactCustomFieldId,
-                      values: [{value: address}],
-                    },
-                    {
-                      field_id: phoneContactCustomFieldId,
-                      values: [{value: phone}],
-                    }
-                  ],
-                }
-              ]
-            }
+            headers: { Authorization: `Bearer ${this.accessToken}` },
           },
-        ],
-        {
-          headers: { Authorization: `Bearer ${this.accessToken}` },
-        },
       );
 
-      const lead = data?._embedded.leads[0];
+      const lead = data[0];
 
       if (!lead)
         throw new InternalServerErrorException(
