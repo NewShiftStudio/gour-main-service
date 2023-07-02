@@ -159,7 +159,7 @@ export class OrderService {
     return order;
   }
 
-  async create(dto: OrderCreateDto, client: Client) {
+  async create(dto: OrderCreateDto, client: Client|undefined) {
     const queryRunner = this.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -169,7 +169,7 @@ export class OrderService {
     const promoCodeRepository = queryRunner.manager.getRepository(PromoCode);
 
     try {
-      const fullClient = await this.clientService.findOne(client.id);
+      const fullClient = client ? await this.clientService.findOne(client.id) : undefined;
       const orderProfile = await this.orderProfileService.getOne(
         dto.deliveryProfileId,
       );
@@ -185,32 +185,35 @@ export class OrderService {
 
         if (!product) throw new NotFoundException('Товар не найден');
 
-        const discountPromises = product.categories.map(async (category) => {
-          const candidateDiscount = await this.discountService.findOneByFK(
-            client,
-            category,
-          );
+        // Если клиент авторизован, то смотрим на потенциальные скидки
+        if (client) {
+          const discountPromises = product.categories.map(async (category) => {
+            const candidateDiscount = await this.discountService.findOneByFK(
+                client,
+                category,
+            );
 
-          const priceByRole = getProductPriceByRole(product.price,fullClient.role, dto.paymentMethod==='cash');
-          const price = Math.ceil(
-              (priceByRole / 1000) * gram * amount,
-          );
+            const priceByRole = getProductPriceByRole(product.price, fullClient.role, dto.paymentMethod === 'cash');
+            const price = Math.ceil(
+                (priceByRole / 1000) * gram * amount,
+            );
 
-          if (candidateDiscount) {
+            if (candidateDiscount) {
+              return discountRepository.save({
+                ...candidateDiscount,
+                price: candidateDiscount.price + price,
+              });
+            }
+
             return discountRepository.save({
-              ...candidateDiscount,
-              price: candidateDiscount.price + price,
+              client,
+              productCategory: category,
+              price,
             });
-          }
-
-          return discountRepository.save({
-            client,
-            productCategory: category,
-            price,
           });
-        });
 
-        await Promise.all(discountPromises);
+          await Promise.all(discountPromises);
+        }
 
         const orderProduct = await this.orderProductRepository.save({
           product,
@@ -253,23 +256,38 @@ export class OrderService {
           }),
       );
 
-      let warehouseClientId = fullClient.warehouseClientId;
+      let warehouseClientId = fullClient?.warehouseClientId;
 
       // Создание контрагента, требование моего склада
       if (!warehouseClientId) {
-        const agent = await this.warehouseService.createWarehouseAgent({
-          description: 'Клиент из интернет-магазина tastyoleg.com',
-          email: fullClient.email,
-          name: `${fullClient.firstName}  ${fullClient.lastName}`,
-          phone: fullClient.phone,
-        });
+        let agent;
+        if (!fullClient) {
+          const name =  (dto.firstName.length || dto.firstName.length)
+              ? `${dto.firstName}  ${dto.lastName}`
+              : 'Не авторизованный клиент из интернет-магазина tastyoleg.com';
+          agent = await this.warehouseService.createWarehouseAgent({
+            description: 'Клиент из интернет-магазина tastyoleg.com',
+            email: dto.email,
+            name: name,
+            phone: dto.phone,
+          });
+        } else {
+          agent = await this.warehouseService.createWarehouseAgent({
+            description: 'Клиент из интернет-магазина tastyoleg.com',
+            email: fullClient.email,
+            name: `${fullClient.firstName}  ${fullClient.lastName}`,
+            phone: fullClient.phone,
+          });
+        }
 
         warehouseClientId = agent.id;
 
-        await this.clientService.updateWarehouseClientId(
-          client.id,
-          warehouseClientId,
-        );
+        if (client) {
+          await this.clientService.updateWarehouseClientId(
+              client.id,
+              warehouseClientId,
+          );
+        }
       }
 
       const description = this.getDescription(orderWithTotalSum,dto.paymentMethod);
@@ -300,7 +318,10 @@ export class OrderService {
       const state = await this.warehouseService.getMoyskladState(stateUuid);
       const stateName = state.name;
 
-      const leadName = `${order.lastName} ${order.firstName} ${order.createdAt.toLocaleString().split(',').join()}`;
+      const prefix = (dto.firstName.length || dto.firstName.length)
+          ? `${dto.firstName}  ${dto.lastName}`
+          : 'Не авторизованный клиент из интернет-магазина tastyoleg.com';
+      const leadName = `${prefix} ${order.createdAt.toLocaleString().split(',').join()}`;
       const lead = await this.amoCrmService.createLead({
         name: leadName,
         price: orderWithTotalSum.totalSum,
@@ -308,7 +329,7 @@ export class OrderService {
         stateName: stateName,
         paymentMethod: dto.paymentMethod,
         moyskladOrderId: warehouseOrder.id,
-        isClientIndividual: fullClient.role.key === 'individual',
+        isClientIndividual: fullClient === undefined || fullClient.role.key === 'individual',
         email: order.email,
         phone: order.phone,
         address: this.getAddress(orderProfile),
@@ -326,14 +347,16 @@ export class OrderService {
         warehouseId: warehouseOrder.id,
       });
 
+      // TODO: delete
+      const isTest = dto.phone === '+12345678910';
       const invoice = {
         currency: Currency.RUB,
-        value: orderWithTotalSum.totalSum,
+        value: !isTest ? orderWithTotalSum.totalSum : 1,
         meta: {
           orderUuid: order.id,
           crmOrderId: +lead.id,
         },
-        payerUuid: client.id,
+        payerUuid: client?.id,
       };
 
       const newInvoice = await firstValueFrom(
@@ -353,7 +376,6 @@ export class OrderService {
 
       return this.getOne(order.id);
     } catch (error) {
-      console.error(error);
       await queryRunner.rollbackTransaction();
       throw new BadRequestException(error.message);
     } finally {
@@ -363,7 +385,7 @@ export class OrderService {
 
   async payOrder(dto: PayOrderDto) {
     const client = await this.clientService.findOne(dto.payerUuid);
-    if (!client) throw new NotFoundException('Пользователь не найден');
+    if (dto.payerUuid && !client) throw new NotFoundException('Пользователь не найден');
 
     try {
       const invoice = await firstValueFrom(
@@ -394,7 +416,7 @@ export class OrderService {
         currency: dto.currency,
         email: dto.email,
         invoiceUuid: dto.invoiceUuid,
-        payerUuid: client.id,
+        payerUuid: client?.id,
         ipAddress: dto.ipAddress,
         signature: dto.signature,
         fullName: dto.fullName,
@@ -430,6 +452,7 @@ export class OrderService {
     };
 
     try {
+      console.log(1);
       if (!verifyJwt(token, tokenSecret)) {
         throw new ForbiddenException('Токен не действителен');
       }
@@ -513,7 +536,7 @@ export class OrderService {
     promoCode?: PromoCode,
   ): Promise<OrderWithTotalSumDto> {
     const fullOrderProducts: OrderProductWithTotalSumDto[] = [];
-    const fullClient = await this.clientService.findOne(order.client.id);
+    const fullClient = order.client ? await this.clientService.findOne(order.client.id) : undefined;
 
     for (const orderProduct of order.orderProducts) {
       if (!orderProduct.product) return;
@@ -525,7 +548,7 @@ export class OrderService {
 
       //TODO здесь поправить расчёт цены,получается
       if (product) {
-        const priceByRole = getProductPriceByRole(product.price,fullClient.role,order.payByCash);
+        const priceByRole = getProductPriceByRole(product.price,fullClient?.role,order.payByCash);
         const discountByGram =
           (priceByRole * (product.discount / 100)) / 1000;
         const priceByGram = priceByRole / 1000;
@@ -542,13 +565,6 @@ export class OrderService {
         const totalSumWithoutAmount =
           totalCostWithoutAmount - totalDiscountWithoutAmount;
         const totalSum = totalSumWithoutAmount * orderProduct.amount;
-        if (product.id===65) {
-          console.log(priceByRole,discountByGram,
-              priceByGram,totalDiscountWithoutAmount,
-              totalDiscount,totalCostWithoutAmount,
-              totalCost,totalSumWithoutAmount,totalSum
-          );
-        }
 
         const fullOrderProduct = {
           ...orderProduct,
@@ -563,13 +579,13 @@ export class OrderService {
       }
     }
 
-    const client = await this.clientService.findOne(order.client.id);
+    const client = order.client ? await this.clientService.findOne(order.client.id) : undefined;
 
-    const isIndividual = client.role.key === 'individual';
+    const isIndividual = !client || client.role.key === 'individual';
 
     const orderDiscounts: OrderDiscount[] = [];
 
-    const referralCodeDiscount = client.referralCode?.discount;
+    const referralCodeDiscount = client?.referralCode?.discount;
     const promoCodeDiscount = promoCode?.discount;
 
     if (isIndividual) {

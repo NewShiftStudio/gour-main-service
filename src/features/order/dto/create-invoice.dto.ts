@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsObject, IsUUID } from 'class-validator';
+import {IsEnum, IsNumber, IsObject, IsOptional, IsUUID} from 'class-validator';
 import { Currency } from 'src/features/wallet/wallet.service';
 
 export class InvoiceCreateDto {
@@ -12,5 +12,6 @@ export class InvoiceCreateDto {
   meta: object; // some meta information
 
   @IsUUID()
-  payerUuid: string;
+  @IsOptional()
+  payerUuid?: string;
 }

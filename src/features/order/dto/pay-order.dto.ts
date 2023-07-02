@@ -6,6 +6,7 @@ import {
   IsString,
   IsUrl,
   IsUUID,
+  ValidateIf,
 } from 'class-validator';
 import { Currency } from 'src/features/wallet/wallet.service';
 export class PayOrderDto {
@@ -13,11 +14,14 @@ export class PayOrderDto {
   currency: Currency;
 
   @IsUUID()
-  payerUuid: string;
+  @ValidateIf(o => o.payerUuid !== '')
+  @IsOptional()
+  payerUuid?: string;
 
   @IsEmail()
   @IsOptional()
-  email: string;
+  @ValidateIf(o => o.email !== '')
+  email?: string;
 
   @IsIP()
   ipAddress: string;

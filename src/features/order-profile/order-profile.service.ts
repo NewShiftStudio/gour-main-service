@@ -39,7 +39,7 @@ export class OrderProfileService {
     return orderProfile;
   }
 
-  async create(orderProfileDto: OrderProfileCreateDto, client: Client) {
+  async create(orderProfileDto: OrderProfileCreateDto, client?: Client) {
     const city = await this.cityRepository.findOne(orderProfileDto.cityId);
 
     if (!city) throw new NotFoundException('Город не найден');

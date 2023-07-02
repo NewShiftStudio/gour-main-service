@@ -538,12 +538,12 @@ export class ProductService {
       relations: ['products'],
     });
 
-    const categoriesWithDiscounts = client === undefined
+    const categoriesWithDiscounts = !client
         ? []
         : await this.categoryService.findCategoriesWithDiscounts(client); // категории для системы наеденности
 
     let role;
-    if (client === undefined) {
+    if (!client) {
       role = undefined;
     } else {
       const fullClient = await this.clientRepository.findOne(client.id);

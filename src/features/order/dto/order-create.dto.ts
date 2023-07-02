@@ -6,13 +6,13 @@ import {
   IsPhoneNumber,
   IsString,
   ValidateNested,
+  ValidateIf,
 } from 'class-validator';
 import { OrderProductCreateDto } from './order-product-create.dto';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import {OrderPaymentMethod} from "../../../entity/Order";
-import {WalletTransactionStatus} from "../../../entity/WalletTransaction";
 
 export class OrderCreateDto {
   @IsArray()
@@ -52,7 +52,9 @@ export class OrderCreateDto {
 
   @IsEmail()
   @ApiProperty()
-  email: string;
+  @IsOptional()
+  @ValidateIf(o => o.email !== '')
+  email?: string;
 
   @IsOptional()
   @ApiPropertyOptional()
