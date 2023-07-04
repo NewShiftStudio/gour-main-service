@@ -11,6 +11,7 @@ import { OrderCreateDto } from './dto/order-create.dto';
 import { PayOrderDto } from './dto/pay-order.dto';
 import { UpdateMoyskladEntityDto } from './dto/update-moysklad-entity.dto';
 import { ClientService } from '../client/client.service';
+import { PayTestDto } from './dto/pay-test.dto';
 
 @ApiTags('orders')
 @Controller('orders')
@@ -110,6 +111,13 @@ export class OrderController {
   put(@Payload('id') id: string, @Payload('dto') dto: Partial<Order>) {
     // TODO: если будут меняться товары, то изменить скидки
     return this.orderService.update(id, dto);
+  }
+
+  @MessagePattern('simple-confirm-order-payment')
+  simpleConfirmOrderPayment(@Payload() dto: PayTestDto) {
+    console.log('RECEIVED_SIMPLE_CONFIRM', dto.orderUuid);
+
+    return this.orderService.simpleConfirmOrderPayment(dto.orderUuid);
   }
 
   @MessagePattern('delete-order')

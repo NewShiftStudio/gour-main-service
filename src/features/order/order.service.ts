@@ -383,6 +383,20 @@ export class OrderService {
     }
   }
 
+  async simpleConfirmOrderPayment(orderId: any) {
+    console.log('RECEIVED_SIMPLE_CONFIRM',orderId);
+    const order = await this.getOne(orderId);
+
+    const state = await this.warehouseService.getMoyskladStateByName(
+        'Оплачен',
+    );
+
+    await this.warehouseService.updateMoyskladOrderState(
+        order.warehouseId,
+        state,
+    );
+  }
+
   async payOrder(dto: PayOrderDto) {
     const client = await this.clientService.findOne(dto.payerUuid);
     if (dto.payerUuid && !client) throw new NotFoundException('Пользователь не найден');
