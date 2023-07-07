@@ -132,7 +132,7 @@ export class PromoCodeService {
       throw new BadRequestException('Кол-во промокодов закончилось');
 
     const clientOrders = promoCode.orders?.filter(
-      (order) => order.client.id === clientId,
+      (order) =>  order.client && order.client.id === clientId,
     );
 
     if (clientOrders.length >= promoCode.countForOne)
