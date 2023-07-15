@@ -86,25 +86,32 @@ export class ReferralCodeService {
       this.client.send('success-payments', dto.start || {}),
     );
 
-    const referralPayments = successPayments.reduce((acc, payment: {
+    const referralPayments = await successPayments.reduce(async (accPromise, payment: {
       amount: number;
       payerUuid: string;
       fullName: string;
       code: string;
+      createdAt: string;
     }) => {
-      const { amount, payerUuid, fullName, code } = payment;
 
-      if (code) {
-        acc.push({
+      let accArray = await accPromise;
+      const { amount, payerUuid, fullName, code, createdAt } = payment;
+      const client = await this.clientRepository.findOne(payerUuid);
+
+      if (code && client) {
+        accArray.push({
           clientName: fullName,
+          clientId: payerUuid,
+          createdAt: new Date(createdAt).toLocaleString(),
+          phone: client.phone,
+          email: client.email,
           code,
           amount,
-          clientId: payerUuid,
         });
       }
 
-      return acc;
-    }, []);
+      return accArray;
+    }, Promise.resolve([]));
 
     return [referralPayments, referralPayments.length];
   }
