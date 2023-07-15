@@ -245,7 +245,7 @@ export class OrderService {
 
       const assortment: AssortmentDto[] = orderWithTotalSum.orderProducts.map(
           (p) => ({
-            discount: 0,
+            discount: promoCode?.discount || 0,
             price: p.product.isWeighed
                 ? (p.totalSum * 100 / (p.gram * p.amount / 1000))
                 : p.totalSumWithoutAmount * 100 , // цена в копейках
