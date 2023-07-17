@@ -80,6 +80,31 @@ export class OrderController {
     return [fullOrders, count];
   }
 
+  @MessagePattern('get-referral-orders-paid-by-cash')
+  async getAllReferralAlreadyPaidByCash() {
+    const orders = await this.orderService.findReferralOrdersPaidByCash();
+
+    if (!orders.length) {
+      return [];
+    }
+
+    const leadIds = orders.map((order) => order.leadId);
+
+    const crmInfoList = await this.amoCrmService.getCrmInfoList(leadIds);
+
+    const paidOrders = orders.filter((order) => {
+      const crmInfo = crmInfoList.find((it) => it.id === order.leadId);
+
+      return crmInfo && (crmInfo.status.id === 52900114 // Оплачен
+          || crmInfo.status.id === 142 // Успешно реализовано
+          || crmInfo.status.id === 56617330 // Подтверждён 1
+          || crmInfo.status.id === 58675482 // Подтверждён 2
+          || crmInfo.status.id === 56617138); // Оплачен(наличные)
+    });
+
+    return paidOrders;
+  }
+
   @MessagePattern('get-order')
   async getOne(@Payload() id: string) {
     const order = await this.orderService.getOne(id);

@@ -121,6 +121,43 @@ export class OrderService {
     return { orders: ordersWithTotalSum, count };
   }
 
+  async findReferralOrdersPaidByCash() {
+    const orders = await this.orderRepository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.promoCode', 'promoCode')
+      .leftJoinAndSelect('order.orderProfile', 'orderProfile')
+      .leftJoinAndSelect('orderProfile.city', 'orderCity')
+      .leftJoinAndSelect('orderCity.name', 'orderCityName')
+      .leftJoinAndSelect('order.client', 'client')
+      .leftJoinAndSelect('order.orderProducts', 'orderProducts')
+      .leftJoinAndSelect('orderProducts.product', 'product')
+      .leftJoinAndSelect('product.title', 'productTitle')
+      .leftJoinAndSelect('product.price', 'productPrice')
+      .leftJoinAndSelect('product.images', 'productImages')
+      .leftJoinAndSelect('product.categories', 'categories')
+      .leftJoinAndSelect('categories.title', 'categoryTitle')
+      .leftJoinAndSelect('categories.subCategories', 'categorySubCategories')
+      .leftJoinAndSelect(
+        'categories.parentCategories',
+        'category.parentCategories',
+      )
+      .leftJoinAndSelect('client.referralCode', 'client.referralCode')
+      .orderBy('order.createdAt', 'DESC')
+      .where('order.payByCash = true')
+      .andWhere('client.referralCodeId IS NOT NULL')
+      .getMany();
+
+    const ordersWithTotalSum: OrderWithTotalSumDto[] = [];
+
+    for (const order of orders) {
+      const orderWithTotalSum = await this.prepareOrder(order);
+
+      if (orderWithTotalSum) ordersWithTotalSum.push(orderWithTotalSum);
+    }
+
+    return ordersWithTotalSum;
+  }
+
   async getOne(id: string): Promise<OrderWithTotalSumDto> {
     const order = await this.orderRepository
       .createQueryBuilder('order')
