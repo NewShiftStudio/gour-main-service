@@ -16,7 +16,7 @@ import { Price } from './Price';
 import { RoleDiscount } from './RoleDiscount';
 import { PageMeta } from './PageMeta';
 import { ProductGrade } from './ProductGrade';
-import { ApiProperty } from '@nestjs/swagger';
+import {ApiProperty, ApiPropertyOptional} from '@nestjs/swagger';
 import { Promotion } from './Promotion';
 import { Category } from './Category';
 
@@ -143,11 +143,14 @@ export class Product extends Base {
   })
   discount: number;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   defaultWeight: number;
 
   @ApiProperty()
-  defaultStock?: object;
+  defaultStock?: object|any;
+
+  @ApiPropertyOptional()
+  modifications?: any[];
 
   @ApiProperty()
   @Column({

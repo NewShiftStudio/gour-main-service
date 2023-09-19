@@ -27,7 +27,7 @@ import { CategoryService } from '../category/category.service';
 import { ExportDto } from 'src/common/dto/export.dto';
 import {WarehouseService} from "../warehouse/warehouse.service";
 
-const MAP_ROLE_PRICE_TYPE: any = {
+export const MAP_ROLE_PRICE_TYPE: any = {
   'cbcf493b-55bc-11d9-848a-00112f43529a': 'individual',
   '643f2204-655f-44d2-a70c-115df3163e0d': 'companyByCash',
   '825b0462-6bc4-4825-8f77-0e31fa7ee311': 'company',
@@ -65,6 +65,52 @@ export class ProductService {
     private promotionRepository: Repository<Promotion>,
   ) {}
 
+  async fillProductsModificationsInfo(products: Product[]){
+    const allMods = await this.warehouseService.moyskladService.getAllModificationsByProductIds(
+        products.filter((p) => !p.isWeighed).map((p) => p.moyskladId)
+    );
+
+    const quByAssId = await this.warehouseService.getQuantityByAssortmentIds(
+        Object.values(allMods).flatMap((modsArr: any[]) => modsArr.map(mod => mod.id)),
+        'Санкт-Петербург'
+    );
+
+    for (const product of products) {
+      if (allMods[product.moyskladId] === undefined || !allMods[product.moyskladId].length) {
+        continue;
+      }
+
+      // Смотрим все модификации продукта и находим среди них первую с остатком > 0
+      const modsForProduct = allMods[product.moyskladId];
+      const nonZeroMod = modsForProduct.find(it => quByAssId[it.id] > 0)
+
+      product.defaultWeight = nonZeroMod.gram;
+      product.defaultStock  = {
+        value: quByAssId[nonZeroMod.id],
+        id: nonZeroMod.id
+      };
+      product.modifications = allMods[product.moyskladId] ?? [];
+    }
+
+    return products;
+  }
+
+  async fillProductsWeightInfo(products: Product[]){
+    const quantityByProduct =  await this.warehouseService.getQuantityByAssortmentIds(
+        products.filter((p) => p.isWeighed).map((p) => p.moyskladId),
+        'Санкт-Петербург'
+    );
+
+    for (const product of products) {
+      const weight = quantityByProduct[product.moyskladId]
+      if (weight !== undefined) {
+        product.weight = weight * 1000;
+      }
+    }
+
+    return products;
+  }
+
   async findMany(
     params: ProductGetListDto,
     client?: Client,
@@ -84,45 +130,10 @@ export class ProductService {
 
     if (!products) throw new NotFoundException('Товары не найдены');
 
-    //todo:  это получается удалить - ОТ
-    const weightByProduct = {}
-    for (const product of products) {
-      const isMeat = product.categories?.find(productSubCategory => productSubCategory.id === 131);
+    products = await this.fillProductsModificationsInfo(products);
+    products = await this.fillProductsWeightInfo(products);
 
-      const weight = isMeat ? 100 : 150;
-      weightByProduct[product.moyskladId] = weight + 'гр';
-      product.defaultWeight = weight;
-    }
-
-    const stocksByProduct = await this.warehouseService.getStockOfManyProductByWarehouseIdCityNameAndGram(
-        weightByProduct,
-        'Санкт-Петербург'
-    );
-
-    for (const product of products) {
-      const stock = stocksByProduct[product.moyskladId]
-      if (stock !== undefined) {
-        product.defaultStock = stock;
-      }
-    }
-
-    //todo:  это получается удалить - ДО, изменить критерий сортировки
-    const quantityByProduct =  await this.warehouseService.getQuantityByAssortmentIds(
-        products.filter((p) => p.isWeighed).map((p) => p.moyskladId),
-        'Санкт-Петербург'
-    );
-
-    for (const product of products) {
-      const weight = quantityByProduct[product.moyskladId]
-      if (weight !== undefined) {
-        product.weight = weight * 1000;
-      }
-    }
-
-    products = products.sort(
-        (a:any,b: any) =>  (a.defaultStock?.value ?? Boolean(a.weight) ??  -1)
-            - (b.defaultStock?.value ?? Boolean(b.weight) ?? -1)
-    );
+    products = products.sort(this.productSortFunction);
 
     const startDate = dto?.start && new Date(dto.start);
     const endDate = dto?.end && new Date(dto.end);
@@ -155,6 +166,11 @@ export class ProductService {
     return [products, products.length];
   }
 
+  productSortFunction(a:Product, b: Product) {
+    return (a.defaultStock?.value ?? Boolean(a.weight) ??  -1)
+        - (b.defaultStock?.value ?? Boolean(b.weight) ?? -1);
+  }
+
   async findNovelties(params: ProductGetListDto, client?: Client) {
     // eslint-disable-next-line prefer-const
     let products = await this.productRepository.find({
@@ -170,45 +186,13 @@ export class ProductService {
       ].filter((it) => it),
     });
 
-    const weightByProduct = {}
-    for (const product of products) {
-      const isMeat = product.categories?.find(productSubCategory => productSubCategory.id === 131);
-
-      const weight = isMeat ? 100 : 150;
-      weightByProduct[product.moyskladId] = weight + 'гр';
-      product.defaultWeight = weight;
-    }
-
-    const stocksByProduct = await this.warehouseService.getStockOfManyProductByWarehouseIdCityNameAndGram(
-        weightByProduct,
-        'Санкт-Петербург'
-    );
-
-    for (const product of products) {
-      const stock = stocksByProduct[product.moyskladId]
-      if (stock !== undefined) {
-        product.defaultStock = stock;
-      }
-    }
-
-    const quantityByProduct =  await this.warehouseService.getQuantityByAssortmentIds(
-        products.filter((p) => p.isWeighed).map((p) => p.moyskladId),
-        'Санкт-Петербург'
-    );
-
-    for (const product of products) {
-      const weight = quantityByProduct[product.moyskladId]
-      if (weight !== undefined) {
-        product.weight = weight * 1000;
-      }
-    }
+    products = await this.fillProductsModificationsInfo(products);
+    products = await this.fillProductsWeightInfo(products);
 
     products = products
         .filter((product:any) => product.defaultStock?.value || product.weight)
-        .sort(
-            (a:any,b: any) =>  (a.defaultStock?.value ?? Boolean(a.weight) ??  -1)
-                - (b.defaultStock?.value ?? Boolean(b.weight) ?? -1)
-        ).reverse();
+        .sort(this.productSortFunction)
+        .reverse();
 
     if (params.withDiscount) {
       products = await this.prepareProducts(client, products);
@@ -236,7 +220,7 @@ export class ProductService {
       .where('product.id IN (:...productIds)', { productIds })
       .getMany();
 
-    const similarProducts: Product[] = [];
+    let similarProducts: Product[] = [];
 
     for (const product of products) {
       if (!product.similarProducts) continue;
@@ -254,41 +238,13 @@ export class ProductService {
       }
     }
 
+    similarProducts = await this.fillProductsModificationsInfo(similarProducts);
+    similarProducts = await this.fillProductsWeightInfo(similarProducts);
+
     let fullSimilarProducts = await this.prepareProducts(
       client,
       similarProducts,
     );
-
-    const weightByProduct = {}
-    for (const product of fullSimilarProducts) {
-      const isMeat = product.categories?.find(productSubCategory => productSubCategory.id === 131);
-
-      const weight = isMeat ? 100 : 150;
-      weightByProduct[product.moyskladId] = weight + 'гр';
-      product.defaultWeight = weight;
-    }
-
-    const stocksByProduct = await this.warehouseService.getStockOfManyProductByWarehouseIdCityNameAndGram(
-        weightByProduct,
-        'Санкт-Петербург'
-    );
-
-    const quantityByProduct =  await this.warehouseService.getQuantityByAssortmentIds(
-        fullSimilarProducts.filter((p) => p.isWeighed).map((p) => p.moyskladId),
-        'Санкт-Петербург'
-    );
-
-    for (const product of fullSimilarProducts) {
-      const stock = stocksByProduct[product.moyskladId]
-      if (stock !== undefined) {
-        product.defaultStock = stock;
-      }
-
-      const weight = quantityByProduct[product.moyskladId]
-      if (weight !== undefined) {
-        product.weight = weight * 1000;
-      }
-    }
 
     fullSimilarProducts = fullSimilarProducts.filter((product:any) => product.defaultStock?.value || product.weight)
 
@@ -341,6 +297,26 @@ export class ProductService {
           'Санкт-Петербург'
       );
       product.weight = (quantityByProduct[product.moyskladId] ?? 0) * 1000;
+    } else if(product.moyskladId) {
+      const allMods = await this.warehouseService.moyskladService.getAllModificationsByProductIds(
+          [product.moyskladId]
+      );
+
+      const quByAssId = await this.warehouseService.getQuantityByAssortmentIds(
+          Object.values(allMods).flatMap((modsArr: any[]) => modsArr.map(mod => mod.id)),
+          'Санкт-Петербург'
+      );
+
+      // Смотрим все модификации продукта и находим среди них первую с остатком > 0
+      const modsForProduct = allMods[product.moyskladId];
+      const nonZeroMod = modsForProduct.find(it => quByAssId[it.id] > 0)
+
+      product.defaultWeight = nonZeroMod.gram;
+      product.defaultStock  = {
+        value: quByAssId[nonZeroMod.id],
+        id: nonZeroMod.id
+      };
+      product.modifications = allMods[product.moyskladId] ?? [];
     }
 
     if (product.similarProducts) {

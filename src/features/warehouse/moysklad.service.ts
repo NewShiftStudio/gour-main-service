@@ -24,6 +24,7 @@ import {
   StrategyData,
 } from './@types/WarehouseService';
 import { CreateWarehouseAgentDto } from './dto/create-agent.dto';
+import { MAP_ROLE_PRICE_TYPE } from '../product/product.service';
 
 const orderStatusUpdateUrl = process.env.REFRESH_ORDER_STATUS_URL;
 const productUpdateUrl = 'https://tastyoleg.com/api/products/webhook-update';
@@ -132,6 +133,48 @@ export class MoyskladService implements AbstractService {
     console.log('PRODUCT UPDATE WEBHOOK: RUNNING');
 
     return productUpdateWebhook;
+  }
+
+  async getAllModificationsByProductIds(productUuids) {
+    const getMod = async () => await firstValueFrom(
+        this.httpService.get(`/entity/variant/`, {
+          params: {
+            filter: `productid=` + productUuids.join(';productid='),
+          },
+        }),
+    );
+
+    const response = await getMod();
+    let modificationsByProduct = {};
+    for (const item of response.data.rows) {
+      // здесь получить id продукта
+      const productId = item.product.meta.href.split('/').pop();
+      const current = item.characteristics.find((c) => c.name === 'вес');
+      if (current) {
+        if (modificationsByProduct[productId] === undefined) {
+          modificationsByProduct[productId] = [];
+        }
+
+        let prices = {};    // Группируем цены
+        for (const priceObj of item.salePrices) {
+          const type = MAP_ROLE_PRICE_TYPE[priceObj.priceType.externalCode];
+          if (type) {
+            prices[type] = priceObj.value / 100; // делим на 100 т.к. копейки
+          } else {
+            console.log(`Неизвестный тип цены ${priceObj}`)
+          }
+        }
+
+        const grams = current.value.split('гр')[0];
+        modificationsByProduct[productId].push({
+          id: item.id,
+          gram: grams,
+          price: prices,
+        });
+      }
+    }
+
+    return modificationsByProduct;
   }
 
   async getManyModificationByProductIdAndGram(gramsByUuids) {
@@ -264,7 +307,10 @@ export class MoyskladService implements AbstractService {
       ),
     );
 
-    return { id: data[0]?.assortmentId, value: data[0]?.quantity };
+    return {
+      id: data[0]?.assortmentId,
+      value: data[0]?.quantity,
+    };
   }
 
   async getStoreByCityName(city: CityName) {

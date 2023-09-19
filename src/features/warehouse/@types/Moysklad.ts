@@ -41,6 +41,7 @@ export type MoyskladModification = {
     id: Uuid;
     characteristics: {
       value: GramsInString;
+      name: string;
     }[];
   }[];
 };
